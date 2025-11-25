@@ -986,32 +986,78 @@ Tips:
                        'why', 'for', 'with', 'from', 'to', 'on', 'in', 'at', 'by', 'of', 'this', 'that'}
         key_terms = {w for w in question_words if w not in common_words and len(w) > 2}
         
+        # For "what is X" questions, extract the main subject
+        main_subject = None
+        if "what is" in question_lower or "what's" in question_lower or "what are" in question_lower:
+            # Extract the main subject after "what is/are"
+            parts = re.split(r"what (is|are|is the|are the|'s)", question_lower, 1)
+            if len(parts) > 1:
+                subject_part = parts[-1].strip()
+                # Remove trailing common words
+                subject_part = re.sub(r"\b(for|on|in|at|with|to|the)\b.*$", "", subject_part).strip()
+                # Extract key words from subject
+                subject_words = [w for w in re.findall(r'\b\w+\b', subject_part) if w not in common_words and len(w) > 2]
+                if subject_words:
+                    main_subject = " ".join(subject_words[:3])  # Take first 3 meaningful words
+                    # Also add individual words to key_terms
+                    key_terms.update(subject_words)
+        
         scored_entries = []
         
         for entry in self.knowledge_base:
             score = 0.0
             
-            # Exact topic match (highest priority)
-            if entry.topic.lower() in question_lower:
-                score += 10.0
+            # Exact topic match (highest priority) - must be exact phrase match
+            topic_lower = entry.topic.lower()
+            if topic_lower in question_lower:
+                score += 15.0  # Increased from 10.0
+            elif main_subject and main_subject in topic_lower:
+                score += 12.0  # High score if main subject matches topic
+            
+            # For "what is" questions, require topic or keyword match
+            is_what_is_question = "what is" in question_lower or "what's" in question_lower or "what are" in question_lower
+            if is_what_is_question and main_subject:
+                # Check if main subject is in topic or keywords
+                topic_has_subject = any(word in topic_lower for word in main_subject.split())
+                keywords_has_subject = any(word in [k.lower() for k in entry.keywords] for word in main_subject.split())
+                
+                if not topic_has_subject and not keywords_has_subject:
+                    # This entry doesn't match the subject - skip it or heavily penalize
+                    continue  # Skip entries that don't match the subject for "what is" questions
             
             # Keyword matching (weighted by importance)
             keyword_matches = []
             for kw in entry.keywords:
-                if kw.lower() in question_lower:
+                kw_lower = kw.lower()
+                if kw_lower in question_lower:
                     keyword_matches.append(kw)
                     # Exact keyword match gets higher score
-                    if f" {kw.lower()} " in f" {question_lower} ":
-                        score += 5.0
+                    if f" {kw_lower} " in f" {question_lower} ":
+                        score += 6.0  # Increased from 5.0
                     else:
-                        score += 2.0
+                        score += 2.5  # Increased from 2.0
+                
+                # For "what is" questions, check if keyword matches main subject
+                if main_subject and kw_lower in main_subject:
+                    score += 8.0  # High score for subject keyword match
             
             # Penalize if entry has keywords that don't match question
             entry_keywords_lower = {k.lower() for k in entry.keywords}
             question_keywords = {w for w in key_terms if len(w) > 3}  # Longer words are more specific
+            
+            # For "what is" questions, be stricter about keyword matching
+            if is_what_is_question and main_subject:
+                main_subject_words = set(main_subject.split())
+                # Check if entry keywords match the main subject
+                entry_matches_subject = any(kw in main_subject_words or any(sw in kw for sw in main_subject_words) 
+                                           for kw in entry_keywords_lower)
+                if not entry_matches_subject and len(keyword_matches) == 0:
+                    # Entry doesn't match subject and has no keyword matches - skip
+                    continue
+            
             unmatched_entry_keywords = entry_keywords_lower - {w.lower() for w in question_keywords}
-            if len(unmatched_entry_keywords) > len(keyword_matches) * 2:
-                score *= 0.5  # Penalize if too many unmatched keywords
+            if len(unmatched_entry_keywords) > len(keyword_matches) * 3:  # Stricter: was 2, now 3
+                score *= 0.3  # Heavier penalty if too many unmatched keywords
             
             # Semantic matching (word overlap) - but only for relevant words
             entry_words = set(re.findall(r'\b\w+\b', entry.content.lower()))
@@ -1024,7 +1070,14 @@ Tips:
                               'temperature', 'sensor', 'ecu', 'tune', 'map', 'psi', 'bar', 'hp', 
                               'torque', 'knock', 'detonation', 'injector', 'turbo', 'supercharger'}
             meaningful_matches = {w for w in common_words_matched if w in technical_terms or len(w) > 4}
-            score += len(meaningful_matches) * 1.0
+            
+            # For "what is" questions, only count matches that are in the main subject
+            if is_what_is_question and main_subject:
+                main_subject_words = set(main_subject.split())
+                # Only count matches that are part of the subject
+                meaningful_matches = {w for w in meaningful_matches if w in main_subject_words}
+            
+            score += len(meaningful_matches) * 1.5  # Increased from 1.0
             
             # Intent-based boost
             if intent == IntentType.TUNING_ADVICE and entry.tuning_related:
@@ -1039,12 +1092,20 @@ Tips:
                 score += 1.5
             
             # Penalize if entry topic doesn't match question focus
-            # If question asks about "fuel pressure" but entry is about "knock sensor", penalize
+            # If question asks about "fuel pressure" but entry is about "knock sensor", penalize heavily
             if len(key_terms) > 0:
                 topic_words = set(re.findall(r'\b\w+\b', entry.topic.lower()))
                 topic_overlap = key_terms.intersection(topic_words)
                 if len(topic_overlap) == 0 and score > 0:
-                    score *= 0.3  # Heavy penalty if no topic overlap
+                    score *= 0.2  # Heavier penalty: was 0.3, now 0.2
+            
+            # For "what is" questions, if no topic/keyword match, don't include
+            if is_what_is_question and main_subject:
+                topic_has_subject = any(word in topic_lower for word in main_subject.split())
+                keywords_has_subject = any(word in [k.lower() for k in entry.keywords] for word in main_subject.split())
+                if not topic_has_subject and not keywords_has_subject and score < 5.0:
+                    # Low score and no subject match - skip
+                    continue
             
             if score > 0:
                 scored_entries.append((entry, score))
@@ -1052,11 +1113,11 @@ Tips:
         # Sort by score and return top matches
         scored_entries.sort(key=lambda x: x[1], reverse=True)
         
-        # Filter out low-scoring matches (below threshold)
-        threshold = 3.0
+        # Filter out low-scoring matches (higher threshold for "what is" questions)
+        threshold = 5.0 if is_what_is_question else 3.0  # Stricter threshold for "what is" questions
         filtered_entries = [(entry, score) for entry, score in scored_entries if score >= threshold]
         
-        return filtered_entries[:5] if filtered_entries else scored_entries[:2]  # Top matches, or top 2 if all below threshold
+        return filtered_entries[:5] if filtered_entries else (scored_entries[:2] if scored_entries else [])  # Top matches, or top 2 if all below threshold
     
     def _integrate_telemetry_context(self, response: str, knowledge: List[KnowledgeEntry], question: str = "") -> Tuple[str, bool]:
         """Integrate live telemetry data into response if relevant."""
@@ -1247,7 +1308,7 @@ Tips:
         confidence = self._calculate_confidence(intent_confidence, knowledge_matches, telemetry_integrated)
         
         # Generate follow-up questions
-        follow_ups = self._generate_follow_ups(intent, knowledge)
+        follow_ups = self._generate_follow_ups(intent, knowledge, question)
         
         # Build sources list (knowledge + web search)
         sources = [entry.topic for entry in knowledge]
@@ -1527,9 +1588,38 @@ What would you like to know?"""
         
         return combined
     
-    def _generate_follow_ups(self, intent: IntentType, knowledge: List[KnowledgeEntry]) -> List[str]:
-        """Generate relevant follow-up questions."""
+    def _generate_follow_ups(self, intent: IntentType, knowledge: List[KnowledgeEntry], question: str = "") -> List[str]:
+        """Generate relevant follow-up questions based on actual knowledge matches."""
         follow_ups = []
+        
+        # Only generate follow-ups if we have relevant knowledge
+        if not knowledge:
+            return follow_ups
+        
+        question_lower = question.lower()
+        
+        # Extract main topic from question
+        main_topic = None
+        if "what is" in question_lower or "what's" in question_lower:
+            parts = re.split(r"what (is|are|is the|are the|'s)", question_lower, 1)
+            if len(parts) > 1:
+                topic_part = parts[-1].strip()
+                topic_part = re.sub(r"\b(for|on|in|at|with|to|the)\b.*$", "", topic_part).strip()
+                main_topic = topic_part.split()[0] if topic_part.split() else None
+        
+        # Check if knowledge actually matches the question topic
+        knowledge_matches_question = True
+        if main_topic:
+            # Check if any knowledge entry topic or keywords contain the main topic
+            knowledge_matches_question = any(
+                main_topic in entry.topic.lower() or 
+                any(main_topic in kw.lower() for kw in entry.keywords)
+                for entry in knowledge
+            )
+        
+        # Only generate follow-ups if knowledge matches the question
+        if not knowledge_matches_question:
+            return follow_ups  # Don't suggest irrelevant follow-ups
         
         if intent == IntentType.TUNING_ADVICE:
             if any("fuel" in entry.topic.lower() for entry in knowledge):
