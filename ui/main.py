@@ -56,6 +56,7 @@ from ui.health_score_widget import HealthScoreWidget
 from ui.notification_widget import NotificationLevel, NotificationWidget
 from ui.settings_dialog import SettingsDialog
 from ui.status_bar import StatusBar
+from ui.session_controls_panel import SessionControlsPanel
 from ui.streaming_control_panel import StreamingControlPanel
 from ui.system_status_panel import SystemStatusPanel, SubsystemStatus
 from ui.telemetry_panel import TelemetryPanel
@@ -476,31 +477,26 @@ class MainWindow(QWidget):
         )
         right_column.addWidget(self.streaming_panel, 2)
 
-        # 3) Controls group
-        controls_group = QGroupBox("Session Controls")
-        controls_layout = QVBoxLayout(controls_group)
-        controls_layout.setContentsMargins(8, 8, 8, 8)
-        controls_layout.setSpacing(4)
-
-        for btn in (
-            self.start_btn,
-            self.voice_btn,
-            self.replay_btn,
-            self.settings_btn,
-            self.theme_btn,
-            self.diagnostics_btn,
-            self.email_btn,
-            self.export_btn,
-        ):
-            controls_layout.addWidget(btn)
-
-        if self.camera_manager:
-            controls_layout.addWidget(self.camera_btn)
-            controls_layout.addWidget(self.overlay_btn)
-
-        controls_layout.addWidget(self.display_btn)
-
-        right_column.addWidget(controls_group, 1)
+        # 3) Session Controls Panel (modern styled)
+        self.session_controls = SessionControlsPanel()
+        
+        # Connect signals to existing handlers
+        self.session_controls.start_session_clicked.connect(self.start_session)
+        self.session_controls.voice_control_clicked.connect(self.start_voice_control)
+        self.session_controls.replay_log_clicked.connect(self.start_replay_mode)
+        self.session_controls.settings_clicked.connect(self.open_settings)
+        self.session_controls.theme_clicked.connect(self.open_theme_dialog)
+        self.session_controls.diagnostics_clicked.connect(self.open_diagnostics)
+        self.session_controls.email_logs_clicked.connect(self.email_logs)
+        self.session_controls.export_data_clicked.connect(self.export_data)
+        self.session_controls.configure_cameras_clicked.connect(self.configure_cameras)
+        self.session_controls.video_overlay_clicked.connect(self.toggle_video_overlay)
+        self.session_controls.external_display_clicked.connect(self.toggle_external_display)
+        
+        # Enable camera buttons if manager available
+        self.session_controls.enable_camera_buttons(self.camera_manager is not None)
+        
+        right_column.addWidget(self.session_controls, 2)
 
         # Finally, assemble columns into content layout
         content_layout.addLayout(left_column, 3)   # main panels
@@ -679,6 +675,39 @@ class MainWindow(QWidget):
 
         diagnostics_screen = show_diagnostics(parent=self)
         diagnostics_screen.show()
+
+    def open_diagnostics(self) -> None:
+        """Open diagnostics (alias for show_diagnostics)."""
+        self.show_diagnostics()
+
+    def toggle_video_overlay(self) -> None:
+        """Toggle video overlay mode."""
+        if self.camera_manager:
+            try:
+                # Toggle overlay on first camera
+                cameras = list(self.camera_manager.camera_manager.cameras.keys())
+                if cameras:
+                    self.camera_manager.toggle_overlay(cameras[0])
+                    self.ai_panel.update_insight("Video overlay toggled.")
+            except Exception as exc:
+                print(f"[WARN] Video overlay toggle failed: {exc}")
+        else:
+            self.ai_panel.update_insight("No camera manager available.")
+
+    def toggle_external_display(self) -> None:
+        """Toggle external display output."""
+        if self.display_manager:
+            try:
+                if self.display_manager.is_active():
+                    self.display_manager.stop()
+                    self.ai_panel.update_insight("External display stopped.")
+                else:
+                    self.display_manager.start()
+                    self.ai_panel.update_insight("External display started.")
+            except Exception as exc:
+                print(f"[WARN] External display toggle failed: {exc}")
+        else:
+            self.ai_panel.update_insight("No display manager available.")
 
     def email_logs(self) -> None:
         """Open email logs dialog."""
