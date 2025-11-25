@@ -127,10 +127,6 @@ class ConversationalResponseManager:
                 if "encouragements" in variations:
                     self.encouragements = variations["encouragements"]
         
-        # If dataset didn't provide these, use defaults
-        if not hasattr(self, 'acknowledgments') or not self.acknowledgments:
-            self.acknowledgments = [
-        
         # Follow-up greetings (when user returns)
         self.returning_greetings = [
             "Welcome back! 👋 What can I help you with today?",
@@ -140,6 +136,9 @@ class ConversationalResponseManager:
             "Hey! Ready to continue? What's on your mind?",
         ]
         
+        # If dataset didn't provide these, use defaults
+        if not hasattr(self, 'acknowledgments') or not self.acknowledgments:
+            self.acknowledgments = [
                 "Got it!",
                 "Sure thing!",
                 "Absolutely!",
