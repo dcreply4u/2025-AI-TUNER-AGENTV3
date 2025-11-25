@@ -556,52 +556,70 @@ class MainWindow(QWidget):
         self.bottom_tabs.setTabPosition(QTabWidget.TabPosition.North)
         self.bottom_tabs.setStyleSheet("""
             QTabWidget::pane {
-                border: 1px solid #bdc3c7;
-                border-radius: 6px;
-                background: #ffffff;
+                border: 2px solid #2c3e50;
+                border-radius: 8px;
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #ffffff, stop:1 #f8f9fa);
                 margin-top: -1px;
             }
             QTabBar::tab {
-                background: #ecf0f1;
-                border: 1px solid #bdc3c7;
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #667eea, stop:1 #764ba2);
+                border: 1px solid #5a6fd6;
                 border-bottom: none;
-                border-top-left-radius: 4px;
-                border-top-right-radius: 4px;
-                padding: 6px 12px;
-                margin-right: 1px;
+                border-top-left-radius: 6px;
+                border-top-right-radius: 6px;
+                padding: 8px 14px;
+                margin-right: 2px;
                 font-weight: bold;
                 font-size: 10px;
-                color: #2c3e50;
-                min-width: 60px;
+                color: #ffffff;
+                min-width: 70px;
             }
             QTabBar::tab:selected {
-                background: #ffffff;
-                border-bottom: 2px solid #3498db;
-                color: #3498db;
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #00d4ff, stop:1 #0099cc);
+                border: 2px solid #00b8e6;
+                border-bottom: none;
+                color: #ffffff;
             }
-            QTabBar::tab:hover {
-                background: #d5dbdb;
+            QTabBar::tab:hover:!selected {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #7c8ef5, stop:1 #8b5cf6);
             }
             QTabBar::scroller {
-                width: 20px;
+                width: 24px;
             }
             QTabBar QToolButton {
-                background: #3498db;
-                border: none;
-                color: white;
-            }
-            QPushButton {
-                background-color: #3498db;
-                color: white;
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #00d4ff, stop:1 #0099cc);
                 border: none;
                 border-radius: 4px;
-                padding: 6px 10px;
+                color: white;
+                font-weight: bold;
+            }
+            QTabBar QToolButton:hover {
+                background: #00e5ff;
+            }
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #667eea, stop:1 #5a67d8);
+                color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 8px 12px;
                 font-size: 10px;
                 font-weight: bold;
-                min-height: 28px;
+                min-height: 30px;
             }
-            QPushButton:hover { background-color: #2980b9; }
-            QPushButton:pressed { background-color: #2471a3; }
+            QPushButton:hover {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #7c8ef5, stop:1 #6b7ae0);
+            }
+            QPushButton:pressed {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #5a67d8, stop:1 #4c51bf);
+            }
             QPushButton:disabled { background-color: #bdc3c7; color: #7f8c8d; }
         """)
 
