@@ -24,7 +24,6 @@ from PySide6.QtWidgets import (
     QPushButton,
     QScrollArea,
     QSizePolicy,
-    QTabWidget,
     QVBoxLayout,
     QWidget,
 )
@@ -479,59 +478,43 @@ class MainWindow(QWidget):
         left_column.addSpacing(96)  # Extra gap before Engine Health
         left_column.addWidget(self.health_widget, 0)  # Engine Health
         left_column.addWidget(self.ai_panel, 0)  # AI Insights
-        left_column.addWidget(self.gps_track_panel, 0)  # GPS/Map
-        
-        # ============================================================
-        # CONTROL TABS - Visible tabs at bottom of left column
-        # ============================================================
-        self.control_tabs = QTabWidget()
-        self.control_tabs.setStyleSheet("""
-            QTabWidget::pane {
-                border: 1px solid #bdc3c7;
-                border-radius: 6px;
-                background: #ffffff;
-            }
-            QTabBar::tab {
-                background: #ecf0f1;
-                border: 1px solid #bdc3c7;
-                border-bottom: none;
-                border-top-left-radius: 6px;
-                border-top-right-radius: 6px;
-                padding: 8px 16px;
-                margin-right: 2px;
-                font-weight: bold;
-                color: #2c3e50;
-            }
-            QTabBar::tab:selected {
-                background: #ffffff;
-                border-bottom: 2px solid #3498db;
-                color: #3498db;
-            }
-            QTabBar::tab:hover {
-                background: #d5dbdb;
-            }
-        """)
-        self.control_tabs.setMinimumHeight(300)
-        
-        # Tab 1: Wheel Slip Monitor
-        slip_container = QWidget()
-        slip_layout = QVBoxLayout(slip_container)
+        left_column.addWidget(self.gps_track_panel, 0)  # GPS/Map at bottom
+        left_column.addStretch(1)  # Push everything up
+
+        # Right: gauges + faults + utilities + controls
+        # 0) Live Gauges group (at top) - fixed height, expand width to match others
+        gauge_group = QGroupBox("Live Gauges")
+        gauge_group.setFixedHeight(580)
+        gauge_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        gauge_layout = QVBoxLayout(gauge_group)
+        gauge_layout.setContentsMargins(8, 12, 8, 8)
+        gauge_layout.setSpacing(0)
+        gauge_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        gauge_layout.addWidget(self.gauge_panel, 0, Qt.AlignmentFlag.AlignCenter)
+        right_column.addWidget(gauge_group, 0)
+
+        # 0.5) Wheel Slip Monitor (drag racing)
+        slip_group = QGroupBox("🏁 Wheel Slip Monitor")
+        slip_layout = QVBoxLayout(slip_group)
         slip_layout.setContentsMargins(8, 8, 8, 8)
+        slip_layout.setSpacing(6)
         slip_layout.addWidget(self.wheel_slip_panel)
-        self.control_tabs.addTab(slip_container, "🏁 Wheel Slip")
-        
-        # Tab 2: System Status
-        self.control_tabs.addTab(self.system_status_panel, "📊 System Status")
-        
-        # Tab 3: Streaming Control
+        right_column.addWidget(slip_group, 2)
+
+        # 1) System Status Panel (modern visual monitoring)
+        right_column.addWidget(self.system_status_panel, 3)
+
+        # 2) Streaming Control Panel (modern camera & streaming)
         self.streaming_panel = StreamingControlPanel(
             live_streamer=self.live_streamer,
             camera_manager=self.camera_manager,
         )
-        self.control_tabs.addTab(self.streaming_panel, "📹 Streaming")
-        
-        # Tab 4: Session Controls
+        right_column.addWidget(self.streaming_panel, 2)
+
+        # 3) Session Controls Panel (modern styled)
         self.session_controls = SessionControlsPanel()
+        
+        # Connect signals to existing handlers
         self.session_controls.start_session_clicked.connect(self.start_session)
         self.session_controls.voice_control_clicked.connect(self.start_voice_control)
         self.session_controls.replay_log_clicked.connect(self.start_replay_mode)
@@ -543,24 +526,11 @@ class MainWindow(QWidget):
         self.session_controls.configure_cameras_clicked.connect(self.configure_cameras)
         self.session_controls.video_overlay_clicked.connect(self.toggle_video_overlay)
         self.session_controls.external_display_clicked.connect(self.toggle_external_display)
-        self.session_controls.enable_camera_buttons(self.camera_manager is not None)
-        self.control_tabs.addTab(self.session_controls, "⚙️ Controls")
         
-        left_column.addWidget(self.control_tabs, 0)
-        left_column.addStretch(1)
-
-        # ============================================================
-        # RIGHT COLUMN: Just Live Gauges
-        # ============================================================
-        gauge_group = QGroupBox("Live Gauges")
-        gauge_group.setFixedHeight(580)
-        gauge_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-        gauge_layout = QVBoxLayout(gauge_group)
-        gauge_layout.setContentsMargins(8, 12, 8, 8)
-        gauge_layout.setSpacing(0)
-        gauge_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        gauge_layout.addWidget(self.gauge_panel, 0, Qt.AlignmentFlag.AlignCenter)
-        right_column.addWidget(gauge_group, 0)
+        # Enable camera buttons if manager available
+        self.session_controls.enable_camera_buttons(self.camera_manager is not None)
+        
+        right_column.addWidget(self.session_controls, 2)
 
         # Finally, assemble columns into content layout
         # Add stretch at bottom of left column and set up scroll
