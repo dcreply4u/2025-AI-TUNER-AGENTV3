@@ -175,12 +175,12 @@ class MainWindow(QWidget):
         right_scroll.setStyleSheet("""
             QScrollArea { background-color: transparent; border: none; }
             QScrollBar:vertical {
-                background-color: #1a1a1a;
+                background-color: #e0e0e0;
                 width: 10px;
                 border-radius: 5px;
             }
             QScrollBar::handle:vertical {
-                background-color: #00e0ff;
+                background-color: #3498db;
                 border-radius: 5px;
                 min-height: 30px;
             }
