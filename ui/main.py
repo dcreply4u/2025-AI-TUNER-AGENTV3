@@ -47,7 +47,6 @@ from services import (
     USBManager,
 )
 from ui.ai_insight_panel import AIInsightPanel
-from ui.camera_quick_widget import CameraQuickWidget
 from ui.dragy_view import DragyPerformanceView
 from ui.enhanced_widgets import apply_standard_margins, make_expanding, make_hgrow
 from ui.fault_panel import FaultPanel
@@ -376,7 +375,7 @@ class MainWindow(QWidget):
             )
             # Cameras are configured by user via dialog
             self.camera_manager = camera_manager
-            # We will connect camera_quick_widget later once it exists.
+            # Camera manager will be connected to streaming panel
         except Exception as exc:  # pragma: no cover - optional hardware
             self.camera_manager = None
             self.ai_panel.update_insight(f"[Camera] Disabled ({exc})", level="warning")
@@ -395,9 +394,6 @@ class MainWindow(QWidget):
         self.display_btn = QPushButton("External Display")
         self.email_btn = QPushButton("Email Logs")
         self.export_btn = QPushButton("Export Data")
-
-        # Quick camera widget for instant recording
-        self.camera_quick_widget = CameraQuickWidget(parent=self)
 
         # Buttons: expand horizontally but fixed height
         for btn in (
@@ -418,10 +414,6 @@ class MainWindow(QWidget):
                 QSizePolicy.Policy.Fixed,
             )
 
-        self.camera_quick_widget.setSizePolicy(
-            QSizePolicy.Policy.Expanding,
-            QSizePolicy.Policy.Fixed,
-        )
         self.notification_widget.setSizePolicy(
             QSizePolicy.Policy.Expanding,
             QSizePolicy.Policy.Fixed,
@@ -517,7 +509,6 @@ class MainWindow(QWidget):
 
         # Integrate camera manager with streaming panel
         if self.camera_manager:
-            self.camera_quick_widget.set_camera_manager(self.camera_manager)
             self.streaming_panel.set_camera_manager(self.camera_manager)
             camera_names = list(
                 self.camera_manager.camera_manager.cameras.keys()
