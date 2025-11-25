@@ -33,14 +33,17 @@ class MetricTile(QFrame):
     def __init__(self, title: str, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setFrameShape(QFrame.Shape.StyledPanel)
-        self.setObjectName("metricTile")
         
-        # Modern light theme styling
+        # Modern light theme styling - only style the frame itself
         self.setStyleSheet("""
-            QFrame#metricTile {
+            MetricTile {
                 background-color: #ffffff;
                 border: 1px solid #bdc3c7;
                 border-radius: 8px;
+            }
+            MetricTile QLabel {
+                background-color: transparent;
+                border: none;
             }
         """)
         
@@ -48,35 +51,44 @@ class MetricTile(QFrame):
         layout.setContentsMargins(12, 10, 12, 10)
         layout.setSpacing(6)
         
-        # Title - prominent header
+        # Title - prominent header with metric name
         self.title_label = QLabel(f"🏎️ {title}")
         self.title_label.setStyleSheet("""
-            font-size: 12px; 
-            font-weight: bold;
-            color: #2c3e50; 
-            background: #f8f9fa;
-            padding: 4px 8px;
-            border-radius: 4px;
+            QLabel {
+                font-size: 13px; 
+                font-weight: bold;
+                color: #2c3e50; 
+                background-color: #e8f4f8;
+                padding: 6px 10px;
+                border-radius: 4px;
+                border: 1px solid #bde0eb;
+            }
         """)
         layout.addWidget(self.title_label)
         
         # Value - prominent display
         self.value_label = QLabel("--")
         self.value_label.setStyleSheet("""
-            font-size: 24px; 
-            font-weight: bold; 
-            color: #2c3e50;
-            background: transparent;
-            font-family: Consolas, monospace;
+            QLabel {
+                font-size: 28px; 
+                font-weight: bold; 
+                color: #2c3e50;
+                background-color: transparent;
+                font-family: Consolas, monospace;
+                padding: 4px 0;
+            }
         """)
         layout.addWidget(self.value_label)
         
         # Best time
-        self.best_label = QLabel("Best: --")
+        self.best_label = QLabel("🏆 Best: --")
         self.best_label.setStyleSheet("""
-            font-size: 10px; 
-            color: #27ae60;
-            background: transparent;
+            QLabel {
+                font-size: 11px; 
+                color: #27ae60;
+                background-color: transparent;
+                font-weight: bold;
+            }
         """)
         layout.addWidget(self.best_label)
 
@@ -84,37 +96,47 @@ class MetricTile(QFrame):
         if value is None:
             self.value_label.setText("--")
             self.value_label.setStyleSheet("""
-                font-size: 24px; 
-                font-weight: bold; 
-                color: #bdc3c7;
-                background: transparent;
-                font-family: Consolas, monospace;
+                QLabel {
+                    font-size: 28px; 
+                    font-weight: bold; 
+                    color: #bdc3c7;
+                    background-color: transparent;
+                    font-family: Consolas, monospace;
+                    padding: 4px 0;
+                }
             """)
         else:
             self.value_label.setText(f"{value:0.3f}{suffix}")
             self.value_label.setStyleSheet("""
-                font-size: 24px; 
-                font-weight: bold; 
-                color: #2c3e50;
-                background: transparent;
-                font-family: Consolas, monospace;
+                QLabel {
+                    font-size: 28px; 
+                    font-weight: bold; 
+                    color: #2c3e50;
+                    background-color: transparent;
+                    font-family: Consolas, monospace;
+                    padding: 4px 0;
+                }
             """)
 
     def set_best(self, value: Optional[float], suffix: str = "s") -> None:
         if value is None:
-            self.best_label.setText("Best: --")
+            self.best_label.setText("🏆 Best: --")
             self.best_label.setStyleSheet("""
-                font-size: 10px; 
-                color: #bdc3c7;
-                background: transparent;
+                QLabel {
+                    font-size: 11px; 
+                    color: #bdc3c7;
+                    background-color: transparent;
+                }
             """)
         else:
             self.best_label.setText(f"🏆 Best: {value:0.3f}{suffix}")
             self.best_label.setStyleSheet("""
-                font-size: 10px; 
-                color: #27ae60;
-                font-weight: bold;
-                background: transparent;
+                QLabel {
+                    font-size: 11px; 
+                    color: #27ae60;
+                    font-weight: bold;
+                    background-color: transparent;
+                }
             """)
 
 
