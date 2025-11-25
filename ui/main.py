@@ -47,6 +47,7 @@ from services import (
     PerformanceTracker,
     USBManager,
 )
+from ui.ai_advisor_widget import AIAdvisorWidget
 from ui.ai_insight_panel import AIInsightPanel
 from ui.dragy_view import DragyPerformanceView, DragTimesPanel, GPSTrackPanel
 from ui.drag_mode_panel import DragModePanel, DragModeCompactPanel, DragState
@@ -491,6 +492,30 @@ class MainWindow(QWidget):
         gauge_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         gauge_layout.addWidget(self.gauge_panel, 0, Qt.AlignmentFlag.AlignCenter)
         right_column.addWidget(gauge_group, 0)
+
+        # 0.25) AI Advisor Chat Widget (Q) - compact version
+        advisor_group = QGroupBox("🤖 Q - AI Advisor")
+        advisor_group.setStyleSheet("""
+            QGroupBox {
+                background-color: #ffffff;
+                border: 1px solid #bdc3c7;
+                border-radius: 8px;
+                font-weight: bold;
+                font-size: 11px;
+                color: #2c3e50;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px;
+            }
+        """)
+        advisor_group.setFixedHeight(280)
+        advisor_layout = QVBoxLayout(advisor_group)
+        advisor_layout.setContentsMargins(6, 10, 6, 6)
+        self.ai_advisor_widget = AIAdvisorWidget()
+        advisor_layout.addWidget(self.ai_advisor_widget)
+        right_column.addWidget(advisor_group, 0)
 
         # 0.5) Wheel Slip Monitor (drag racing)
         slip_group = QGroupBox("🏁 Wheel Slip Monitor")

@@ -113,22 +113,19 @@ class AIAdvisorWidget(QWidget):
         self._show_welcome_message()
     
     def setup_ui(self) -> None:
-        """Setup AI advisor widget."""
+        """Setup AI advisor widget with light theme."""
         main_layout = QVBoxLayout(self)
-        margin = self.scaler.get_scaled_size(5)
-        spacing = self.scaler.get_scaled_size(5)
-        main_layout.setContentsMargins(margin, margin, margin, margin)
-        main_layout.setSpacing(spacing)
+        main_layout.setContentsMargins(8, 8, 8, 8)
+        main_layout.setSpacing(6)
         
         # Header
         header_layout = QHBoxLayout()
         
-        title = QLabel("Q - AI Advisor")
-        title_font = self.scaler.get_scaled_font_size(14)
-        title.setStyleSheet(f"""
-            font-size: {title_font}px;
+        title = QLabel("🤖 Q - AI Advisor")
+        title.setStyleSheet("""
+            font-size: 12px;
             font-weight: bold;
-            color: {RacingColor.ACCENT_NEON_BLUE.value};
+            color: #2c3e50;
         """)
         header_layout.addWidget(title)
         
@@ -136,58 +133,72 @@ class AIAdvisorWidget(QWidget):
         
         # Clear button
         clear_btn = QPushButton("Clear")
-        clear_btn.setStyleSheet(f"""
-            QPushButton {{
-                background-color: #404040;
-                color: #ffffff;
-                padding: {self.scaler.get_scaled_size(3)}px {self.scaler.get_scaled_size(8)}px;
-                font-size: {self.scaler.get_scaled_font_size(9)}px;
-                border: 1px solid #606060;
-            }}
-            QPushButton:hover {{
-                background-color: #505050;
-            }}
+        clear_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #ecf0f1;
+                color: #2c3e50;
+                padding: 4px 10px;
+                font-size: 10px;
+                border: 1px solid #bdc3c7;
+                border-radius: 4px;
+            }
+            QPushButton:hover {
+                background-color: #d5dbdb;
+            }
         """)
         clear_btn.clicked.connect(self._clear_chat)
         header_layout.addWidget(clear_btn)
         
         main_layout.addLayout(header_layout)
         
-        # Chat display
+        # Chat display - light theme
         self.chat_display = QTextEdit()
         self.chat_display.setReadOnly(True)
-        chat_font = self.scaler.get_scaled_font_size(10)
-        self.chat_display.setStyleSheet(f"""
-            QTextEdit {{
-                background-color: #0a0a0a;
-                color: #ffffff;
+        self.chat_display.setStyleSheet("""
+            QTextEdit {
+                background-color: #f8f9fa;
+                color: #2c3e50;
                 font-family: 'Segoe UI', Arial, sans-serif;
-                font-size: {chat_font}px;
-                border: 1px solid #404040;
-                border-radius: {self.scaler.get_scaled_size(3)}px;
-            }}
+                font-size: 11px;
+                border: 1px solid #bdc3c7;
+                border-radius: 6px;
+                padding: 4px;
+            }
+            QScrollBar:vertical {
+                background-color: #e0e0e0;
+                width: 8px;
+                border-radius: 4px;
+            }
+            QScrollBar::handle:vertical {
+                background-color: #3498db;
+                border-radius: 4px;
+                min-height: 20px;
+            }
         """)
-        self.chat_display.setMinimumHeight(self.scaler.get_scaled_size(300))
+        self.chat_display.setMinimumHeight(120)
+        self.chat_display.setMaximumHeight(180)
         main_layout.addWidget(self.chat_display, stretch=1)
         
-        # Suggestions (hidden by default, shown when input is empty)
+        # Suggestions - light theme
         self.suggestions_list = QListWidget()
-        self.suggestions_list.setMaximumHeight(self.scaler.get_scaled_size(100))
+        self.suggestions_list.setMaximumHeight(60)
         self.suggestions_list.setStyleSheet("""
             QListWidget {
-                background-color: #1a1a1a;
-                color: #ffffff;
-                border: 1px solid #404040;
+                background-color: #ffffff;
+                color: #2c3e50;
+                border: 1px solid #bdc3c7;
+                border-radius: 4px;
                 font-size: 10px;
             }
             QListWidget::item {
-                padding: 4px;
+                padding: 3px;
             }
             QListWidget::item:hover {
-                background-color: #2a2a2a;
+                background-color: #ecf0f1;
             }
             QListWidget::item:selected {
-                background-color: #0080ff;
+                background-color: #3498db;
+                color: white;
             }
         """)
         self.suggestions_list.itemClicked.connect(self._on_suggestion_clicked)
@@ -196,31 +207,42 @@ class AIAdvisorWidget(QWidget):
         
         # Input area
         input_layout = QHBoxLayout()
+        input_layout.setSpacing(6)
         
         self.input_field = QLineEdit()
-        self.input_field.setPlaceholderText("Ask Q anything about the software...")
-        input_font = self.scaler.get_scaled_font_size(10)
-        self.input_field.setStyleSheet(f"""
-            QLineEdit {{
-                background-color: #1a1a1a;
-                color: #ffffff;
-                border: 1px solid #404040;
-                border-radius: {self.scaler.get_scaled_size(3)}px;
-                padding: {self.scaler.get_scaled_size(5)}px;
-                font-size: {input_font}px;
-            }}
-            QLineEdit:focus {{
-                border: 2px solid {RacingColor.ACCENT_NEON_BLUE.value};
-            }}
+        self.input_field.setPlaceholderText("Ask Q anything...")
+        self.input_field.setStyleSheet("""
+            QLineEdit {
+                background-color: #ffffff;
+                color: #2c3e50;
+                border: 1px solid #bdc3c7;
+                border-radius: 6px;
+                padding: 6px;
+                font-size: 11px;
+            }
+            QLineEdit:focus {
+                border: 2px solid #3498db;
+            }
         """)
         self.input_field.returnPressed.connect(self._send_message)
         self.input_field.textChanged.connect(self._on_input_changed)
         input_layout.addWidget(self.input_field, stretch=1)
         
         send_btn = QPushButton("Send")
-        btn_padding_v = self.scaler.get_scaled_size(5)
-        btn_padding_h = self.scaler.get_scaled_size(12)
-        send_btn.setStyleSheet(get_racing_stylesheet("button_primary"))
+        send_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #3498db;
+                color: white;
+                padding: 6px 12px;
+                font-size: 11px;
+                font-weight: bold;
+                border: none;
+                border-radius: 6px;
+            }
+            QPushButton:hover {
+                background-color: #2980b9;
+            }
+        """)
         send_btn.clicked.connect(self._send_message)
         input_layout.addWidget(send_btn)
         
@@ -228,19 +250,16 @@ class AIAdvisorWidget(QWidget):
         
         # Status
         self.status_label = QLabel("Ready")
-        status_font = self.scaler.get_scaled_font_size(9)
-        self.status_label.setStyleSheet(f"color: #00ff00; font-size: {status_font}px;")
+        self.status_label.setStyleSheet("color: #27ae60; font-size: 9px;")
         main_layout.addWidget(self.status_label)
     
     def _show_welcome_message(self) -> None:
         """Show welcome message from Q."""
-        welcome = """<b style="color: #00e0ff;">Q:</b> Hello! I'm Q, your TelemetryIQ AI advisor. I can help you with:
-<br>• Software features and configuration
-<br>• Troubleshooting issues
-<br>• Tips and best practices
-<br>• Keyboard shortcuts
-<br>• Hardware setup
-<br><br>What would you like to know?"""
+        welcome = """<b style="color: #3498db;">Q:</b> <span style="color: #2c3e50;">Hello! I'm Q, your AI advisor. I can help with:
+<br>• Software features
+<br>• Troubleshooting
+<br>• Tips & best practices
+<br><br>What would you like to know?</span>"""
         
         self.chat_display.setHtml(welcome)
     
@@ -298,7 +317,7 @@ class AIAdvisorWidget(QWidget):
         
         # Update status
         self.status_label.setText("Q is thinking...")
-        self.status_label.setStyleSheet("color: #ff8000; font-size: 9px;")
+        self.status_label.setStyleSheet("color: #f39c12; font-size: 9px;")
         
         # Get response (with slight delay for better UX)
         QTimer.singleShot(100, lambda: self._get_response(question))
@@ -356,23 +375,22 @@ class AIAdvisorWidget(QWidget):
             
             # Update status
             self.status_label.setText("Ready")
-            self.status_label.setStyleSheet("color: #00ff00; font-size: 9px;")
+            self.status_label.setStyleSheet("color: #27ae60; font-size: 9px;")
             
         except Exception as e:
             error_msg = f"Sorry, I encountered an error: {str(e)}"
             self._add_message("Q", error_msg, is_user=False)
             self.status_label.setText("Error")
-            self.status_label.setStyleSheet("color: #ff0000; font-size: 9px;")
+            self.status_label.setStyleSheet("color: #e74c3c; font-size: 9px;")
     
     def _add_message(self, sender: str, message: str, is_user: bool = False) -> None:
         """Add message to chat display."""
-        color = RacingColor.ACCENT_NEON_BLUE.value if not is_user else RacingColor.ACCENT_NEON_GREEN.value
-        sender_color = "#00e0ff" if not is_user else "#00ff00"
+        sender_color = "#3498db" if not is_user else "#27ae60"  # Blue for Q, Green for user
         
         html = f"""
-        <div style="margin-bottom: 10px;">
+        <div style="margin-bottom: 8px;">
             <b style="color: {sender_color};">{sender}:</b>
-            <span style="color: #ffffff; white-space: pre-wrap;">{self._escape_html(message)}</span>
+            <span style="color: #2c3e50; white-space: pre-wrap;">{self._escape_html(message)}</span>
         </div>
         """
         
