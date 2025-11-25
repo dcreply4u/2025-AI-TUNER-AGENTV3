@@ -1102,6 +1102,7 @@ Tips:
         warnings = []
         recommendations = []
         step_by_step = None
+        predictive_warnings = []
         
         # Handle special intents that need dedicated processing
         if intent == IntentType.LOG_ANALYSIS:
@@ -1131,6 +1132,17 @@ Tips:
         # Integrate telemetry context
         answer, telemetry_integrated = self._integrate_telemetry_context(answer, knowledge, question)
         
+        # Get predictive warnings if available
+        if self.predictive_diagnostics and self.response_context.telemetry:
+            try:
+                predictive_warnings = self.predictive_diagnostics.analyze_telemetry(
+                    self.response_context.telemetry
+                )
+                if predictive_warnings:
+                    warnings.extend([w.message for w in predictive_warnings if hasattr(w, 'message')])
+            except Exception as e:
+                LOGGER.debug("Predictive diagnostics unavailable: %s", e)
+        
         # Calculate confidence
         confidence = self._calculate_confidence(intent_confidence, knowledge_matches, telemetry_integrated)
         
@@ -1141,10 +1153,6 @@ Tips:
         sources = [entry.topic for entry in knowledge]
         if web_search_results:
             sources.extend([f"Web: {r.title}" for r in web_search_results.results[:3]])
-        
-        # Add predictive warnings if available
-        if predictive_warnings:
-            warnings.extend(predictive_warnings)
         
         # Determine if disclaimer is needed (tuning advice, what-if, tune suggestions)
         disclaimer_required = intent in [

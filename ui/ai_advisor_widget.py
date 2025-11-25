@@ -5,7 +5,7 @@ Chat widget for AI advisor that answers questions about the software
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, Dict, Any
 
 from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtGui import QFont, QTextCharFormat, QColor
@@ -65,11 +65,17 @@ class AIAdvisorWidget(QWidget):
         self.advisor: Optional[AIAdvisorQ] = None
         
         try:
-            from services.intelligent_config_monitor import IntelligentConfigMonitor
-            from services.config_version_control import ConfigVersionControl
-            
-            config_vc = ConfigVersionControl()
-            self.config_monitor = IntelligentConfigMonitor(config_vc=config_vc)
+            # Try to initialize config monitor (optional)
+            try:
+                from services.intelligent_config_monitor import IntelligentConfigMonitor
+                from services.config_version_control import ConfigVersionControl
+                
+                config_vc = ConfigVersionControl()
+                self.config_monitor = IntelligentConfigMonitor(config_vc=config_vc)
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).warning(f"Config monitor not available: {e}")
+                self.config_monitor = None
             
             if ADVISOR_AVAILABLE and AIAdvisorQ:
                 # Create telemetry provider function
@@ -83,31 +89,52 @@ class AIAdvisorWidget(QWidget):
                     return None
                 
                 # Initialize advisor based on type
-                if ADVISOR_TYPE == "ultra_enhanced":
-                    # Get vehicle ID from context if available
-                    vehicle_id = None
-                    parent = self.parent()
-                    while parent:
-                        if hasattr(parent, 'vehicle_id'):
-                            vehicle_id = parent.vehicle_id
-                            break
-                        parent = parent.parent()
+                try:
+                    if ADVISOR_TYPE == "ultra_enhanced":
+                        # Get vehicle ID from context if available
+                        vehicle_id = None
+                        parent = self.parent()
+                        while parent:
+                            if hasattr(parent, 'vehicle_id'):
+                                vehicle_id = parent.vehicle_id
+                                break
+                            parent = parent.parent()
+                        
+                        self.advisor = AIAdvisorQ(
+                            vehicle_id=vehicle_id,
+                            user_id=None,  # Could get from user context
+                            use_local_llm=False,  # Can enable if Ollama/etc available
+                        )
+                    elif ADVISOR_TYPE == "enhanced":
+                        self.advisor = AIAdvisorQ(
+                            use_llm=False,
+                            config_monitor=self.config_monitor,
+                            telemetry_provider=get_telemetry,
+                        )
+                    else:
+                        self.advisor = AIAdvisorQ()
                     
-                    self.advisor = AIAdvisorQ(
-                        vehicle_id=vehicle_id,
-                        user_id=None,  # Could get from user context
-                        use_local_llm=False,  # Can enable if Ollama/etc available
-                    )
-                elif ADVISOR_TYPE == "enhanced":
-                    self.advisor = AIAdvisorQ(
-                        use_llm=False,
-                        config_monitor=self.config_monitor,
-                        telemetry_provider=get_telemetry,
-                    )
-                else:
-                    self.advisor = AIAdvisorQ()
+                    import logging
+                    logging.getLogger(__name__).info(f"AI Advisor initialized: {ADVISOR_TYPE}")
+                except Exception as e:
+                    import logging
+                    logging.getLogger(__name__).error(f"Failed to initialize {ADVISOR_TYPE} advisor: {e}", exc_info=True)
+                    # Try fallback to basic advisor
+                    try:
+                        from services.ai_advisor_q import AIAdvisorQ as BasicAdvisor
+                        self.advisor = BasicAdvisor()
+                        logging.getLogger(__name__).info("Fell back to basic AI advisor")
+                    except Exception as e2:
+                        logging.getLogger(__name__).error(f"Failed to initialize basic advisor: {e2}", exc_info=True)
+                        self.advisor = None
+            else:
+                import logging
+                logging.getLogger(__name__).warning("AI Advisor not available - no advisor service found")
+                self.advisor = None
         except Exception as e:
-            print(f"Failed to initialize AI advisor: {e}")
+            import logging
+            logging.getLogger(__name__).error(f"Failed to initialize AI advisor system: {e}", exc_info=True)
+            self.advisor = None
         
         self.setup_ui()
         self._show_welcome_message()
@@ -268,27 +295,41 @@ class AIAdvisorWidget(QWidget):
         if not self.advisor:
             return
         
-        if not text.strip():
-            # Show suggestions when input is empty
-            suggestions = self.advisor.get_suggestions("")
-            self.suggestions_list.clear()
-            for suggestion in suggestions:
-                item = QListWidgetItem(suggestion)
-                self.suggestions_list.addItem(item)
-            self.suggestions_list.show()
-        else:
-            # Show filtered suggestions
-            suggestions = self.advisor.get_suggestions(text)
-            self.suggestions_list.clear()
-            for suggestion in suggestions:
-                if text.lower() in suggestion.lower():
-                    item = QListWidgetItem(suggestion)
-                    self.suggestions_list.addItem(item)
-            
-            if self.suggestions_list.count() > 0:
-                self.suggestions_list.show()
+        try:
+            if not text.strip():
+                # Show suggestions when input is empty
+                if hasattr(self.advisor, 'get_suggestions'):
+                    suggestions = self.advisor.get_suggestions("")
+                    self.suggestions_list.clear()
+                    for suggestion in suggestions:
+                        item = QListWidgetItem(suggestion)
+                        self.suggestions_list.addItem(item)
+                    if self.suggestions_list.count() > 0:
+                        self.suggestions_list.show()
+                    else:
+                        self.suggestions_list.hide()
+                else:
+                    self.suggestions_list.hide()
             else:
-                self.suggestions_list.hide()
+                # Show filtered suggestions
+                if hasattr(self.advisor, 'get_suggestions'):
+                    suggestions = self.advisor.get_suggestions(text)
+                    self.suggestions_list.clear()
+                    for suggestion in suggestions:
+                        if text.lower() in suggestion.lower():
+                            item = QListWidgetItem(suggestion)
+                            self.suggestions_list.addItem(item)
+                    
+                    if self.suggestions_list.count() > 0:
+                        self.suggestions_list.show()
+                    else:
+                        self.suggestions_list.hide()
+                else:
+                    self.suggestions_list.hide()
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).debug(f"Error getting suggestions: {e}")
+            self.suggestions_list.hide()
     
     def _on_suggestion_clicked(self, item: QListWidgetItem) -> None:
         """Handle suggestion click."""
@@ -325,9 +366,16 @@ class AIAdvisorWidget(QWidget):
     def _get_response(self, question: str) -> None:
         """Get response from Q."""
         if not self.advisor:
+            error_msg = "Sorry, AI advisor is not available. Please check the logs for initialization errors."
+            self._add_message("Q", error_msg, is_user=False)
+            self.status_label.setText("Advisor unavailable")
+            self.status_label.setStyleSheet("color: #e74c3c; font-size: 9px;")
             return
         
         try:
+            import logging
+            logger = logging.getLogger(__name__)
+            
             # Get context (could include current tab, etc.)
             context = {}
             
@@ -341,31 +389,50 @@ class AIAdvisorWidget(QWidget):
             
             # Ask Q - try answer() method first (ultra-enhanced), then ask() (enhanced), then direct call
             result = None
-            if hasattr(self.advisor, 'answer'):
-                # Ultra-enhanced advisor
-                telemetry = context.get('telemetry')
-                result = self.advisor.answer(question, telemetry=telemetry, context=context)
-            elif hasattr(self.advisor, 'ask'):
-                # Enhanced advisor
-                result = self.advisor.ask(question, context=context)
-            else:
-                # Fallback
-                result = str(self.advisor) if self.advisor else "Advisor not available"
+            try:
+                if hasattr(self.advisor, 'answer'):
+                    # Ultra-enhanced advisor
+                    telemetry = context.get('telemetry')
+                    logger.debug(f"Calling ultra-enhanced advisor.answer() with question: {question[:50]}...")
+                    result = self.advisor.answer(question, telemetry=telemetry, context=context)
+                elif hasattr(self.advisor, 'ask'):
+                    # Enhanced advisor
+                    logger.debug(f"Calling enhanced advisor.ask() with question: {question[:50]}...")
+                    result = self.advisor.ask(question, context=context)
+                else:
+                    # Fallback - try to call directly
+                    logger.warning("Advisor has no 'answer' or 'ask' method, trying direct call")
+                    if callable(self.advisor):
+                        result = self.advisor(question)
+                    else:
+                        result = "Advisor not properly initialized"
+            except AttributeError as e:
+                logger.error(f"Advisor method call failed: {e}", exc_info=True)
+                raise
+            except Exception as e:
+                logger.error(f"Error calling advisor: {e}", exc_info=True)
+                raise
             
             # Handle both ResponseResult and string responses
-            if hasattr(result, 'answer'):
+            if result is None:
+                response = "I received your question but couldn't generate a response. Please try rephrasing."
+            elif hasattr(result, 'answer'):
                 # ResponseResult object
                 response = result.answer
-                confidence = result.confidence
+                confidence = getattr(result, 'confidence', 1.0)
                 
                 # Add follow-up questions if available
-                if result.follow_up_questions:
+                if hasattr(result, 'follow_up_questions') and result.follow_up_questions:
                     response += "\n\n💡 Related questions you might ask:\n"
                     for follow_up in result.follow_up_questions:
                         response += f"• {follow_up}\n"
             else:
                 # String response
                 response = str(result)
+            
+            # Ensure we have a valid response
+            if not response or response.strip() == "":
+                response = "I'm not sure how to answer that. Could you try rephrasing your question?"
             
             # Add response
             self._add_message("Q", response, is_user=False)
@@ -378,7 +445,12 @@ class AIAdvisorWidget(QWidget):
             self.status_label.setStyleSheet("color: #27ae60; font-size: 9px;")
             
         except Exception as e:
-            error_msg = f"Sorry, I encountered an error: {str(e)}"
+            import logging
+            import traceback
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error in AI advisor response: {e}", exc_info=True)
+            
+            error_msg = f"Sorry, I encountered an error: {str(e)}\n\nPlease check the logs for more details."
             self._add_message("Q", error_msg, is_user=False)
             self.status_label.setText("Error")
             self.status_label.setStyleSheet("color: #e74c3c; font-size: 9px;")
@@ -410,8 +482,12 @@ class AIAdvisorWidget(QWidget):
     
     def _clear_chat(self) -> None:
         """Clear chat history."""
-        if self.advisor:
-            self.advisor.clear_history()
+        if self.advisor and hasattr(self.advisor, 'clear_history'):
+            try:
+                self.advisor.clear_history()
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).debug(f"Error clearing history: {e}")
         self.chat_display.clear()
         self._show_welcome_message()
     
@@ -420,7 +496,7 @@ class AIAdvisorWidget(QWidget):
         self.input_field.setText(question)
         self._send_message()
     
-    def update_context(self, context: Dict[str, any]) -> None:
+    def update_context(self, context: Dict[str, Any]) -> None:
         """Update advisor context (current tab, etc.)."""
         # Could be used to provide context-aware responses
         pass
