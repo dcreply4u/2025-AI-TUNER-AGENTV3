@@ -299,7 +299,7 @@ class AIAdvisorWidget(QWidget):
             return
         
         try:
-            if not text.strip():
+                if not text.strip():
                 # Show suggestions when input is empty
                 if hasattr(self.advisor, 'get_suggestions'):
                     suggestions = self.advisor.get_suggestions("")
@@ -308,10 +308,13 @@ class AIAdvisorWidget(QWidget):
                         item = QListWidgetItem(suggestion)
                         self.suggestions_list.addItem(item)
                     if self.suggestions_list.count() > 0:
+                        self.suggestions_list.setFixedHeight(50)
                         self.suggestions_list.show()
                     else:
+                        self.suggestions_list.setFixedHeight(0)
                         self.suggestions_list.hide()
                 else:
+                    self.suggestions_list.setFixedHeight(0)
                     self.suggestions_list.hide()
             else:
                 # Show filtered suggestions
@@ -324,10 +327,13 @@ class AIAdvisorWidget(QWidget):
                             self.suggestions_list.addItem(item)
                     
                     if self.suggestions_list.count() > 0:
+                        self.suggestions_list.setFixedHeight(50)
                         self.suggestions_list.show()
                     else:
+                        self.suggestions_list.setFixedHeight(0)
                         self.suggestions_list.hide()
                 else:
+                    self.suggestions_list.setFixedHeight(0)
                     self.suggestions_list.hide()
         except Exception as e:
             import logging
