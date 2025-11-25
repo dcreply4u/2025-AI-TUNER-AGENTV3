@@ -1,6 +1,6 @@
 """
 Multi-Row Tab Widget
-Custom tab widget that displays tabs in 2 rows instead of a single scrollable row
+Custom tab widget that displays tabs in multiple rows with vertical scrolling
 """
 
 from __future__ import annotations
@@ -16,6 +16,8 @@ from PySide6.QtWidgets import (
     QPushButton,
     QStackedWidget,
     QSizePolicy,
+    QScrollArea,
+    QFrame,
 )
 
 from ui.ui_scaling import UIScaler, get_scaled_size, get_scaled_font_size
@@ -23,14 +25,14 @@ from ui.racing_ui_theme import get_racing_stylesheet, RacingColor
 
 
 class MultiRowTabWidget(QWidget):
-    """Custom tab widget that displays tabs in 2 rows."""
+    """Custom tab widget that displays tabs in multiple rows with scrolling."""
     
     currentChanged = Signal(int)  # Emitted when tab changes
     
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         self.scaler = UIScaler.get_instance()
-        self.tabs_per_row = 10  # Number of tabs per row (will be calculated dynamically)
+        self.tabs_per_row = 8  # Number of tabs per row
         self.current_index = 0
         self.tab_buttons: Dict[int, QPushButton] = {}
         self.tab_widgets: Dict[int, QWidget] = {}
@@ -39,33 +41,57 @@ class MultiRowTabWidget(QWidget):
         self.setup_ui()
     
     def setup_ui(self) -> None:
-        """Setup multi-row tab widget UI."""
+        """Setup multi-row tab widget UI with scrolling."""
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         
-        # Tab bar area (2 rows of buttons)
+        # Scroll area for tab buttons
+        self.tab_scroll = QScrollArea()
+        self.tab_scroll.setWidgetResizable(True)
+        self.tab_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.tab_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.tab_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        self.tab_scroll.setStyleSheet("""
+            QScrollArea {
+                background-color: transparent;
+                border: none;
+            }
+            QScrollBar:vertical {
+                background-color: #1a1a1a;
+                width: 10px;
+                border-radius: 5px;
+            }
+            QScrollBar::handle:vertical {
+                background-color: #00e0ff;
+                border-radius: 5px;
+                min-height: 30px;
+            }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+                height: 0px;
+            }
+        """)
+        
+        # Container for all tab rows
         self.tab_bar_widget = QWidget()
         self.tab_bar_layout = QVBoxLayout(self.tab_bar_widget)
-        self.tab_bar_layout.setContentsMargins(0, 0, 0, 0)
-        self.tab_bar_layout.setSpacing(get_scaled_size(4))  # More spacing between rows
+        self.tab_bar_layout.setContentsMargins(4, 4, 4, 4)
+        self.tab_bar_layout.setSpacing(get_scaled_size(6))
         
-        # Create two rows for tabs
-        self.row1_layout = QHBoxLayout()
-        self.row1_layout.setContentsMargins(0, 0, 0, 0)
-        self.row1_layout.setSpacing(get_scaled_size(4))  # More spacing between tabs
+        # We'll create rows dynamically as tabs are added
+        self.row_layouts: list[QHBoxLayout] = []
         
-        self.row2_layout = QHBoxLayout()
-        self.row2_layout.setContentsMargins(0, 0, 0, 0)
-        self.row2_layout.setSpacing(get_scaled_size(4))  # More spacing between tabs
+        self.tab_scroll.setWidget(self.tab_bar_widget)
         
-        self.tab_bar_layout.addLayout(self.row1_layout)
-        self.tab_bar_layout.addLayout(self.row2_layout)
+        # Set a reasonable max height for the tab area (allows ~3-4 rows visible)
+        max_tab_height = get_scaled_size(150)
+        self.tab_scroll.setMaximumHeight(max_tab_height)
+        self.tab_scroll.setMinimumHeight(get_scaled_size(50))
         
         # Stacked widget for tab content
         self.stacked_widget = QStackedWidget()
         
-        layout.addWidget(self.tab_bar_widget)
+        layout.addWidget(self.tab_scroll)
         layout.addWidget(self.stacked_widget, stretch=1)
         
         # Apply styling
@@ -73,9 +99,9 @@ class MultiRowTabWidget(QWidget):
     
     def _apply_styling(self) -> None:
         """Apply racing theme styling to tab bar."""
-        btn_padding_v = get_scaled_size(8)
-        btn_padding_h = get_scaled_size(15)
-        btn_font = get_scaled_font_size(11)
+        btn_padding_v = get_scaled_size(6)
+        btn_padding_h = get_scaled_size(12)
+        btn_font = get_scaled_font_size(10)
         
         # Base button style (inactive)
         self.base_button_style = f"""
@@ -83,12 +109,12 @@ class MultiRowTabWidget(QWidget):
                 background-color: {RacingColor.BG_SECONDARY.value};
                 color: {RacingColor.TEXT_PRIMARY.value};
                 border: {get_scaled_size(1)}px solid {RacingColor.BORDER_DEFAULT.value};
-                border-radius: {get_scaled_size(3)}px;
+                border-radius: {get_scaled_size(4)}px;
                 padding: {btn_padding_v}px {btn_padding_h}px;
                 font-size: {btn_font}px;
                 font-weight: bold;
                 text-align: center;
-                min-height: {get_scaled_size(30)}px;
+                min-height: {get_scaled_size(28)}px;
             }}
             QPushButton:hover {{
                 background-color: {RacingColor.BG_TERTIARY.value};
@@ -102,12 +128,12 @@ class MultiRowTabWidget(QWidget):
                 background-color: {RacingColor.ACCENT_NEON_BLUE.value};
                 color: {RacingColor.BG_PRIMARY.value};
                 border: {get_scaled_size(2)}px solid {RacingColor.ACCENT_NEON_BLUE.value};
-                border-radius: {get_scaled_size(3)}px;
+                border-radius: {get_scaled_size(4)}px;
                 padding: {btn_padding_v}px {btn_padding_h}px;
                 font-size: {btn_font}px;
                 font-weight: bold;
                 text-align: center;
-                min-height: {get_scaled_size(30)}px;
+                min-height: {get_scaled_size(28)}px;
             }}
             QPushButton:hover {{
                 background-color: {RacingColor.ACCENT_NEON_BLUE.value}dd;
@@ -132,16 +158,10 @@ class MultiRowTabWidget(QWidget):
         # Add widget to stacked widget
         self.stacked_widget.addWidget(widget)
         
-        # Create tab button with better sizing
+        # Create tab button
         button = QPushButton(label)
-        # Calculate minimum width based on text length to ensure readability
-        text_width = len(label) * get_scaled_size(7)  # Approximate width per character
-        min_width = max(get_scaled_size(100), text_width + get_scaled_size(40))  # Text + padding
-        # Don't set max width - let them expand equally
-        
-        # Use Expanding so buttons fill space evenly
-        button.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-        button.setMinimumWidth(min_width)
+        button.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
+        button.setMinimumWidth(get_scaled_size(80))
         button.setStyleSheet(self.base_button_style)
         button.clicked.connect(lambda checked, idx=index: self.setCurrentIndex(idx))
         self.tab_buttons[index] = button
@@ -150,44 +170,57 @@ class MultiRowTabWidget(QWidget):
         if index == 0:
             self.setCurrentIndex(0)
         
-        # We'll redistribute all tabs after adding this one
+        # Redistribute tabs across rows
         self._redistribute_tabs()
         
         return index
     
     def _redistribute_tabs(self) -> None:
-        """Redistribute all tabs evenly across the two rows."""
-        # Clear both rows
-        while self.row1_layout.count():
-            item = self.row1_layout.takeAt(0)
-            if item.widget():
-                item.widget().setParent(None)
+        """Redistribute all tabs across multiple rows."""
+        # Clear existing row layouts
+        for row_layout in self.row_layouts:
+            while row_layout.count():
+                item = row_layout.takeAt(0)
+                if item.widget():
+                    item.widget().setParent(None)
         
-        while self.row2_layout.count():
-            item = self.row2_layout.takeAt(0)
-            if item.widget():
-                item.widget().setParent(None)
+        # Clear row layouts from main layout
+        while self.tab_bar_layout.count():
+            item = self.tab_bar_layout.takeAt(0)
+            if item.layout():
+                # Don't delete, we'll reuse
+                pass
         
-        # Calculate how many tabs per row (split evenly)
+        self.row_layouts.clear()
+        
         total_tabs = len(self.tab_widgets)
         if total_tabs == 0:
             return
         
-        # Split evenly - first half in row 1, second half in row 2
-        tabs_per_row = (total_tabs + 1) // 2  # Round up for first row
+        # Calculate number of rows needed
+        num_rows = (total_tabs + self.tabs_per_row - 1) // self.tabs_per_row
         
-        # Add tabs to appropriate rows with stretch factors
+        # Create row layouts
+        for _ in range(num_rows):
+            row = QHBoxLayout()
+            row.setContentsMargins(0, 0, 0, 0)
+            row.setSpacing(get_scaled_size(6))
+            self.row_layouts.append(row)
+            self.tab_bar_layout.addLayout(row)
+        
+        # Add tabs to rows
         for index in sorted(self.tab_buttons.keys()):
             button = self.tab_buttons[index]
-            # Use stretch factor of 1 so all buttons get equal space
-            if index < tabs_per_row:
-                self.row1_layout.addWidget(button, stretch=1)
-            else:
-                self.row2_layout.addWidget(button, stretch=1)
+            row_idx = index // self.tabs_per_row
+            if row_idx < len(self.row_layouts):
+                self.row_layouts[row_idx].addWidget(button)
         
-        # Add stretch at the end of each row to fill remaining space
-        self.row1_layout.addStretch()
-        self.row2_layout.addStretch()
+        # Add stretch to each row
+        for row in self.row_layouts:
+            row.addStretch()
+        
+        # Add stretch at bottom
+        self.tab_bar_layout.addStretch()
     
     def insertTab(self, index: int, widget: QWidget, label: str) -> int:
         """
@@ -201,10 +234,8 @@ class MultiRowTabWidget(QWidget):
         Returns:
             Tab index
         """
-        # For simplicity, just add at the end and reorder if needed
-        # This is a simplified implementation
+        # For simplicity, just add at the end
         return self.addTab(widget, label)
-    
     
     def setCurrentIndex(self, index: int) -> None:
         """
@@ -226,6 +257,10 @@ class MultiRowTabWidget(QWidget):
         # Update stacked widget
         self.stacked_widget.setCurrentIndex(index)
         self.current_index = index
+        
+        # Scroll to make the selected tab visible
+        if index in self.tab_buttons:
+            self.tab_scroll.ensureWidgetVisible(self.tab_buttons[index])
         
         # Emit signal
         self.currentChanged.emit(index)
@@ -255,4 +290,3 @@ class MultiRowTabWidget(QWidget):
     def setStyleSheet(self, stylesheet: str) -> None:
         """Override to apply stylesheet to stacked widget."""
         self.stacked_widget.setStyleSheet(stylesheet)
-
