@@ -51,6 +51,7 @@ from ui.camera_quick_widget import CameraQuickWidget
 from ui.dragy_view import DragyPerformanceView
 from ui.enhanced_widgets import apply_standard_margins, make_expanding, make_hgrow
 from ui.fault_panel import FaultPanel
+from ui.gauge_widget import GaugePanel
 from ui.health_score_widget import HealthScoreWidget
 from ui.notification_widget import NotificationLevel, NotificationWidget
 from ui.settings_dialog import SettingsDialog
@@ -178,6 +179,13 @@ class MainWindow(QWidget):
         # OBD & faults
         self.obd_interface = OBDInterface()
         self.fault_panel = FaultPanel(self.obd_interface)
+
+        # Gauge panel for right column
+        self.gauge_panel = GaugePanel()
+        self.gauge_panel.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Preferred,
+        )
 
         # Status bar
         self.status_bar = StatusBar()
@@ -422,7 +430,15 @@ class MainWindow(QWidget):
         left_column.addWidget(make_expanding(self.advice_panel), 1)
         left_column.addWidget(make_expanding(self.dragy_view), 2)
 
-        # Right: faults + utilities + controls
+        # Right: gauges + faults + utilities + controls
+        # 0) Live Gauges group (at top)
+        gauge_group = QGroupBox("Live Gauges")
+        gauge_layout = QVBoxLayout(gauge_group)
+        gauge_layout.setContentsMargins(8, 8, 8, 8)
+        gauge_layout.setSpacing(6)
+        gauge_layout.addWidget(self.gauge_panel)
+        right_column.addWidget(gauge_group, 3)
+
         # 1) Faults / status group
         fault_group = QGroupBox("System Status")
         fault_layout = QVBoxLayout(fault_group)
