@@ -1211,7 +1211,14 @@ Tips:
         knowledge_matches = self._find_relevant_knowledge_enhanced(question, intent)
         knowledge = [entry for entry, _ in knowledge_matches]
         
-        # Check if we need web search (low confidence or no knowledge found)
+        # Determine if we have good local knowledge matches
+        has_good_knowledge = (
+            knowledge_matches and 
+            len(knowledge_matches) > 0 and 
+            knowledge_matches[0][1] >= 5.0  # Good match threshold
+        )
+        
+        # Check if we need web search (ALWAYS search if no good local matches)
         web_search_results = None
         if self.web_search and self.web_search.is_available():
             question_lower = question.lower()
@@ -1232,17 +1239,17 @@ Tips:
             is_technical_spec_question = is_what_is_question and has_spec
             
             # Use web search if:
-            # 1. Vehicle-specific question (ALWAYS search for vehicle specs)
-            # 2. "What is" questions about technical specs (ALWAYS search - these need specific values)
-            # 3. No good knowledge matches (confidence < 5.0)
+            # 1. No good local knowledge matches (ALWAYS search to avoid erroneous info)
+            # 2. Vehicle-specific question (ALWAYS search for vehicle specs)
+            # 3. "What is" questions about technical specs (ALWAYS search - these need specific values)
             # 4. Question asks about specific products/components/vehicles
             # 5. Troubleshooting questions
             # 6. Spec/technical questions
             should_search = (
+                not has_good_knowledge or  # ALWAYS search if no good local matches (prevents erroneous info)
                 has_vehicle or  # ALWAYS search for vehicle-specific questions
                 is_technical_spec_question or  # ALWAYS search for "what is [technical spec]" questions
                 has_spec or  # Search for technical specs
-                not knowledge_matches or (knowledge_matches and knowledge_matches[0][1] < 5.0) or
                 intent in [IntentType.TROUBLESHOOTING, IntentType.WHAT_IS, IntentType.TELEMETRY_QUERY] or
                 any(word in question_lower for word in ["spec", "specification", "details", "information about", "look up", "research", "what is", "what are"])
             )
@@ -1285,7 +1292,9 @@ Tips:
             if self.use_llm:
                 answer = self._generate_llm_response(question, knowledge, intent, web_search_results)
             else:
-                answer = self._generate_enhanced_response(question, knowledge, intent, web_search_results)
+                # Pass knowledge match quality to response generator
+                knowledge_match_quality = knowledge_matches[0][1] if knowledge_matches else 0
+                answer = self._generate_enhanced_response(question, knowledge, intent, web_search_results, knowledge_match_quality)
         
         # Enhance with conversational formatting if manager available
         if self.conversation_manager and intent != IntentType.GREETING:
@@ -1429,6 +1438,7 @@ Tips:
         knowledge: List[KnowledgeEntry],
         intent: IntentType,
         web_search_results=None,
+        knowledge_match_quality: float = 0.0,
     ) -> str:
         """Generate response using enhanced rule-based system."""
         question_lower = question.lower()
@@ -1487,20 +1497,22 @@ What would you like to know?"""
             response_parts.append("💡 Note: These are general specifications. Actual values may vary by year, model, and modifications.")
             return "\n".join(response_parts)
         
-        # If we have relevant knowledge, use it
-        if knowledge:
+        # If we have relevant knowledge, use it (but only if it's a good match)
+        has_good_knowledge = knowledge_match_quality >= 5.0
+        if knowledge and has_good_knowledge:
             response_parts = []
             
             # Check knowledge relevance - if score is low and we have web search, prioritize web
-            knowledge_score = knowledge[0].__dict__.get('_score', 0) if hasattr(knowledge[0], '__dict__') else 5.0
-            if knowledge_score < 3.0 and web_search_results and web_search_results.results:
-                # Low relevance knowledge - prioritize web search
-                response_parts = ["🌐 I found this information:\n"]
+            knowledge_score = knowledge_match_quality
+            if knowledge_score < 5.0 and web_search_results and web_search_results.results:
+                # Low relevance knowledge - prioritize web search to avoid erroneous info
+                response_parts = ["🌐 I found this information online:\n"]
                 for result in web_search_results.results[:3]:
                     response_parts.append(f"📋 {result.title}")
                     if result.snippet:
                         response_parts.append(f"  {result.snippet[:200]}")
                     response_parts.append(f"  🔗 {result.url}\n")
+                response_parts.append("\n💡 Note: This information is from web research. Please verify for your specific application.")
                 return "\n".join(response_parts)
             
             # Primary knowledge (high relevance)
@@ -1534,7 +1546,7 @@ What would you like to know?"""
             
             return "\n".join(response_parts)
         
-        # If no knowledge but we have web search results
+        # If no good knowledge but we have web search results, use them
         if web_search_results and web_search_results.results:
             response_parts = ["🌐 I found some information online:\n"]
             for result in web_search_results.results[:3]:
@@ -1545,7 +1557,23 @@ What would you like to know?"""
             response_parts.append("\n💡 Note: This information is from web research. Please verify for your specific application.")
             return "\n".join(response_parts)
         
-        # Default response based on intent
+        # If no knowledge AND no web search results, try web search one more time
+        if not has_good_knowledge and not web_search_results and self.web_search and self.web_search.is_available():
+            try:
+                web_search_results = self._perform_web_search(question, intent)
+                if web_search_results and web_search_results.results:
+                    response_parts = ["🌐 I searched online and found:\n"]
+                    for result in web_search_results.results[:3]:
+                        response_parts.append(f"📋 {result.title}")
+                        if result.snippet:
+                            response_parts.append(f"  {result.snippet}")
+                        response_parts.append(f"  🔗 {result.url}\n")
+                    response_parts.append("\n💡 Note: This information is from web research. Please verify for your specific application.")
+                    return "\n".join(response_parts)
+            except Exception as e:
+                LOGGER.warning("Retry web search failed: %s", e)
+        
+        # Default response based on intent (only if we have no other options)
         if intent == IntentType.TUNING_ADVICE:
             return """I can help with tuning advice! Try asking about:
 • Fuel tuning and AFR targets
