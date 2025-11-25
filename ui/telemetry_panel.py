@@ -58,8 +58,8 @@ class TelemetryPanel(QWidget):
         )
         
         # Allow panel to expand for 3 stacked graphs
-        self.setMinimumHeight(300)  # 3 graphs x 80px + header + spacing
-        self.setMaximumHeight(340)  # Cap max height
+        self.setMinimumHeight(240)  # 3 graphs x 60px + header + spacing
+        self.setMaximumHeight(260)  # Cap max height
         
         header = QLabel("Live Telemetry Overview", alignment=Qt.AlignLeft)
         header_font_size = scaled_font_size(18)
@@ -83,7 +83,7 @@ class TelemetryPanel(QWidget):
             pg.setConfigOptions(antialias=True, background="#ffffff", foreground="#2c3e50")
             
             # 3 graphs stacked VERTICALLY - full width like Drag Mode
-            GRAPH_HEIGHT = 80  # Fixed height per graph (compact)
+            GRAPH_HEIGHT = 60  # Fixed height per graph (very compact)
             
             # Powertrain graph (Row 1)
             self.plots["primary"] = pg.PlotWidget(title="Powertrain")
