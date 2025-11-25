@@ -206,12 +206,9 @@ class MainWindow(QWidget):
             QSizePolicy.Policy.Expanding,
         )
 
-        # Gauge panel for right column
+        # Gauge panel for right column - fixed size to prevent jitter
         self.gauge_panel = GaugePanel()
-        self.gauge_panel.setSizePolicy(
-            QSizePolicy.Policy.Expanding,
-            QSizePolicy.Policy.Preferred,
-        )
+        # Don't override fixed size from GaugePanel
 
         # Wheel slip panel for drag racing optimization
         self.wheel_slip_panel = WheelSlipPanel()
@@ -462,13 +459,16 @@ class MainWindow(QWidget):
         left_column.addStretch(1)  # Push everything up
 
         # Right: gauges + faults + utilities + controls
-        # 0) Live Gauges group (at top)
+        # 0) Live Gauges group (at top) - fixed height, expand width to match others
         gauge_group = QGroupBox("Live Gauges")
+        gauge_group.setFixedHeight(580)
+        gauge_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         gauge_layout = QVBoxLayout(gauge_group)
-        gauge_layout.setContentsMargins(8, 8, 8, 8)
-        gauge_layout.setSpacing(6)
-        gauge_layout.addWidget(self.gauge_panel)
-        right_column.addWidget(gauge_group, 3)
+        gauge_layout.setContentsMargins(8, 12, 8, 8)
+        gauge_layout.setSpacing(0)
+        gauge_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        gauge_layout.addWidget(self.gauge_panel, 0, Qt.AlignmentFlag.AlignCenter)
+        right_column.addWidget(gauge_group, 0)
 
         # 0.5) Wheel Slip Monitor (drag racing)
         slip_group = QGroupBox("🏁 Wheel Slip Monitor")
