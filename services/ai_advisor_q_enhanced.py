@@ -1180,6 +1180,44 @@ Tips:
         
         return response, integrated
     
+    def _integrate_expert_insights(self, response: str, question: str) -> str:
+        """Integrate expert telemetry insights into response."""
+        if not hasattr(self.response_context, 'expert_insights') or not self.response_context.expert_insights:
+            return response
+        
+        question_lower = question.lower()
+        insights_to_show = []
+        
+        # Filter insights based on question relevance
+        for insight in self.response_context.expert_insights:
+            # Show critical insights always
+            if insight.severity == "critical":
+                insights_to_show.append(insight)
+            # Show warnings if question is related
+            elif insight.severity == "warning":
+                if any(param.lower() in question_lower for param in insight.affected_parameters):
+                    insights_to_show.append(insight)
+            # Show info if directly asked about
+            elif insight.severity == "info":
+                if any(param.lower() in question_lower for param in insight.affected_parameters):
+                    insights_to_show.append(insight)
+        
+        # Limit to top 3 most relevant insights
+        insights_to_show = sorted(insights_to_show, key=lambda x: (x.severity == "critical", x.confidence), reverse=True)[:3]
+        
+        if insights_to_show:
+            response += "\n\n🔍 Expert Analysis:\n"
+            for insight in insights_to_show:
+                severity_icon = "🔴" if insight.severity == "critical" else "⚠️" if insight.severity == "warning" else "ℹ️"
+                response += f"\n{severity_icon} {insight.title}\n"
+                response += f"   {insight.description}\n"
+                if insight.recommended_action:
+                    response += f"   💡 Action: {insight.recommended_action}\n"
+                if insight.expected_impact:
+                    response += f"   📈 Impact: {insight.expected_impact}\n"
+        
+        return response
+    
     def ask(self, question: str, context: Optional[Dict[str, Any]] = None) -> ResponseResult:
         """
         Ask Q a question with enhanced accuracy.
@@ -1328,6 +1366,9 @@ Tips:
         
         # Integrate telemetry context
         answer, telemetry_integrated = self._integrate_telemetry_context(answer, knowledge, question)
+        
+        # Integrate expert insights if available
+        answer = self._integrate_expert_insights(answer, question)
         
         # Get predictive warnings if available
         if self.predictive_diagnostics and self.response_context.telemetry:
