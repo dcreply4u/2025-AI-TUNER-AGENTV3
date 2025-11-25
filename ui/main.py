@@ -186,7 +186,7 @@ class MainWindow(QWidget):
         self.dragy_view = DragyPerformanceView()
         # NEW: Dodge Charger-style Drag Mode Panel
         self.drag_mode_panel = DragModePanel()
-        self.drag_mode_panel.setMinimumHeight(350)
+        self.drag_mode_panel.setFixedHeight(380)  # Fixed height to prevent overlap
         
         # Legacy panels (kept for backward compatibility)
         self.drag_times_panel = DragTimesPanel()
@@ -452,11 +452,12 @@ class MainWindow(QWidget):
         # Column composition
         # ------------------------------------------------------------------
         # Left: primary telemetry stack - use stretch=0 for fixed-size widgets
-        left_column.setSpacing(6)  # Reduce spacing between widgets
+        left_column.setSpacing(10)  # Better spacing between widgets
         left_column.addWidget(make_expanding(self.telemetry_panel), 3)  # Graphs
-        left_column.addWidget(self.drag_mode_panel, 0)  # NEW: Dodge Charger Drag Mode
-        left_column.addWidget(self.health_widget, 0)  # Compact
-        left_column.addWidget(self.ai_panel, 0)  # Compact
+        left_column.addWidget(self.drag_mode_panel, 0)  # Dodge Charger Drag Mode (fixed height)
+        left_column.addSpacing(8)  # Extra gap before Engine Health
+        left_column.addWidget(self.health_widget, 0)  # Engine Health
+        left_column.addWidget(self.ai_panel, 0)  # AI Insights
         left_column.addWidget(self.gps_track_panel, 0)  # GPS/Map at bottom
 
         # Right: gauges + faults + utilities + controls
