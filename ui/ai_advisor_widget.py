@@ -202,13 +202,15 @@ class AIAdvisorWidget(QWidget):
                 min-height: 20px;
             }
         """)
+        # Chat display - make it expandable but with reasonable limits
         self.chat_display.setMinimumHeight(120)
-        self.chat_display.setMaximumHeight(180)
-        main_layout.addWidget(self.chat_display, stretch=1)
+        self.chat_display.setMaximumHeight(250)  # Increased from 180 to give more room
+        main_layout.addWidget(self.chat_display, stretch=2)  # Give chat more stretch priority
         
-        # Suggestions - light theme
+        # Suggestions - light theme (positioned above input, not below chat)
         self.suggestions_list = QListWidget()
-        self.suggestions_list.setMaximumHeight(60)
+        self.suggestions_list.setMaximumHeight(50)  # Reduced from 60
+        self.suggestions_list.setFixedHeight(0)  # Start with 0 height when hidden
         self.suggestions_list.setStyleSheet("""
             QListWidget {
                 background-color: #ffffff;
@@ -230,7 +232,8 @@ class AIAdvisorWidget(QWidget):
         """)
         self.suggestions_list.itemClicked.connect(self._on_suggestion_clicked)
         self.suggestions_list.hide()
-        main_layout.addWidget(self.suggestions_list)
+        # Add with stretch=0 so it doesn't take space when hidden
+        main_layout.addWidget(self.suggestions_list, stretch=0)
         
         # Input area
         input_layout = QHBoxLayout()
@@ -347,7 +350,8 @@ class AIAdvisorWidget(QWidget):
             self._add_message("Q", "Sorry, AI advisor is not available.", is_user=False)
             return
         
-        # Hide suggestions
+        # Hide suggestions and reset height
+        self.suggestions_list.setFixedHeight(0)
         self.suggestions_list.hide()
         
         # Add user message
@@ -421,11 +425,18 @@ class AIAdvisorWidget(QWidget):
                 response = result.answer
                 confidence = getattr(result, 'confidence', 1.0)
                 
-                # Add follow-up questions if available
+                # Add follow-up questions if available (but don't make them too prominent)
                 if hasattr(result, 'follow_up_questions') and result.follow_up_questions:
-                    response += "\n\n💡 Related questions you might ask:\n"
-                    for follow_up in result.follow_up_questions:
-                        response += f"• {follow_up}\n"
+                    # Show follow-ups in suggestions list instead of in response text
+                    # This prevents them from taking up chat space
+                    self.suggestions_list.clear()
+                    for follow_up in result.follow_up_questions[:3]:  # Limit to 3
+                        item = QListWidgetItem(f"💡 {follow_up}")
+                        self.suggestions_list.addItem(item)
+                    if self.suggestions_list.count() > 0:
+                        self.suggestions_list.setFixedHeight(50)  # Set height when showing
+                        self.suggestions_list.show()
+                    # Don't add to response text to avoid clutter
             else:
                 # String response
                 response = str(result)
