@@ -48,6 +48,7 @@ from services import (
 )
 from ui.ai_insight_panel import AIInsightPanel
 from ui.dragy_view import DragyPerformanceView, DragTimesPanel, GPSTrackPanel
+from ui.drag_mode_panel import DragModePanel, DragModeCompactPanel, DragState
 from ui.enhanced_widgets import apply_standard_margins, make_expanding, make_hgrow
 from ui.fault_panel import FaultPanel
 from ui.gauge_widget import GaugePanel
@@ -183,12 +184,16 @@ class MainWindow(QWidget):
         self.advice_panel.setFixedHeight(120)  # Compact fixed height
         
         self.dragy_view = DragyPerformanceView()
-        # Separate panels for flexible layout
+        # NEW: Dodge Charger-style Drag Mode Panel
+        self.drag_mode_panel = DragModePanel()
+        self.drag_mode_panel.setMinimumHeight(350)
+        
+        # Legacy panels (kept for backward compatibility)
         self.drag_times_panel = DragTimesPanel()
-        self.drag_times_panel.setFixedHeight(180)  # Fixed for 2 rows of tiles
+        self.drag_times_panel.setFixedHeight(180)
         
         self.gps_track_panel = GPSTrackPanel()
-        self.gps_track_panel.setFixedHeight(180)  # Fixed for map
+        self.gps_track_panel.setFixedHeight(150)
 
         # OBD & faults
         self.obd_interface = OBDInterface()
@@ -448,12 +453,11 @@ class MainWindow(QWidget):
         # ------------------------------------------------------------------
         # Left: primary telemetry stack - use stretch=0 for fixed-size widgets
         left_column.setSpacing(6)  # Reduce spacing between widgets
-        left_column.addWidget(make_expanding(self.telemetry_panel), 4)  # Graphs get most space
-        left_column.addWidget(self.drag_times_panel, 0)  # Fixed height tiles
+        left_column.addWidget(make_expanding(self.telemetry_panel), 3)  # Graphs
+        left_column.addWidget(self.drag_mode_panel, 0)  # NEW: Dodge Charger Drag Mode
         left_column.addWidget(self.health_widget, 0)  # Compact
         left_column.addWidget(self.ai_panel, 0)  # Compact
-        left_column.addWidget(self.advice_panel, 0)  # Compact
-        left_column.addWidget(self.gps_track_panel, 0)  # Fixed height
+        left_column.addWidget(self.gps_track_panel, 0)  # GPS/Map at bottom
 
         # Right: gauges + faults + utilities + controls
         # 0) Live Gauges group (at top)
