@@ -857,6 +857,14 @@ Tips:
         """
         question_lower = question.lower()
         
+        # Vehicle detection patterns (check first for vehicle-specific questions)
+        vehicle_patterns = [
+            r"\b(dodge|ford|chevrolet|chevy|gm|honda|toyota|nissan|bmw|mercedes|audi|porsche|subaru|mazda|lexus|acura|infiniti)\b",
+            r"\b(hellcat|demon|redeye|viper|corvette|camaro|mustang|charger|challenger|supra|gtr|m3|m4|911|gt3|sti|type r)\b",
+            r"\b(\d{4})\s+(dodge|ford|chevrolet|honda|toyota|nissan|bmw|mercedes)\b",  # Year + make
+        ]
+        has_vehicle = any(re.search(pattern, question_lower) for pattern in vehicle_patterns)
+        
         # Intent patterns
         intent_patterns = {
             IntentType.GREETING: [
@@ -865,6 +873,8 @@ Tips:
             IntentType.TELEMETRY_QUERY: [
                 r"\b(what is|what's|show|display|current|now|right now)\b.*\b(rpm|speed|temp|pressure|boost|afr|lambda)\b",
                 r"\b(how (much|many|fast|hot|cold))\b",
+                # Vehicle-specific queries
+                r"\b(what (is|are|is the))\b.*\b(fuel pressure|oil pressure|boost|afr|timing|spec|specification)\b.*\b(for|on|in)\b",
             ],
             IntentType.TUNING_ADVICE: [
                 r"\b(how (to|do|should|can))\b.*\b(tune|adjust|set|configure)\b",
@@ -883,6 +893,8 @@ Tips:
             IntentType.WHAT_IS: [
                 r"\b(what (is|are|does|is a|is an))\b",
                 r"\b(explain|tell me about|describe)\b",
+                # Vehicle-specific "what is" questions
+                r"\b(what (is|are|is the))\b.*\b(for|on|in)\b.*\b(dodge|ford|chevrolet|hellcat|corvette|camaro|mustang)\b",
             ],
             IntentType.CONFIGURATION: [
                 r"\b(set|setup|configure|config|settings)\b",
@@ -951,25 +963,50 @@ Tips:
         question_lower = question.lower()
         question_words = set(re.findall(r'\b\w+\b', question_lower))
         
+        # Extract key terms from question (excluding common words)
+        common_words = {'the', 'a', 'an', 'is', 'are', 'and', 'or', 'but', 'what', 'how', 'when', 'where', 
+                       'why', 'for', 'with', 'from', 'to', 'on', 'in', 'at', 'by', 'of', 'this', 'that'}
+        key_terms = {w for w in question_words if w not in common_words and len(w) > 2}
+        
         scored_entries = []
         
         for entry in self.knowledge_base:
             score = 0.0
             
-            # Keyword matching (weighted)
-            keyword_matches = sum(1 for kw in entry.keywords if kw in question_lower)
-            score += keyword_matches * 2.0
-            
-            # Topic matching (high weight)
+            # Exact topic match (highest priority)
             if entry.topic.lower() in question_lower:
-                score += 5.0
+                score += 10.0
             
-            # Semantic matching (word overlap)
+            # Keyword matching (weighted by importance)
+            keyword_matches = []
+            for kw in entry.keywords:
+                if kw.lower() in question_lower:
+                    keyword_matches.append(kw)
+                    # Exact keyword match gets higher score
+                    if f" {kw.lower()} " in f" {question_lower} ":
+                        score += 5.0
+                    else:
+                        score += 2.0
+            
+            # Penalize if entry has keywords that don't match question
+            entry_keywords_lower = {k.lower() for k in entry.keywords}
+            question_keywords = {w for w in key_terms if len(w) > 3}  # Longer words are more specific
+            unmatched_entry_keywords = entry_keywords_lower - {w.lower() for w in question_keywords}
+            if len(unmatched_entry_keywords) > len(keyword_matches) * 2:
+                score *= 0.5  # Penalize if too many unmatched keywords
+            
+            # Semantic matching (word overlap) - but only for relevant words
             entry_words = set(re.findall(r'\b\w+\b', entry.content.lower()))
-            common_words = question_words.intersection(entry_words)
-            # Filter out common words
-            common_words = {w for w in common_words if w not in ['the', 'a', 'an', 'is', 'are', 'and', 'or', 'but']}
-            score += len(common_words) * 0.5
+            entry_words = {w for w in entry_words if w not in common_words and len(w) > 2}
+            common_words_matched = question_words.intersection(entry_words)
+            common_words_matched = {w for w in common_words_matched if w not in common_words}
+            
+            # Only count meaningful matches (technical terms, not generic words)
+            technical_terms = {'pressure', 'rpm', 'boost', 'afr', 'timing', 'fuel', 'oil', 'temp', 
+                              'temperature', 'sensor', 'ecu', 'tune', 'map', 'psi', 'bar', 'hp', 
+                              'torque', 'knock', 'detonation', 'injector', 'turbo', 'supercharger'}
+            meaningful_matches = {w for w in common_words_matched if w in technical_terms or len(w) > 4}
+            score += len(meaningful_matches) * 1.0
             
             # Intent-based boost
             if intent == IntentType.TUNING_ADVICE and entry.tuning_related:
@@ -983,12 +1020,25 @@ Tips:
             if intent == IntentType.HOW_TO and entry.category == "tip":
                 score += 1.5
             
+            # Penalize if entry topic doesn't match question focus
+            # If question asks about "fuel pressure" but entry is about "knock sensor", penalize
+            if len(key_terms) > 0:
+                topic_words = set(re.findall(r'\b\w+\b', entry.topic.lower()))
+                topic_overlap = key_terms.intersection(topic_words)
+                if len(topic_overlap) == 0 and score > 0:
+                    score *= 0.3  # Heavy penalty if no topic overlap
+            
             if score > 0:
                 scored_entries.append((entry, score))
         
         # Sort by score and return top matches
         scored_entries.sort(key=lambda x: x[1], reverse=True)
-        return scored_entries[:5]  # Top 5 matches
+        
+        # Filter out low-scoring matches (below threshold)
+        threshold = 3.0
+        filtered_entries = [(entry, score) for entry, score in scored_entries if score >= threshold]
+        
+        return filtered_entries[:5] if filtered_entries else scored_entries[:2]  # Top matches, or top 2 if all below threshold
     
     def _integrate_telemetry_context(self, response: str, knowledge: List[KnowledgeEntry], question: str = "") -> Tuple[str, bool]:
         """Integrate live telemetry data into response if relevant."""
@@ -1078,15 +1128,32 @@ Tips:
         # Check if we need web search (low confidence or no knowledge found)
         web_search_results = None
         if self.web_search and self.web_search.is_available():
+            question_lower = question.lower()
+            
+            # Detect vehicle-specific questions
+            vehicle_keywords = ["dodge", "ford", "chevrolet", "chevy", "honda", "toyota", "nissan", 
+                              "hellcat", "demon", "corvette", "camaro", "mustang", "charger", "challenger",
+                              "supra", "gtr", "m3", "m4", "911", "gt3", "sti", "type r"]
+            has_vehicle = any(vk in question_lower for vk in vehicle_keywords)
+            
+            # Detect spec/technical questions
+            spec_keywords = ["spec", "specification", "pressure", "psi", "bar", "rpm", "hp", "horsepower",
+                           "torque", "boost", "afr", "timing", "fuel pressure", "oil pressure"]
+            has_spec = any(sk in question_lower for sk in spec_keywords)
+            
             # Use web search if:
-            # 1. No good knowledge matches (confidence < 0.5)
-            # 2. Question asks about specific products/components/vehicles
-            # 3. Troubleshooting questions
-            # 4. "What is" questions about technical specs
+            # 1. Vehicle-specific question (ALWAYS search for vehicle specs)
+            # 2. No good knowledge matches (confidence < 5.0)
+            # 3. Question asks about specific products/components/vehicles
+            # 4. Troubleshooting questions
+            # 5. "What is" questions about technical specs
+            # 6. Spec/technical questions
             should_search = (
+                has_vehicle or  # ALWAYS search for vehicle-specific questions
+                has_spec or  # Search for technical specs
                 not knowledge_matches or knowledge_matches[0][1] < 5.0 or
-                intent in [IntentType.TROUBLESHOOTING, IntentType.WHAT_IS] or
-                any(word in question.lower() for word in ["spec", "specification", "details", "information about", "look up", "research"])
+                intent in [IntentType.TROUBLESHOOTING, IntentType.WHAT_IS, IntentType.TELEMETRY_QUERY] or
+                any(word in question_lower for word in ["spec", "specification", "details", "information about", "look up", "research", "what is", "what are"])
             )
             
             if should_search:
@@ -1197,15 +1264,57 @@ Tips:
             return None
         
         try:
+            question_lower = question.lower()
+            
+            # Detect vehicle-specific questions
+            vehicle_keywords = ["dodge", "ford", "chevrolet", "chevy", "honda", "toyota", "nissan", 
+                              "hellcat", "demon", "corvette", "camaro", "mustang", "charger", "challenger",
+                              "supra", "gtr", "m3", "m4", "911", "gt3", "sti", "type r"]
+            has_vehicle = any(vk in question_lower for vk in vehicle_keywords)
+            
+            # Detect spec/technical questions
+            spec_keywords = ["pressure", "psi", "bar", "rpm", "hp", "horsepower", "torque", 
+                           "boost", "afr", "timing", "fuel pressure", "oil pressure", "spec", "specification"]
+            has_spec = any(sk in question_lower for sk in spec_keywords)
+            
+            # For vehicle-specific spec questions, use optimized search query
+            if has_vehicle and has_spec:
+                # Extract vehicle name and spec type
+                vehicle = None
+                spec_type = None
+                
+                for vk in vehicle_keywords:
+                    if vk in question_lower:
+                        vehicle = vk
+                        break
+                
+                for sk in spec_keywords:
+                    if sk in question_lower:
+                        spec_type = sk
+                        break
+                
+                if vehicle and spec_type:
+                    # Create optimized search query
+                    search_query = f"{vehicle} {spec_type} specification"
+                    LOGGER.info(f"Vehicle spec search: {search_query}")
+                    return self.web_search.search(search_query, max_results=5)
+            
             # Adjust search query based on intent
             if intent == IntentType.TROUBLESHOOTING:
                 return self.web_search.find_troubleshooting_info(question)
-            elif intent == IntentType.WHAT_IS:
+            elif intent == IntentType.WHAT_IS or intent == IntentType.TELEMETRY_QUERY:
                 # Extract the subject of "what is" question
-                question_lower = question.lower()
-                if "what is" in question_lower:
-                    subject = question_lower.split("what is")[-1].strip()
-                    return self.web_search.lookup_specification(subject)
+                if "what is" in question_lower or "what's" in question_lower or "what are" in question_lower:
+                    # Extract the main subject
+                    parts = re.split(r"what (is|are|is the|are the|'s)", question_lower, 1)
+                    if len(parts) > 1:
+                        subject = parts[-1].strip()
+                        # Clean up common trailing words
+                        subject = re.sub(r"\b(for|on|in|at|with|to|the)\b.*$", "", subject).strip()
+                        if subject:
+                            return self.web_search.lookup_specification(subject)
+                # Fallback to direct search
+                return self.web_search.search(question, max_results=5)
             elif intent == IntentType.PERFORMANCE:
                 return self.web_search.research_topic(question, "performance tuning")
             else:
@@ -1238,11 +1347,49 @@ Tips:
 
 What would you like to know?"""
         
+        # Check if this is a vehicle-specific question
+        vehicle_keywords = ["dodge", "ford", "chevrolet", "chevy", "honda", "toyota", "nissan", 
+                          "hellcat", "demon", "corvette", "camaro", "mustang", "charger", "challenger",
+                          "supra", "gtr", "m3", "m4", "911", "gt3", "sti", "type r"]
+        has_vehicle = any(vk in question_lower for vk in vehicle_keywords)
+        
+        # For vehicle-specific questions, prioritize web search results
+        if has_vehicle and web_search_results and web_search_results.results:
+            response_parts = ["🌐 I researched this for you:\n"]
+            
+            # Extract key information from web results
+            for result in web_search_results.results[:3]:
+                response_parts.append(f"📋 {result.title}")
+                if result.snippet:
+                    # Try to extract specific numbers/values from snippet
+                    snippet = result.snippet
+                    # Look for pressure values (PSI, bar)
+                    pressure_match = re.search(r'(\d+(?:\.\d+)?)\s*(psi|bar|PSI|BAR)', snippet, re.IGNORECASE)
+                    if pressure_match:
+                        response_parts.append(f"  ⚡ {pressure_match.group(0)}")
+                    response_parts.append(f"  {snippet[:200]}")
+                response_parts.append(f"  🔗 Source: {result.url}\n")
+            
+            response_parts.append("💡 Note: These are general specifications. Actual values may vary by year, model, and modifications.")
+            return "\n".join(response_parts)
+        
         # If we have relevant knowledge, use it
         if knowledge:
             response_parts = []
             
-            # Primary knowledge
+            # Check knowledge relevance - if score is low and we have web search, prioritize web
+            knowledge_score = knowledge[0].__dict__.get('_score', 0) if hasattr(knowledge[0], '__dict__') else 5.0
+            if knowledge_score < 3.0 and web_search_results and web_search_results.results:
+                # Low relevance knowledge - prioritize web search
+                response_parts = ["🌐 I found this information:\n"]
+                for result in web_search_results.results[:3]:
+                    response_parts.append(f"📋 {result.title}")
+                    if result.snippet:
+                        response_parts.append(f"  {result.snippet[:200]}")
+                    response_parts.append(f"  🔗 {result.url}\n")
+                return "\n".join(response_parts)
+            
+            # Primary knowledge (high relevance)
             primary = knowledge[0]
             response_parts.append(primary.content.strip())
             
@@ -1262,10 +1409,10 @@ What would you like to know?"""
                     if insight.get('verified'):
                         response_parts.append("  ✓ Verified by community")
             
-            # Add web search results if available
+            # Add web search results if available (as supplementary)
             if web_search_results and web_search_results.results:
                 response_parts.append("\n\n🌐 Additional Information (from web research):")
-                for result in web_search_results.results[:3]:
+                for result in web_search_results.results[:2]:  # Limit to 2 for supplementary
                     response_parts.append(f"\n• {result.title}")
                     if result.snippet:
                         response_parts.append(f"  {result.snippet[:150]}...")
@@ -1277,11 +1424,11 @@ What would you like to know?"""
         if web_search_results and web_search_results.results:
             response_parts = ["🌐 I found some information online:\n"]
             for result in web_search_results.results[:3]:
-                response_parts.append(f"• {result.title}")
+                response_parts.append(f"📋 {result.title}")
                 if result.snippet:
                     response_parts.append(f"  {result.snippet}")
-                response_parts.append(f"  Source: {result.url}\n")
-            response_parts.append("\nNote: This information is from web research. Please verify for your specific application.")
+                response_parts.append(f"  🔗 {result.url}\n")
+            response_parts.append("\n💡 Note: This information is from web research. Please verify for your specific application.")
             return "\n".join(response_parts)
         
         # Default response based on intent

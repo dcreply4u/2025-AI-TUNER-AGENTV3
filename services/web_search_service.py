@@ -246,7 +246,7 @@ class WebSearchService:
         Look up specifications for a component, part, or vehicle.
         
         Args:
-            item: Item to look up (e.g., "Holley EFI", "MCP2515", "Honda Civic Type R")
+            item: Item to look up (e.g., "Holley EFI", "MCP2515", "Honda Civic Type R", "Dodge Hellcat fuel pressure")
             item_type: Type of item (component, vehicle, ECU, etc.)
             
         Returns:
@@ -255,8 +255,29 @@ class WebSearchService:
         if not self.is_available():
             return None
         
-        query = f"{item} {item_type} specifications technical details"
-        return self.search(query, max_results=3)
+        # Detect if this is a vehicle-specific query
+        vehicle_keywords = ["dodge", "ford", "chevrolet", "chevy", "honda", "toyota", "nissan", 
+                          "hellcat", "demon", "corvette", "camaro", "mustang", "charger", "challenger",
+                          "supra", "gtr", "m3", "m4", "911", "gt3", "sti", "type r"]
+        item_lower = item.lower()
+        is_vehicle_query = any(vk in item_lower for vk in vehicle_keywords)
+        
+        # Detect spec type
+        spec_keywords = ["pressure", "psi", "bar", "rpm", "hp", "horsepower", "torque", 
+                        "boost", "afr", "timing", "fuel pressure", "oil pressure"]
+        has_spec = any(sk in item_lower for sk in spec_keywords)
+        
+        if is_vehicle_query and has_spec:
+            # Optimized query for vehicle specs
+            query = f"{item} specification technical specs"
+        elif is_vehicle_query:
+            # Vehicle query without specific spec
+            query = f"{item} specifications technical details"
+        else:
+            # General component query
+            query = f"{item} {item_type} specifications technical details"
+        
+        return self.search(query, max_results=5)  # Increased from 3 to 5 for better results
     
     def find_troubleshooting_info(self, issue: str) -> Optional[ResearchResult]:
         """
