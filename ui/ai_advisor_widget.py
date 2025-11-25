@@ -299,7 +299,7 @@ class AIAdvisorWidget(QWidget):
             return
         
         try:
-                if not text.strip():
+            if not text.strip():
                 # Show suggestions when input is empty
                 if hasattr(self.advisor, 'get_suggestions'):
                     suggestions = self.advisor.get_suggestions("")
