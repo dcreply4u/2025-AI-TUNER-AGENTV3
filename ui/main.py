@@ -56,6 +56,7 @@ from ui.health_score_widget import HealthScoreWidget
 from ui.notification_widget import NotificationLevel, NotificationWidget
 from ui.settings_dialog import SettingsDialog
 from ui.status_bar import StatusBar
+from ui.streaming_control_panel import StreamingControlPanel
 from ui.system_status_panel import SystemStatusPanel, SubsystemStatus
 from ui.telemetry_panel import TelemetryPanel
 from ui.theme_dialog import ThemeDialog
@@ -468,15 +469,12 @@ class MainWindow(QWidget):
         # 1) System Status Panel (modern visual monitoring)
         right_column.addWidget(self.system_status_panel, 3)
 
-        # 2) Camera & streaming group
-        camera_group = QGroupBox("Camera & Streaming")
-        camera_layout = QVBoxLayout(camera_group)
-        camera_layout.setContentsMargins(8, 8, 8, 8)
-        camera_layout.setSpacing(6)
-        camera_layout.addWidget(self.camera_quick_widget)
-        if self.youtube_widget:
-            camera_layout.addWidget(self.youtube_widget)
-        right_column.addWidget(camera_group, 1)
+        # 2) Streaming Control Panel (modern camera & streaming)
+        self.streaming_panel = StreamingControlPanel(
+            live_streamer=self.live_streamer,
+            camera_manager=self.camera_manager,
+        )
+        right_column.addWidget(self.streaming_panel, 2)
 
         # 3) Controls group
         controls_group = QGroupBox("Session Controls")
@@ -521,14 +519,14 @@ class MainWindow(QWidget):
         self.diagnostics_widget = None
         self._init_diagnostics()
 
-        # Integrate camera manager with quick widget & YouTube (if available)
+        # Integrate camera manager with streaming panel
         if self.camera_manager:
             self.camera_quick_widget.set_camera_manager(self.camera_manager)
-            if self.youtube_widget:
-                camera_names = list(
-                    self.camera_manager.camera_manager.cameras.keys()
-                ) if hasattr(self.camera_manager, "camera_manager") else []
-                self.youtube_widget.set_cameras(camera_names)
+            self.streaming_panel.set_camera_manager(self.camera_manager)
+            camera_names = list(
+                self.camera_manager.camera_manager.cameras.keys()
+            ) if hasattr(self.camera_manager, "camera_manager") else []
+            self.streaming_panel.set_cameras(camera_names)
             self.ai_panel.update_insight("Camera manager ready.")
 
     # ----------------------------------------------------------------------
