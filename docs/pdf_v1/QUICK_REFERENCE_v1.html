@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>QUICK_REFERENCE</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # AI Tuner Agent - Quick Reference<br>
+<br>
+## Starting the Application<br>
+<br>
+```bash<br>
+# Main UI<br>
+python start_ai_tuner.py<br>
+<br>
+# With diagnostics<br>
+python start_ai_tuner.py --diagnostics<br>
+<br>
+# Dragy mode only<br>
+python -m ui.dragy_main<br>
+```<br>
+<br>
+## System Diagnostics<br>
+<br>
+```bash<br>
+# Run full system diagnostics<br>
+python tools/system_diagnostics.py<br>
+<br>
+# Validate configuration<br>
+python -c "from core.config_validator import ConfigValidator; ConfigValidator.print_validation_report(ConfigValidator.validate_all())"<br>
+```<br>
+<br>
+## CAN Bus Setup (reTerminal DM)<br>
+<br>
+```bash<br>
+# Run automated setup<br>
+sudo python tools/setup_can_reterminal.py<br>
+<br>
+# Manual setup<br>
+sudo ip link set can0 up type can bitrate 500000<br>
+sudo ip link set can1 up type can bitrate 500000<br>
+<br>
+# Test CAN<br>
+candump can0<br>
+cansend can0 123#DEADBEEF<br>
+```<br>
+<br>
+## Common Commands<br>
+<br>
+### Voice Commands<br>
+- "Start session"<br>
+- "Stop session"<br>
+- "Read fault codes"<br>
+- "How's coolant temperature?"<br>
+- "What's the engine health?"<br>
+- "Where is the car?"<br>
+- "Switch to OBD" / "Switch to RaceCapture"<br>
+- "Replay log"<br>
+<br>
+### File Locations<br>
+- **Logs**: `logs/` directory<br>
+- **Video Logs**: `video_logs/` directory<br>
+- **Models**: `models/` directory<br>
+- **Configuration**: `config.py`<br>
+<br>
+## Troubleshooting<br>
+<br>
+### CAN Not Working<br>
+```bash<br>
+# Check interfaces<br>
+ip link show can0<br>
+<br>
+# Check if up<br>
+ip -details link show can0<br>
+<br>
+# Bring up manually<br>
+sudo ip link set can0 up type can bitrate 500000<br>
+```<br>
+<br>
+### GPS Not Working<br>
+```bash<br>
+# Check serial devices<br>
+ls /dev/ttyUSB* /dev/ttyACM*<br>
+<br>
+# Test GPS<br>
+python -c "from interfaces.gps_interface import GPSInterface; gps = GPSInterface(); print(gps.read_fix())"<br>
+```<br>
+<br>
+### Camera Not Working<br>
+```bash<br>
+# List cameras<br>
+ls /dev/video*<br>
+v4l2-ctl --list-devices<br>
+<br>
+# Test camera<br>
+ffplay /dev/video0<br>
+```<br>
+<br>
+### Performance Issues<br>
+```bash<br>
+# Check system resources<br>
+python -c "from services.performance_monitor import PerformanceMonitor; pm = PerformanceMonitor(); print(pm.collect_system_metrics())"<br>
+<br>
+# Check disk space<br>
+df -h<br>
+<br>
+# Check temperature<br>
+vcgencmd measure_temp<br>
+```<br>
+<br>
+## Configuration<br>
+<br>
+### Environment Variables<br>
+```bash<br>
+# Override CAN channel<br>
+export CAN_CHANNEL="can1"<br>
+<br>
+# Override CAN bitrate<br>
+export CAN_BITRATE="1000000"<br>
+<br>
+# Set hardware platform<br>
+export HARDWARE_PLATFORM="reTerminal DM"<br>
+<br>
+# Enable debug mode<br>
+export DEBUG_MODE="true"<br>
+```<br>
+<br>
+### Settings Dialog<br>
+- Access via "Settings" button in main UI<br>
+- Configure data source (OBD-II, RaceCapture, Auto)<br>
+- Set port and baud rate<br>
+- Adjust poll interval<br>
+<br>
+## Features<br>
+<br>
+### Data Sources<br>
+- **OBD-II**: Standard OBD-II adapters<br>
+- **RaceCapture**: Autosport Labs RaceCapture<br>
+- **Auto**: Automatic detection<br>
+<br>
+### Performance Tracking<br>
+- 0-60 mph times<br>
+- 1/8 mile times<br>
+- 1/4 mile times<br>
+- GPS lap tracking<br>
+- Best times tracking<br>
+<br>
+### AI Features<br>
+- Predictive fault detection<br>
+- Health scoring<br>
+- Tuning advisor<br>
+- Conversational agent<br>
+- Voice control<br>
+<br>
+### Logging<br>
+- CSV telemetry logs<br>
+- Video logs with telemetry sync<br>
+- GPS trace logs<br>
+- Cloud sync (optional)<br>
+<br>
+## Hardware Support<br>
+<br>
+### Supported Platforms<br>
+- **reTerminal DM**: Full support with dual CAN<br>
+- **Raspberry Pi**: Standard support<br>
+- **Jetson Nano**: Standard support<br>
+- **Generic Linux**: Basic support<br>
+<br>
+### Required Hardware<br>
+- CAN interface (onboard or USB-CAN adapter)<br>
+- GPS module (USB/serial)<br>
+- Optional: USB/WiFi cameras<br>
+- Optional: Microphone for voice control<br>
+<br>
+## Development<br>
+<br>
+### Running Tests<br>
+```bash<br>
+# Install test dependencies<br>
+pip install pytest pytest-qt<br>
+<br>
+# Run tests<br>
+pytest<br>
+```<br>
+<br>
+### Code Structure<br>
+```<br>
+AI-TUNER-AGENT/<br>
+├── ai/              # AI modules (fault detection, tuning advisor)<br>
+├── interfaces/      # Hardware interfaces (CAN, GPS, OBD, cameras)<br>
+├── services/        # Services (logging, cloud sync, video)<br>
+├── controllers/     # Controllers (data stream, voice, dragy)<br>
+├── ui/              # UI components<br>
+├── core/             # Core utilities (hardware detection, error recovery)<br>
+├── tools/            # Utility scripts<br>
+└── docs/             # Documentation<br>
+```<br>
+<br>
+## Support<br>
+<br>
+For issues or questions:<br>
+1. Check system diagnostics: `python tools/system_diagnostics.py`<br>
+2. Review logs: `ai_tuner.log`<br>
+3. Check configuration: `python -c "from core.config_validator import ConfigValidator; ConfigValidator.print_validation_report(ConfigValidator.validate_all())"`<br>
+<br>
+
+</body>
+</html>

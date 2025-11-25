@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>DIESEL_SUPPORT</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # Diesel Engine Support<br>
+<br>
+## Overview<br>
+<br>
+The AI Tuner Agent now includes **comprehensive diesel engine support** for all major diesel platforms. Diesel engines are fundamentally different from gasoline engines and require specialized tuning parameters and monitoring.<br>
+<br>
+## Supported Engines<br>
+<br>
+### Cummins<br>
+- **5.9L ISB** (1998-2007)<br>
+- **6.7L ISB** (2007+)<br>
+- **6.8L ISB** (newest)<br>
+<br>
+### Duramax<br>
+- **LB7** (2001-2004)<br>
+- **LLY** (2004-2005)<br>
+- **LBZ** (2006-2007)<br>
+- **LMM** (2007-2010)<br>
+- **LML** (2011-2016)<br>
+- **L5P** (2017+) - Latest generation<br>
+<br>
+### Powerstroke<br>
+- **6.0L** (2003-2007)<br>
+- **6.4L** (2008-2010)<br>
+- **6.7L** (2011+)<br>
+<br>
+### BMW<br>
+- **M57** (3.0L I6, 1998-2013)<br>
+- **N57** (3.0L I6, 2008+)<br>
+- **M67** (V8)<br>
+- **N67** (V8, newer)<br>
+<br>
+### Other Platforms<br>
+- Caterpillar<br>
+- Detroit Diesel<br>
+- Volvo<br>
+- Mercedes<br>
+- VW TDI<br>
+- Generic diesel (for unknown engines)<br>
+<br>
+## Key Differences: Diesel vs Gasoline<br>
+<br>
+### 1. **Ignition System**<br>
+- **Gasoline**: Spark plugs, ignition timing<br>
+- **Diesel**: Compression ignition, **NO spark plugs**<br>
+- **Tuning Focus**: Injection timing (when fuel is injected), not ignition timing<br>
+<br>
+### 2. **Fuel System**<br>
+- **Gasoline**: Low pressure (30-60 PSI), port or direct injection<br>
+- **Diesel**: **High pressure common rail** (5,000-29,000 PSI!)<br>
+- **Critical Parameter**: Rail pressure - must be monitored closely<br>
+<br>
+### 3. **Temperature Monitoring**<br>
+- **Gasoline**: Coolant temp, oil temp<br>
+- **Diesel**: **EGT (Exhaust Gas Temperature) is CRITICAL**<br>
+  - Pre-turbo EGT: Most important<br>
+  - Post-turbo EGT: Also monitored<br>
+  - Exceeding EGT limits = engine damage!<br>
+<br>
+### 4. **Boost Pressure**<br>
+- **Gasoline**: Optional, typically 10-30 PSI<br>
+- **Diesel**: **Standard**, typically 20-55 PSI<br>
+- Most diesels are turbocharged<br>
+- VGT (Variable Geometry Turbo) common<br>
+<br>
+### 5. **Emissions Systems**<br>
+- **EGR** (Exhaust Gas Recirculation): Common on both<br>
+- **DPF** (Diesel Particulate Filter): Diesel-specific<br>
+- **DEF/AdBlue** (Diesel Exhaust Fluid): Diesel-specific (SCR system)<br>
+- **NOX Sensors**: Diesel-specific<br>
+<br>
+### 6. **Tuning Philosophy**<br>
+- **Gasoline**: RPM-based, air/fuel ratio (AFR/Lambda)<br>
+- **Diesel**: **Torque-based**, injection quantity (mm³)<br>
+- **No AFR** - diesel runs lean, air is always in excess<br>
+<br>
+## Diesel-Specific Parameters<br>
+<br>
+### Fuel System<br>
+- **Fuel Rail Pressure**: 5,000-29,000 PSI (platform-dependent)<br>
+- **Injection Timing**: Degrees BTDC (Before Top Dead Center)<br>
+- **Injection Quantity**: mm³ per injection<br>
+- **Pilot Injection**: Small pre-injection for smoother combustion<br>
+- **Post Injection**: For DPF regeneration<br>
+<br>
+### Turbo/Boost<br>
+- **Boost Pressure**: PSI (higher than gasoline)<br>
+- **VGT Position**: % (Variable Geometry Turbo)<br>
+- **Wastegate Position**: % (if equipped)<br>
+<br>
+### Temperature<br>
+- **EGT (Exhaust Gas Temperature)**: **CRITICAL** - typically 1,300-1,650°F<br>
+- **Pre-Turbo EGT**: Most important<br>
+- **Post-Turbo EGT**: Also monitored<br>
+- **Coolant Temp**: Standard<br>
+- **Oil Temp**: Standard<br>
+- **Intake Air Temp**: Important for density calculations<br>
+<br>
+### Emissions<br>
+- **EGR Position**: % (Exhaust Gas Recirculation)<br>
+- **EGR Flow**: g/s<br>
+- **DPF Pressure**: PSI (indicates clogging)<br>
+- **DPF Regen Status**: Active/Inactive<br>
+- **DEF Level**: % (Diesel Exhaust Fluid/AdBlue)<br>
+- **NOX Sensor**: PPM<br>
+<br>
+## Safety Limits by Platform<br>
+<br>
+### Cummins 6.7L<br>
+- Max Rail Pressure: 26,000 PSI<br>
+- Max Boost: 50 PSI<br>
+- Max EGT: 1,650°F<br>
+- Safe EGT: 1,400°F<br>
+- Max Torque: 800 lb-ft<br>
+<br>
+### Duramax L5P (Latest)<br>
+- Max Rail Pressure: 29,000 PSI<br>
+- Max Boost: 55 PSI<br>
+- Max EGT: 1,700°F<br>
+- Safe EGT: 1,450°F<br>
+- Max Torque: 910 lb-ft<br>
+<br>
+### Powerstroke 6.7L<br>
+- Max Rail Pressure: 28,000 PSI<br>
+- Max Boost: 52 PSI<br>
+- Max EGT: 1,650°F<br>
+- Safe EGT: 1,400°F<br>
+- Max Torque: 925 lb-ft<br>
+<br>
+## Usage<br>
+<br>
+### Basic Usage<br>
+<br>
+```python<br>
+from services.diesel_tuner import DieselTuner, DieselEngineType<br>
+<br>
+# Initialize for specific engine<br>
+tuner = DieselTuner(<br>
+    engine_type=DieselEngineType.DURAMAX_L5P,<br>
+    voice_feedback=voice_feedback,<br>
+    auto_apply=False<br>
+)<br>
+<br>
+# Update telemetry<br>
+telemetry = {<br>
+    "EGT": 1450,  # Exhaust Gas Temperature<br>
+    "FuelRailPressure": 25000,  # PSI<br>
+    "BoostPressure": 45.0,  # PSI<br>
+    "InjectionTiming": 12.5,  # Degrees BTDC<br>
+    "InjectionQuantity": 180,  # mm³<br>
+}<br>
+<br>
+tuner.update_telemetry(telemetry)<br>
+<br>
+# Get recommendations<br>
+recommendations = tuner.analyze_and_recommend()<br>
+<br>
+for rec in recommendations:<br>
+    print(f"{rec.parameter.value}: {rec.reason}")<br>
+    print(f"  Current: {rec.current_value}")<br>
+    print(f"  Recommended: {rec.recommended_value}")<br>
+```<br>
+<br>
+### Auto-Detection<br>
+<br>
+The tuner can attempt to detect engine type from telemetry:<br>
+<br>
+```python<br>
+detected_type = tuner.detect_engine_type(telemetry)<br>
+if detected_type:<br>
+    tuner.engine_type = detected_type<br>
+```<br>
+<br>
+### Voice Feedback<br>
+<br>
+Critical diesel parameters trigger voice warnings:<br>
+<br>
+- **EGT Critical**: "CRITICAL: EGT at X degrees! Reduce fuel immediately!"<br>
+- **Rail Pressure High**: "Warning: Rail pressure at X PSI, near maximum."<br>
+- **Boost High**: "Warning: Boost at X PSI, near maximum."<br>
+<br>
+## Integration<br>
+<br>
+The diesel tuner integrates with:<br>
+<br>
+- **Data Stream Controller**: Automatically monitors diesel parameters<br>
+- **Tuning Advisor**: Provides diesel-specific advice<br>
+- **Voice Feedback**: Critical alerts for EGT, rail pressure, etc.<br>
+- **ECU Control**: Can adjust diesel-specific parameters<br>
+- **Health Scoring**: Includes diesel-specific health metrics<br>
+<br>
+## Critical Warnings<br>
+<br>
+### EGT (Exhaust Gas Temperature)<br>
+- **Most critical parameter for diesel**<br>
+- Exceeding limits causes:<br>
+  - Turbo failure<br>
+  - Piston damage<br>
+  - Head gasket failure<br>
+  - Engine destruction<br>
+- **Always monitor EGT!**<br>
+<br>
+### Rail Pressure<br>
+- Extremely high pressure (20,000+ PSI)<br>
+- Exceeding limits causes:<br>
+  - Injector failure<br>
+  - Rail damage<br>
+  - Fuel system failure<br>
+<br>
+### Boost Pressure<br>
+- Higher than gasoline (40-55 PSI common)<br>
+- Exceeding limits causes:<br>
+  - Turbo failure<br>
+  - Intercooler failure<br>
+  - Engine damage<br>
+<br>
+## Best Practices<br>
+<br>
+1. **Always monitor EGT** - Set up alerts<br>
+2. **Know your platform limits** - Each engine has different limits<br>
+3. **Start conservative** - Increase gradually<br>
+4. **Monitor rail pressure** - Critical for fuel system health<br>
+5. **Watch emissions systems** - DPF, DEF, EGR can cause derates<br>
+6. **Use platform-specific profiles** - Don't use generic limits<br>
+<br>
+## Future Enhancements<br>
+<br>
+- Automatic engine type detection from CAN IDs<br>
+- Platform-specific tuning maps<br>
+- DPF regeneration optimization<br>
+- DEF consumption tracking<br>
+- EGR optimization for performance<br>
+- Multi-stage injection timing optimization<br>
+<br>
+---<br>
+<br>
+**Diesel tuning is different - use the right tools!** 🔧<br>
+<br>
+
+</body>
+</html>

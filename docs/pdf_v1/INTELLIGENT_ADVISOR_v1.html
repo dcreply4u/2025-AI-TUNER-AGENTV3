@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>INTELLIGENT_ADVISOR</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # Intelligent Tuning Advisor<br>
+<br>
+## Overview<br>
+<br>
+The Intelligent Advisor is an advanced AI system that analyzes every run/pass and provides actionable tuning advice based on:<br>
+<br>
+- **Current run performance** vs. historical bests<br>
+- **Engine health** parameters<br>
+- **Trends** across multiple runs<br>
+- **Safety** considerations<br>
+- **Efficiency** optimizations<br>
+<br>
+## How It Works<br>
+<br>
+### Automatic Run Detection<br>
+<br>
+The system automatically detects when a run/pass starts and ends:<br>
+- **Run Start**: Speed increases from <20 mph to >30 mph<br>
+- **Run End**: Speed decreases from >30 mph to <10 mph<br>
+<br>
+During each run, it collects:<br>
+- Average RPM, boost, temperatures<br>
+- Lambda/AFR values<br>
+- Throttle position<br>
+- Performance metrics (0-60, lap times, trap speeds)<br>
+<br>
+### Analysis After Each Run<br>
+<br>
+After every run completes, the advisor:<br>
+<br>
+1. **Compares to Historical Data**<br>
+   - Best run times<br>
+   - Recent averages<br>
+   - Performance trends<br>
+<br>
+2. **Analyzes Engine Health**<br>
+   - Temperature issues<br>
+   - Oil pressure<br>
+   - Knock detection<br>
+   - Air/fuel ratios<br>
+<br>
+3. **Detects Trends**<br>
+   - Performance degradation<br>
+   - Cooling system issues<br>
+   - Consistency problems<br>
+<br>
+4. **Safety Checks**<br>
+   - Critical health warnings<br>
+   - Fuel/boost mismatches<br>
+   - Methanol tank levels<br>
+<br>
+5. **Efficiency Analysis**<br>
+   - Boost utilization<br>
+   - Fuel optimization<br>
+   - Power delivery<br>
+<br>
+### Advice Categories<br>
+<br>
+- **🔴 CRITICAL**: Immediate action required (knock, low oil pressure)<br>
+- **🟠 HIGH**: Important improvements (performance degradation, safety issues)<br>
+- **🟡 MEDIUM**: Recommended optimizations (tuning adjustments)<br>
+- **🟢 LOW**: Nice-to-have improvements (fine-tuning)<br>
+<br>
+### Example Advice<br>
+<br>
+**After a slower run:**<br>
+```<br>
+🔴 Run Time Slower Than Best<br>
+Current run (12.45s) is 0.32s slower than best (12.13s)<br>
+Action: Review recent changes and compare to best run conditions<br>
+Expected: Potential 0.32s improvement<br>
+Based on: Best time: 12.13s<br>
+```<br>
+<br>
+**After detecting knock:**<br>
+```<br>
+🔴 Engine Knock Detected<br>
+Knock count: 3<br>
+Action: Reduce timing advance, enrich fuel, or reduce boost immediately<br>
+Expected: Prevent engine damage<br>
+```<br>
+<br>
+**Trend analysis:**<br>
+```<br>
+🟠 Performance Declining<br>
+Run times trending slower over recent runs<br>
+Action: Review recent tuning changes, check for mechanical issues<br>
+Based on: Times increased 0.45s over recent runs<br>
+```<br>
+<br>
+## Features<br>
+<br>
+### Historical Learning<br>
+<br>
+The advisor learns from every run:<br>
+- Tracks consistency patterns<br>
+- Identifies optimal operating conditions<br>
+- Remembers what works and what doesn't<br>
+<br>
+### Confidence Scoring<br>
+<br>
+Each piece of advice includes a confidence score (0-100%) based on:<br>
+- Data quality<br>
+- Historical sample size<br>
+- Pattern strength<br>
+<br>
+### Multi-Factor Analysis<br>
+<br>
+Considers multiple factors simultaneously:<br>
+- Performance + Health + Trends + Safety<br>
+- No single-metric tunnel vision<br>
+- Holistic tuning recommendations<br>
+<br>
+### Actionable Recommendations<br>
+<br>
+Every piece of advice includes:<br>
+- **What** the issue is<br>
+- **Why** it matters<br>
+- **How** to fix it<br>
+- **Expected** improvement<br>
+<br>
+## Integration<br>
+<br>
+The advisor is fully integrated into:<br>
+- ✅ **Data Stream Controller** - Analyzes every run automatically<br>
+- ✅ **Advice Panel UI** - Displays advice cards with priority colors<br>
+- ✅ **AI Insight Panel** - Shows top 3 advice items<br>
+- ✅ **Voice Feedback** - Announces critical advice<br>
+- ✅ **Historical Database** - Stores all runs for long-term learning<br>
+<br>
+## Usage<br>
+<br>
+The advisor works automatically - no configuration needed! After each run:<br>
+<br>
+1. Run completes (speed drops)<br>
+2. System analyzes the run<br>
+3. Advice appears in the Advice Panel<br>
+4. Top advice shown in AI Insights<br>
+5. Critical advice announced via voice<br>
+<br>
+## Advanced Features<br>
+<br>
+### Summary Advice<br>
+<br>
+Get advice based on recent runs:<br>
+```python<br>
+summary = intelligent_advisor.get_summary_advice(num_runs=5)<br>
+# Returns top 10 prioritized advice items<br>
+```<br>
+<br>
+### Historical Comparison<br>
+<br>
+Compare current run to history:<br>
+```python<br>
+comparison = intelligent_advisor.get_historical_comparison(run_number=5)<br>
+# Shows improvement/degradation vs. previous runs<br>
+```<br>
+<br>
+## Customization<br>
+<br>
+You can extend the advisor with custom analysis rules:<br>
+<br>
+```python<br>
+def custom_analysis(metrics, health_score):<br>
+    # Your custom logic<br>
+    return advice_list<br>
+<br>
+intelligent_advisor.register_custom_analysis(custom_analysis)<br>
+```<br>
+<br>
+---<br>
+<br>
+The Intelligent Advisor makes every run a learning opportunity! 🚗💨<br>
+<br>
+
+</body>
+</html>

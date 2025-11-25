@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="TelemetryIQ Mobile - Professional ECU/TCU Tuning Interface">
+    <title>TelemetryIQ Mobile</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a0a0a">
+    
+    <!-- iOS PWA Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TelemetryIQ Mobile">
+    
+    <!-- TelemetryIQ Racing Theme CSS -->
+    <link rel="stylesheet" href="styles/theme.css">
+    <link rel="stylesheet" href="styles/components.css">
+</head>
+<body>
+    <!-- App Container -->
+    <div id="app">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <h1 class="app-title">TelemetryIQ Mobile</h1>
+                <div class="connection-status" id="connectionStatus">
+                    <span class="status-indicator" id="statusIndicator"></span>
+                    <span id="statusText">Connecting...</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" data-tab="dashboard">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                <span>Dashboard</span>
+            </button>
+            <button class="nav-item" data-tab="config">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"></path>
+                </svg>
+                <span>Config</span>
+            </button>
+            <button class="nav-item" data-tab="ai">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                    <path d="M2 17l10 5 10-5"></path>
+                    <path d="M2 12l10 5 10-5"></path>
+                </svg>
+                <span>AI Advisor</span>
+            </button>
+        </nav>
+
+        <!-- Tab Content -->
+        <main class="tab-content">
+            <!-- Dashboard Tab -->
+            <div id="dashboardTab" class="tab-pane active">
+                <div class="container">
+                    <h2 class="section-title">Real-Time Telemetry</h2>
+                    
+                    <!-- Telemetry Grid -->
+                    <div class="telemetry-grid" id="telemetryGrid"></div>
+                    
+                    <!-- Key Metrics -->
+                    <h2 class="section-title">Key Metrics</h2>
+                    <div class="gauges-row">
+                        <div class="gauge-card">
+                            <div class="gauge-label">RPM</div>
+                            <div class="gauge-value" id="rpmValue">0</div>
+                            <div class="gauge-unit">rpm</div>
+                            <div class="gauge-progress">
+                                <div class="gauge-fill" id="rpmProgress"></div>
+                            </div>
+                        </div>
+                        <div class="gauge-card">
+                            <div class="gauge-label">Boost</div>
+                            <div class="gauge-value" id="boostValue">0</div>
+                            <div class="gauge-unit">psi</div>
+                            <div class="gauge-progress">
+                                <div class="gauge-fill" id="boostProgress"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="gauges-row">
+                        <div class="gauge-card">
+                            <div class="gauge-label">AFR</div>
+                            <div class="gauge-value" id="afrValue">0</div>
+                            <div class="gauge-unit">λ</div>
+                            <div class="gauge-progress">
+                                <div class="gauge-fill" id="afrProgress"></div>
+                            </div>
+                        </div>
+                        <div class="gauge-card">
+                            <div class="gauge-label">Coolant</div>
+                            <div class="gauge-value" id="coolantValue">0</div>
+                            <div class="gauge-unit">°F</div>
+                            <div class="gauge-progress">
+                                <div class="gauge-fill" id="coolantProgress"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Config Tab -->
+            <div id="configTab" class="tab-pane">
+                <div class="container">
+                    <h2 class="section-title">Configuration Management</h2>
+                    
+                    <div class="card">
+                        <h3 class="card-title">Apply Configuration Change</h3>
+                        <form id="configForm">
+                            <div class="form-group">
+                                <label>Change Type</label>
+                                <input type="text" id="changeType" value="ecu_tuning" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label>Category</label>
+                                <input type="text" id="category" value="Ignition Timing" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label>Parameter</label>
+                                <input type="text" id="parameter" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label>New Value</label>
+                                <input type="number" id="newValue" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label>Old Value (optional)</label>
+                                <input type="number" id="oldValue" class="form-input">
+                            </div>
+                            <button type="submit" class="btn-primary">Apply Change</button>
+                        </form>
+                        <div id="configWarnings" class="warnings-container"></div>
+                    </div>
+
+                    <h2 class="section-title">Configuration History</h2>
+                    <div id="configHistory" class="history-list"></div>
+                </div>
+            </div>
+
+            <!-- AI Advisor Tab -->
+            <div id="aiTab" class="tab-pane">
+                <div class="ai-chat-container">
+                    <div class="ai-header">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00e0ff" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                            <path d="M2 17l10 5 10-5"></path>
+                            <path d="M2 12l10 5 10-5"></path>
+                        </svg>
+                        <h2>AI Advisor "Q"</h2>
+                    </div>
+                    <div class="chat-messages" id="chatMessages"></div>
+                    <div class="chat-input-container">
+                        <input type="text" id="chatInput" class="chat-input" placeholder="Ask Q a question...">
+                        <button id="sendButton" class="chat-send-btn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/websocket.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

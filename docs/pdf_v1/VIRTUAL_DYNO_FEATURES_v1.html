@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>VIRTUAL_DYNO_FEATURES</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # Virtual Dyno - Complete Feature List<br>
+<br>
+## 🎯 Core Features<br>
+<br>
+### 1. **Real-Time HP Calculation**<br>
+- Calculate horsepower from acceleration data<br>
+- Multiple calculation methods (acceleration-based, torque-based, RPM-based)<br>
+- Weighted averaging for maximum accuracy<br>
+- Real-time updates during runs<br>
+<br>
+### 2. **Calibration System**<br>
+- ✅ **Import CSV/JSON dyno files** (Mustang, Dynojet, etc.)<br>
+- ✅ **Manual entry with interactive prompts**<br>
+- ✅ **Automatic calibration factor calculation**<br>
+- ✅ **Multiple calibration runs for accuracy**<br>
+- ✅ **System asks for missing data**<br>
+<br>
+### 3. **UI Components**<br>
+- Real-time HP meter (HP, RPM, Torque)<br>
+- Dyno curve plotting (HP and Torque vs RPM)<br>
+- Peak value markers<br>
+- Before/after comparison curves<br>
+- Stats display (peak values, accuracy)<br>
+- Run summary dialog showing peak HP/TQ, RPM, datapoint count<br>
+<br>
+### 4. **Advanced Analysis**<br>
+- Power band analysis<br>
+- Torque band analysis<br>
+- Flatness score<br>
+- Responsiveness score<br>
+- Recommendations based on curve shape<br>
+<br>
+### 5. **Comparison Tools**<br>
+- Before/after mod comparisons<br>
+- Side-by-side curves<br>
+- HP/torque differences at each RPM<br>
+- Improvement percentage<br>
+- Mod impact analysis<br>
+<br>
+### 6. **Weather Correction & Air Density**<br>
+- SAE J1349 / SAE J607 / DIN / ECE standards<br>
+- Automatic barometric + humidity compensation<br>
+- Enhanced formula: ρ = P_dry/(R_dry*T) + P_v/(R_vapor*T) with altitude-adjusted pressure<br>
+- Inputs for temperature, altitude, humidity, barometric pressure<br>
+<br>
+### 7. **Export & Import**<br>
+- Export to CSV<br>
+- Export to JSON<br>
+- Import from CSV<br>
+- Import from JSON<br>
+- Historical tracking<br>
+- Session-wide CSV export with run metadata (name, timestamp, relative time)<br>
+<br>
+## 📋 Manual Entry Features<br>
+<br>
+### Interactive Prompts<br>
+The system will ask you for:<br>
+<br>
+**Required:**<br>
+- Peak Horsepower<br>
+- Peak HP RPM<br>
+<br>
+**Recommended:**<br>
+- Peak Torque<br>
+- Peak Torque RPM<br>
+<br>
+**Optional (for better accuracy):**<br>
+- HP at 2000, 3000, 4000, 5000, 6000, 7000 RPM<br>
+- Torque at 2000, 3000, 4000, 5000, 6000, 7000 RPM<br>
+<br>
+### Smart Data Entry<br>
+- System calculates missing values (e.g., torque from HP and RPM)<br>
+- Validates data before accepting<br>
+- Shows helpful error messages<br>
+- Guides you through the process<br>
+<br>
+## 🎨 UI Features<br>
+<br>
+### Calibration Dialog<br>
+- **Import Tab**: File browser for CSV/JSON<br>
+- **Manual Entry Tab**: Form with all fields<br>
+- Real-time validation<br>
+- Helpful instructions<br>
+- Shows imported data summary<br>
+<br>
+### Main Dyno View<br>
+- Large HP display<br>
+- RPM and torque readouts<br>
+- Live curve updates<br>
+- Peak value tracking<br>
+- Accuracy indicator<br>
+<br>
+### Comparison View<br>
+- Overlay multiple curves<br>
+- Color-coded comparisons<br>
+- Difference calculations<br>
+- Mod impact display<br>
+<br>
+## 🔧 Advanced Features<br>
+<br>
+### Logging & Session Management<br>
+- Start/Stop logging buttons for controlled recording<br>
+- Live horsepower trace during capture<br>
+- Automatic session numbering (`Run_1`, `Run_2`, …)<br>
+- Batch processing with Savitzky-Golay smoothing + `np.gradient` acceleration<br>
+- Combined session export (`session_summary.csv`) with torque/HP overlays<br>
+<br>
+### Accuracy Estimation<br>
+- Confidence scoring (0-1)<br>
+- Accuracy percentage display<br>
+- Factors affecting accuracy shown<br>
+- Recommendations for improvement<br>
+<br>
+### Data Smoothing<br>
+- Acceleration smoothing (reduces noise)<br>
+- RPM interpolation<br>
+- Outlier detection<br>
+- Quality filtering<br>
+<br>
+### Environmental Correction<br>
+- Temperature input<br>
+- Altitude input<br>
+- Humidity input<br>
+- Barometric pressure<br>
+- Automatic air density calculation with dry/vapor gas constants<br>
+- Condition snapshot saved with every dyno reading<br>
+<br>
+### Vehicle Specs<br>
+- Curb weight<br>
+- Driver weight<br>
+- Fuel weight<br>
+- Frontal area<br>
+- Drag coefficient<br>
+- Rolling resistance<br>
+- Drivetrain loss<br>
+- Drivetrain type<br>
+<br>
+## 📊 Analysis Features<br>
+<br>
+### Power Band Analysis<br>
+- Power band width (RPM range >90% peak)<br>
+- Torque band width<br>
+- Area under curve<br>
+- Flatness score<br>
+- Responsiveness score<br>
+- Recommendations<br>
+<br>
+### Mod Impact Analysis<br>
+- HP gain calculation<br>
+- Torque gain calculation<br>
+- Cost per HP (if cost entered)<br>
+- Efficiency score<br>
+- RPM shift analysis<br>
+<br>
+### Historical Tracking<br>
+- Save multiple runs<br>
+- Compare over time<br>
+- Track improvements<br>
+- Mod history<br>
+- Performance trends<br>
+<br>
+## 🚀 Integration Features<br>
+<br>
+### Real-Time Integration<br>
+- Works with existing telemetry<br>
+- Updates during acceleration<br>
+- Integrates with performance tracker<br>
+- Works with GPS data<br>
+- Uses RPM from ECU<br>
+<br>
+### Export Integration<br>
+- Export to CSV for analysis<br>
+- Export to JSON for sharing<br>
+- Compatible with other tools<br>
+- Standard formats<br>
+<br>
+## 💡 Smart Features<br>
+<br>
+### Automatic Calculations<br>
+- Calculates torque from HP and RPM<br>
+- Calculates HP from torque and RPM<br>
+- Interpolates missing RPM points<br>
+- Estimates drivetrain losses<br>
+- Corrects for environmental factors<br>
+<br>
+### Validation<br>
+- Validates vehicle specs<br>
+- Checks data quality<br>
+- Warns about low confidence<br>
+- Suggests improvements<br>
+- Error messages guide fixes<br>
+<br>
+### Learning<br>
+- Learns from calibration runs<br>
+- Improves accuracy over time<br>
+- Adapts to your vehicle<br>
+- Remembers calibration factors<br>
+<br>
+## 📈 Accuracy Features<br>
+<br>
+### Calibration System<br>
+- One-time calibration with real dyno<br>
+- Multiple calibrations for better accuracy<br>
+- Automatic factor calculation<br>
+- Per-vehicle calibration<br>
+- Condition-specific calibration<br>
+<br>
+### Quality Indicators<br>
+- Confidence score per reading<br>
+- Overall accuracy estimate<br>
+- Data quality warnings<br>
+- Recommendations for improvement<br>
+<br>
+## 🎯 Use Cases<br>
+<br>
+1. **Before Dyno Run**: Get baseline HP estimate<br>
+2. **After Mods**: Compare before/after without dyno<br>
+3. **Tuning**: Track HP changes during tuning<br>
+4. **Troubleshooting**: Identify power loss issues<br>
+5. **Documentation**: Export dyno sheets<br>
+6. **Sharing**: Share results with others<br>
+7. **Analysis**: Deep dive into power curves<br>
+<br>
+## 🔒 Data Management<br>
+<br>
+### Storage<br>
+- Saves calibration data<br>
+- Stores historical runs<br>
+- Remembers vehicle specs<br>
+- Tracks mod history<br>
+<br>
+### Privacy<br>
+- Local storage (optional cloud)<br>
+- Export control<br>
+- Share control<br>
+- Data encryption (optional)<br>
+<br>
+---<br>
+<br>
+**This is a COMPLETE virtual dyno system - no other product has this!** 🚀<br>
+<br>
+
+</body>
+</html>

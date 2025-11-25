@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>dragy_pi_setup</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    ## Dragy-Style Pi HUD<br>
+<br>
+### Hardware Checklist<br>
+- Raspberry Pi 4/5 with 64-bit OS<br>
+- USB or UART GNSS puck (10 Hz recommended)<br>
+- Optional: IMU for smoothing + CAN bridge for speed cross-check<br>
+- Sunlight-readable HDMI screen + 12V-to-5V converter<br>
+<br>
+### Software Install<br>
+```bash<br>
+sudo apt update<br>
+sudo apt install python3-pip unclutter<br>
+pip install -r requirements.txt<br>
+```<br>
+<br>
+Enable serial if you use `/dev/ttyAMA0`:<br>
+```bash<br>
+sudo raspi-config  # Interface Options → Serial → disable shell, enable hardware<br>
+```<br>
+<br>
+### Launch the HUD<br>
+```bash<br>
+cd /path/to/AI-TUNER-AGENT<br>
+python -m ui.dragy_main<br>
+```<br>
+<br>
+Set the app to start on boot (systemd example):<br>
+```bash<br>
+sudo tee /etc/systemd/system/dragy.service <<'EOF'<br>
+[Unit]<br>
+Description=AI Tuner Dragy HUD<br>
+After=network-online.target<br>
+<br>
+[Service]<br>
+User=pi<br>
+WorkingDirectory=/home/pi/AI-TUNER-AGENT<br>
+Environment=QT_QPA_PLATFORM=eglfs<br>
+ExecStart=/usr/bin/python3 -m ui.dragy_main<br>
+Restart=always<br>
+<br>
+[Install]<br>
+WantedBy=graphical.target<br>
+EOF<br>
+<br>
+sudo systemctl enable --now dragy.service<br>
+```<br>
+<br>
+### Tips<br>
+- Use `QT_QPA_PLATFORM=eglfs` for fullscreen kiosk without X11.<br>
+- Tweak `interfaces/GpsInterface` port/baud to match your receiver.<br>
+- Performance results live in `data_logs/performance_runs.json`; sync them when online. <br>
+<br>
+
+</body>
+</html>

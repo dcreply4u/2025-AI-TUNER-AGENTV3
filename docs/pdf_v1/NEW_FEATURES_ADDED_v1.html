@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>NEW_FEATURES_ADDED</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # New Features Added<br>
+<br>
+## 🚀 Latest Enhancements (TelemetryIQ 2025.11)<br>
+<br>
+### 1. **Advanced Virtual Dyno Logger** ✅<br>
+- **Files**: `services/virtual_dyno.py`, `ui/dyno_tab.py`, `ui/dyno_view.py`, `docs/DYNO_ENHANCEMENTS_SUMMARY.md`<br>
+- **Highlights**:<br>
+  - Start/Stop logging buttons with live HP preview (20 Hz capture)<br>
+  - Savitzky–Golay smoothing + `np.gradient` acceleration batch processor<br>
+  - Torque overlays derived from HP/RPM, live during capture<br>
+  - Enhanced air-density model (temperature + altitude + humidity + barometric pressure)<br>
+  - Run summary dialog (peak HP/TQ, RPM, data-point count)<br>
+  - Session manager with automatic run names (`Run_1`, `Run_2`, …) and combined CSV export<br>
+<br>
+### 2. **Windows Laptop Edition + Installer** ✅<br>
+- **Files**: `interfaces/windows_hardware_adapter.py`, `core/hardware_platform.py`, `setup_windows.bat`, `installer/windows_installer.iss`, `docs/WINDOWS_*.md`<br>
+- **Highlights**:<br>
+  - Hardware abstraction for Arduino/USB GPIO/CAN adapters on Windows<br>
+  - Platform auto-detection and driver hints inside `HardwarePlatform`<br>
+  - Inno Setup installer + batch bootstrap to provision Python, drivers, and requirements<br>
+  - Documentation covering laptop SKUs, pricing tiers, and deployment flow<br>
+<br>
+### 3. **Methanol Control Suite** ✅<br>
+- **Files**: `ui/ecu_tuning_main.py`, `docs/METHANOL_MODULE.md`<br>
+- **Highlights**:<br>
+  - Street/Race/Kill mode switching with automatic timing/fuel adjustments<br>
+  - Real-time diagnostics indicator, failsafe banners, and sensor-driven fault logging<br>
+  - Dynamic RPM/load duty maps, environmental compensation, and custom tabs for diagnostics/data logging<br>
+  - CSV export of methanol session logs plus boost/coolant gauges for live monitoring<br>
+<br>
+### 3. **TelemetryIQ Mobile Stack (Flutter + PWA + FastAPI)** ✅<br>
+- **Files**: `api/mobile_api_server.py`, `api/mobile_api_integration.py`, `mobile_apps/flutter_telemetryiq_mobile/`, `mobile_apps/pwa_telemetryiq_mobile/`<br>
+- **Highlights**:<br>
+  - FastAPI REST + WebSocket gateway with JWT-ready scaffolding<br>
+  - Flutter TelemetryIQ Mobile (matching desktop UI, real-time telemetry, AI advisor, config sync)<br>
+  - PWA TelemetryIQ Mobile (offline-ready, service worker, same theme/components)<br>
+  - Mobile API quick-start + runtime docs for third-party integrators<br>
+<br>
+### 4. **Advanced Tuning Logic Engine** ✅<br>
+- **Files**: `services/advanced_tuning_engine.py`, `services/closed_loop_tuning.py`, `docs/ADVANCED_TUNING_LOGIC.md`<br>
+- **Highlights**:<br>
+  - Multi-objective optimization (Performance, Efficiency, Balanced, Safety modes)<br>
+  - Predictive ML models (Gradient Boosting, Random Forest) for HP/efficiency/safety prediction<br>
+  - Reinforcement learning concepts (Q-learning) for learning optimal actions<br>
+  - Closed-loop PID control for real-time lambda and timing adjustments<br>
+  - Safety validation with interlocks and threshold-based filtering<br>
+  - Continuous learning from historical tuning results<br>
+<br>
+### 5. **Desktop UX & Stability Upgrades** ✅<br>
+- Multi-row tab widget with consistent sizing for 30+ modules<br>
+- Main window sizing/maximize fixes with safe clamping and screen-awareness<br>
+- Console log viewer, debug tooling docs, and dyno-tab safety guards<br>
+<br>
+## 🕰 Earlier Additions (Still Available)<br>
+<br>
+### 1. **Anti-Lag Control System** ✅<br>
+- **File**: `controllers/racing_controls.py`<br>
+- **Features**:<br>
+  - Configurable anti-lag modes (OFF, SOFT, AGGRESSIVE, AUTO)<br>
+  - RPM-based activation (configurable min/max RPM)<br>
+  - Boost target control<br>
+  - Safety limits (max RPM, max EGT)<br>
+  - CAN message integration for ECU control<br>
+  - Real-time monitoring and warnings<br>
+<br>
+### 2. **Launch Control System** ✅<br>
+- **File**: `controllers/racing_controls.py`<br>
+- **Features**:<br>
+  - RPM limiter with configurable launch RPM<br>
+  - Transbrake detection and requirement<br>
+  - Launch timer with maximum duration<br>
+  - Speed-based auto-disable<br>
+  - Multiple modes (RPM_LIMIT, TRACTION, AUTO)<br>
+  - CAN message integration for ECU control<br>
+<br>
+### 3. **Lap Detection Service** ✅<br>
+- **File**: `services/lap_detector.py`<br>
+- **Features**:<br>
+  - Automatic lap detection via GPS start/finish line<br>
+  - Configurable detection radius<br>
+  - Sector time tracking (configurable number of sectors)<br>
+  - Lap statistics (duration, max speed, avg speed, distance)<br>
+  - Best lap tracking<br>
+  - Track point recording for visualization<br>
+<br>
+### 4. **Telemetry Overlay on Video** ✅<br>
+- **File**: `services/video_overlay.py`<br>
+- **Features**:<br>
+  - Real-time telemetry rendering on video frames<br>
+  - Configurable overlay position (top, bottom, corners)<br>
+  - Customizable fonts, colors, and transparency<br>
+  - Multiple telemetry fields (RPM, speed, boost, lambda, temps, etc.)<br>
+  - Custom field support<br>
+  - Background with transparency<br>
+<br>
+### 5. **Camera Interface** ✅<br>
+- **File**: `interfaces/camera_interface.py`<br>
+- **Features**:<br>
+  - Support for USB cameras (UVC)<br>
+  - RTSP/HTTP stream support (WiFi cameras)<br>
+  - CSI camera support (Raspberry Pi)<br>
+  - Multi-camera management<br>
+  - Frame callback system<br>
+  - Telemetry synchronization<br>
+  - Health monitoring<br>
+<br>
+### 6. **Video Logging Service** ✅<br>
+- **File**: `services/video_logger.py`<br>
+- **Features**:<br>
+  - Multi-camera video recording<br>
+  - Telemetry synchronization with video<br>
+  - Session management<br>
+  - Metadata storage (JSON)<br>
+  - Disk usage monitoring<br>
+  - Automatic cleanup of old sessions<br>
+<br>
+## 📋 Integration Notes<br>
+<br>
+### Racing Controls Integration<br>
+To use anti-lag and launch control:<br>
+<br>
+```python<br>
+from controllers.racing_controls import RacingControls, AntiLagMode, LaunchControlMode<br>
+<br>
+# Initialize with CAN sender function<br>
+def send_can(arb_id, data):<br>
+    # Your CAN sending logic<br>
+    pass<br>
+<br>
+controls = RacingControls(can_sender=send_can, telemetry_callback=get_telemetry)<br>
+controls.start()<br>
+<br>
+# Enable anti-lag<br>
+controls.set_anti_lag(True, mode=AntiLagMode.AGGRESSIVE)<br>
+<br>
+# Enable launch control<br>
+controls.set_launch_control(True, launch_rpm=4000, mode=LaunchControlMode.RPM_LIMIT)<br>
+```<br>
+<br>
+### Lap Detection Integration<br>
+To use lap detection:<br>
+<br>
+```python<br>
+from services.lap_detector import LapDetector<br>
+<br>
+# Initialize with start/finish line coordinates<br>
+detector = LapDetector(<br>
+    start_finish_lat=37.7749,<br>
+    start_finish_lon=-122.4194,<br>
+    detection_radius=50.0,  # meters<br>
+    min_lap_time=30.0,  # seconds<br>
+    sector_count=3<br>
+)<br>
+<br>
+# Update with GPS data<br>
+completed_lap = detector.update(lat, lon, speed, timestamp)<br>
+if completed_lap:<br>
+    print(f"Lap {completed_lap.lap_number}: {completed_lap.duration:.2f}s")<br>
+<br>
+# Get best lap<br>
+best = detector.get_best_lap()<br>
+```<br>
+<br>
+### Video Overlay Integration<br>
+To add telemetry overlay to video:<br>
+<br>
+```python<br>
+from services.video_overlay import VideoOverlay, OverlayConfig<br>
+from interfaces.camera_interface import Frame<br>
+<br>
+# Configure overlay<br>
+config = OverlayConfig(<br>
+    position="bottom",<br>
+    show_rpm=True,<br>
+    show_speed=True,<br>
+    show_boost=True,<br>
+    font_color=(0, 255, 0),  # Green<br>
+    bg_alpha=0.7<br>
+)<br>
+<br>
+overlay = VideoOverlay(config)<br>
+<br>
+# Render overlay on frame<br>
+frame_with_overlay = overlay.render(frame, telemetry_data)<br>
+```<br>
+<br>
+## 🔗 Next Steps for Full Integration<br>
+<br>
+1. **Integrate racing controls into main UI**:<br>
+   - Add anti-lag toggle button<br>
+   - Add launch control settings dialog<br>
+   - Display racing control status<br>
+<br>
+2. **Integrate lap detection into data stream controller**:<br>
+   - Auto-detect start/finish line from GPS track<br>
+   - Display lap times in Dragy view<br>
+   - Log lap data to CSV/JSON<br>
+<br>
+3. **Integrate video overlay into video logger**:<br>
+   - Render overlay during recording<br>
+   - Option to export with/without overlay<br>
+   - Real-time preview with overlay<br>
+<br>
+4. **Add session management**:<br>
+   - Named sessions with metadata<br>
+   - Session comparison tools<br>
+   - Export/import sessions<br>
+<br>
+5. **Add data export tools**:<br>
+   - JSON export with full metadata<br>
+   - Video-telemetry sync export<br>
+   - Comparison tools for multiple runs<br>
+<br>
+## 📝 Configuration Examples<br>
+<br>
+### Anti-Lag Configuration<br>
+```python<br>
+from controllers.racing_controls import AntiLagConfig, AntiLagMode<br>
+<br>
+config = AntiLagConfig(<br>
+    enabled=True,<br>
+    mode=AntiLagMode.AGGRESSIVE,<br>
+    min_rpm=2000,<br>
+    max_rpm=4000,<br>
+    boost_target=15.0,  # PSI<br>
+    safety_max_rpm=5000,<br>
+    safety_max_egt=1650.0,  # Fahrenheit<br>
+    activation_delay=0.5<br>
+)<br>
+```<br>
+<br>
+### Launch Control Configuration<br>
+```python<br>
+from controllers.racing_controls import LaunchControlConfig, LaunchControlMode<br>
+<br>
+config = LaunchControlConfig(<br>
+    enabled=True,<br>
+    mode=LaunchControlMode.RPM_LIMIT,<br>
+    launch_rpm=4000,<br>
+    rpm_tolerance=200,<br>
+    max_launch_time=5.0,  # seconds<br>
+    min_speed=5.0,  # mph<br>
+    transbrake_required=True<br>
+)<br>
+```<br>
+<br>
+## ⚠️ Important Notes<br>
+<br>
+1. **CAN Message Format**: The racing controls use example CAN message formats. You'll need to adjust the `arb_id` and data format to match your specific ECU protocol.<br>
+<br>
+2. **GPS Accuracy**: Lap detection accuracy depends on GPS precision. Consider using a high-precision GPS module for best results.<br>
+<br>
+3. **Video Performance**: Video overlay rendering adds processing overhead. Consider reducing frame rate or resolution if performance is an issue.<br>
+<br>
+4. **Safety**: Anti-lag and launch control can be dangerous if misconfigured. Always test in a safe environment and set appropriate safety limits.<br>
+<br>
+
+</body>
+</html>

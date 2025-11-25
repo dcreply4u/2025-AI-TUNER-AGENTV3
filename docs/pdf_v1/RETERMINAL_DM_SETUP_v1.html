@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>RETERMINAL_DM_SETUP</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # Seeed reTerminal DM Setup Guide<br>
+<br>
+This guide covers setting up the AI Tuner Agent on the Seeed reTerminal DM panel PC.<br>
+<br>
+## Hardware Overview<br>
+<br>
+The reTerminal DM features:<br>
+- **Raspberry Pi Compute Module 4** (CM4) with up to 8GB RAM<br>
+- **10.1" touchscreen display** (1280x800 resolution)<br>
+- **Dual CAN FD buses** (can0 and can1) - onboard, no HAT required!<br>
+- **Wide voltage input** (9-36V DC) with automotive-grade power supply<br>
+- **Industrial enclosure** with sealed connectors<br>
+- **Physical buttons** (Home, Back, Function)<br>
+- **GPIO header** for additional sensors<br>
+<br>
+## Initial Setup<br>
+<br>
+### 1. Flash CM4 with Raspberry Pi OS<br>
+<br>
+The reTerminal DM uses a CM4 module. You'll need to:<br>
+<br>
+1. Download [Raspberry Pi Imager](https://www.raspberrypi.com/software/)<br>
+2. Select "Raspberry Pi OS (64-bit)" or "Raspberry Pi OS Lite"<br>
+3. Configure WiFi and SSH if needed<br>
+4. Flash to a microSD card (or eMMC if your CM4 has it)<br>
+5. Insert the CM4 into the reTerminal DM carrier board<br>
+<br>
+### 2. Enable CAN Interfaces<br>
+<br>
+The reTerminal DM has dual CAN FD buses that need to be enabled in the device tree.<br>
+<br>
+#### Option A: Using Seeed's Pre-configured Image<br>
+<br>
+If Seeed provides a pre-configured image, CAN interfaces may already be enabled. Check with:<br>
+<br>
+```bash<br>
+ip link show<br>
+```<br>
+<br>
+You should see `can0` and `can1` interfaces.<br>
+<br>
+#### Option B: Manual Configuration<br>
+<br>
+If CAN interfaces aren't enabled, you may need to:<br>
+<br>
+1. Edit `/boot/config.txt` and add:<br>
+   ```<br>
+   dtoverlay=mcp251xfd,spi0-0,interrupt=25<br>
+   dtoverlay=mcp251xfd,spi0-1,interrupt=24<br>
+   ```<br>
+<br>
+2. Reboot:<br>
+   ```bash<br>
+   sudo reboot<br>
+   ```<br>
+<br>
+3. After reboot, bring up CAN interfaces:<br>
+   ```bash<br>
+   sudo ip link set can0 up type can bitrate 500000<br>
+   sudo ip link set can1 up type can bitrate 500000<br>
+   ```<br>
+<br>
+4. Verify:<br>
+   ```bash<br>
+   ip link show can0<br>
+   ip link show can1<br>
+   ```<br>
+<br>
+### 3. Install Dependencies<br>
+<br>
+```bash<br>
+# Update system<br>
+sudo apt update && sudo apt upgrade -y<br>
+<br>
+# Install Python and pip<br>
+sudo apt install -y python3 python3-pip python3-venv<br>
+<br>
+# Install CAN utilities<br>
+sudo apt install -y can-utils<br>
+<br>
+# Install system dependencies for PySide6<br>
+sudo apt install -y libgl1-mesa-glx libegl1-mesa libxrandr2 libxss1 libasound2<br>
+<br>
+# Install GPIO libraries (if needed)<br>
+sudo apt install -y python3-rpi.gpio<br>
+```<br>
+<br>
+### 4. Install AI Tuner Agent<br>
+<br>
+```bash<br>
+# Clone or copy the AI-TUNER-AGENT directory to the reTerminal DM<br>
+cd ~<br>
+git clone <your-repo-url> AITUNER<br>
+cd AITUNER/AI-TUNER-AGENT<br>
+<br>
+# Create virtual environment<br>
+python3 -m venv venv<br>
+source venv/bin/activate<br>
+<br>
+# Install Python dependencies<br>
+pip install --upgrade pip<br>
+pip install -r requirements.txt<br>
+```<br>
+<br>
+### 5. Configure CAN Interfaces<br>
+<br>
+The AI Tuner Agent will automatically detect the reTerminal DM and use both CAN channels. You can verify detection:<br>
+<br>
+```bash<br>
+python3 -c "from core import get_hardware_config; print(get_hardware_config())"<br>
+```<br>
+<br>
+Expected output should show:<br>
+```<br>
+platform_name='reTerminal DM'<br>
+can_channels=['can0', 'can1']<br>
+has_onboard_can=True<br>
+```<br>
+<br>
+### 6. Test CAN Communication<br>
+<br>
+```bash<br>
+# Send a test message on can0<br>
+cansend can0 123#DEADBEEF<br>
+<br>
+# Monitor can0 in another terminal<br>
+candump can0<br>
+<br>
+# Test can1 similarly<br>
+cansend can1 456#CAFEBABE<br>
+candump can1<br>
+```<br>
+<br>
+## Display Configuration<br>
+<br>
+The reTerminal DM has a 10.1" touchscreen. The AI Tuner UI should automatically detect and use the full screen.<br>
+<br>
+### Touchscreen Calibration (if needed)<br>
+<br>
+If touch input is misaligned:<br>
+<br>
+```bash<br>
+# Install calibration tool<br>
+sudo apt install -y xinput-calibrator<br>
+<br>
+# Run calibration<br>
+xinput_calibrator<br>
+```<br>
+<br>
+Follow the on-screen prompts to calibrate.<br>
+<br>
+### Auto-start UI on Boot<br>
+<br>
+To launch the AI Tuner UI automatically:<br>
+<br>
+1. Create a systemd service:<br>
+<br>
+```bash<br>
+sudo nano /etc/systemd/system/ai-tuner.service<br>
+```<br>
+<br>
+2. Add this content (adjust paths as needed):<br>
+<br>
+```ini<br>
+[Unit]<br>
+Description=AI Tuner Agent UI<br>
+After=graphical.target<br>
+<br>
+[Service]<br>
+Type=simple<br>
+User=pi<br>
+Environment=DISPLAY=:0<br>
+WorkingDirectory=/home/pi/AITUNER/AI-TUNER-AGENT<br>
+ExecStart=/home/pi/AITUNER/AI-TUNER-AGENT/venv/bin/python -m ui.main<br>
+Restart=always<br>
+RestartSec=10<br>
+<br>
+[Install]<br>
+WantedBy=graphical.target<br>
+```<br>
+<br>
+3. Enable and start:<br>
+<br>
+```bash<br>
+sudo systemctl enable ai-tuner.service<br>
+sudo systemctl start ai-tuner.service<br>
+```<br>
+<br>
+## Physical Buttons<br>
+<br>
+The reTerminal DM has physical buttons that can be mapped:<br>
+<br>
+- **Home button** (GPIO5) - Can be used to return to main screen<br>
+- **Back button** (GPIO6) - Can be used for navigation<br>
+- **Function button** (GPIO13) - Can be used for quick actions<br>
+<br>
+Button handling can be added to the UI in future updates.<br>
+<br>
+## Power Management<br>
+<br>
+The reTerminal DM has built-in power management. The AI Tuner Agent can monitor:<br>
+<br>
+- Input voltage (9-36V DC)<br>
+- Power consumption<br>
+- Battery backup status (if equipped)<br>
+<br>
+## Troubleshooting<br>
+<br>
+### CAN Interfaces Not Showing<br>
+<br>
+1. Check if SPI is enabled:<br>
+   ```bash<br>
+   lsmod | grep spi<br>
+   ```<br>
+<br>
+2. Check device tree overlays:<br>
+   ```bash<br>
+   vcgencmd get_config int | grep -i can<br>
+   ```<br>
+<br>
+3. Check kernel messages:<br>
+   ```bash<br>
+   dmesg | grep -i can<br>
+   ```<br>
+<br>
+### Display Not Working<br>
+<br>
+1. Check if display is detected:<br>
+   ```bash<br>
+   xrandr<br>
+   ```<br>
+<br>
+2. Check touchscreen:<br>
+   ```bash<br>
+   xinput list<br>
+   ```<br>
+<br>
+### Performance Issues<br>
+<br>
+The reTerminal DM uses a CM4, which has good performance. If you experience slowdowns:<br>
+<br>
+1. Ensure adequate cooling (the reTerminal DM has built-in fan)<br>
+2. Check CPU temperature:<br>
+   ```bash<br>
+   vcgencmd measure_temp<br>
+   ```<br>
+3. Monitor resource usage:<br>
+   ```bash<br>
+   htop<br>
+   ```<br>
+<br>
+## Next Steps<br>
+<br>
+1. Connect your vehicle's CAN bus to the reTerminal DM's CAN0 or CAN1 port<br>
+2. Configure your DBC file in `config.py` or via environment variables<br>
+3. Launch the UI: `python -m ui.main`<br>
+4. Start logging telemetry and enjoy the AI-powered insights!<br>
+<br>
+## Support<br>
+<br>
+For reTerminal DM specific issues, check:<br>
+- [Seeed reTerminal DM Documentation](https://wiki.seeedstudio.com/reTerminal-DM/)<br>
+- [Seeed Community Forum](https://forum.seeedstudio.com/)<br>
+<br>
+For AI Tuner Agent issues, check the main project documentation.<br>
+<br>
+
+</body>
+</html>

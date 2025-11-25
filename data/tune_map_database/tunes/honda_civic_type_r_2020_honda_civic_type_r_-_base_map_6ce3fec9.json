@@ -1,0 +1,85 @@
+{
+  "tune_id": "honda_civic_type_r_2020_honda_civic_type_r_-_base_map_6ce3fec9",
+  "name": "Honda Civic Type R - Base Map",
+  "description": "Safe base map for stock Honda Civic Type R. Use for initial startup and leak checks.",
+  "tune_type": "base_map",
+  "vehicle": {
+    "make": "Honda",
+    "model": "Civic Type R",
+    "year": 2020,
+    "engine_code": "K20C1",
+    "engine_displacement": 2.0,
+    "fuel_type": "gasoline",
+    "forced_induction": "turbo"
+  },
+  "ecu_type": "Bosch",
+  "maps": [
+    {
+      "category": "fuel_map",
+      "name": "Base Fuel Map",
+      "description": "IAP/TPS fuel map - conservative AFR targets",
+      "data": {
+        "afr_target": 14.7,
+        "load_rpm_table": {}
+      },
+      "unit": "AFR",
+      "min_value": null,
+      "max_value": null,
+      "safety_level": "safe"
+    },
+    {
+      "category": "ignition_timing",
+      "name": "Ignition Timing",
+      "description": "Conservative ignition timing map",
+      "data": {
+        "timing_advance": 15.0
+      },
+      "unit": "degrees",
+      "min_value": null,
+      "max_value": null,
+      "safety_level": "safe"
+    },
+    {
+      "category": "rpm_limiter",
+      "name": "RPM Limiter",
+      "description": "Stock RPM limit",
+      "data": {
+        "rev_limit": 7000
+      },
+      "unit": "RPM",
+      "min_value": null,
+      "max_value": null,
+      "safety_level": "safe"
+    }
+  ],
+  "hardware_requirements": [],
+  "performance_gains": {
+    "hp_gain": null,
+    "torque_gain": null,
+    "hp_percent": null,
+    "torque_percent": null,
+    "notes": "Base map - no performance gains expected"
+  },
+  "created_at": 1764022386.703824,
+  "updated_at": 1764022386.7038815,
+  "created_by": "system",
+  "version": "1.0.0",
+  "validated": true,
+  "validation_notes": "",
+  "safety_warnings": [],
+  "shared": false,
+  "share_id": null,
+  "download_count": 0,
+  "rating": null,
+  "rating_count": 0,
+  "tags": [
+    "base",
+    "honda",
+    "civic",
+    "type-r",
+    "stock"
+  ],
+  "tuning_notes": "",
+  "installation_notes": "",
+  "dyno_results": null
+}

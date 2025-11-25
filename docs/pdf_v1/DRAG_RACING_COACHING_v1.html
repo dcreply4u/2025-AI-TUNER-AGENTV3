@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>DRAG_RACING_COACHING</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # Drag Racing Time Analysis & Coaching<br>
+<br>
+## Overview<br>
+<br>
+The AI Tuner Agent now includes comprehensive drag racing time analysis and coaching for:<br>
+- **60ft time** (launch performance)<br>
+- **1/8th mile time**<br>
+- **1/4 mile time**<br>
+- **1/2 mile time** (for high-speed runs)<br>
+<br>
+## Features<br>
+<br>
+### Time Tracking<br>
+- Automatic detection and recording of all drag racing segments<br>
+- Best time tracking for each segment<br>
+- Run history and statistics<br>
+- Comparison between runs<br>
+<br>
+### AI Coaching<br>
+- Real-time analysis of each segment<br>
+- Actionable advice to improve times<br>
+- Priority-based coaching (high/medium/low)<br>
+- Improvement potential calculations<br>
+- Voice coaching integration<br>
+<br>
+### Analysis<br>
+- Segment-by-segment breakdown<br>
+- Consistency analysis<br>
+- Improvement trends<br>
+- Performance statistics<br>
+<br>
+## How It Works<br>
+<br>
+### Automatic Detection<br>
+The system automatically detects when you start a drag run and tracks:<br>
+1. **60ft time** - Measures launch performance<br>
+2. **1/8th mile time** - Measures short-track performance<br>
+3. **1/4 mile time** - Standard drag racing metric<br>
+4. **1/2 mile time** - For high-speed runs<br>
+<br>
+### Coaching Advice<br>
+<br>
+The system provides specific coaching for each segment:<br>
+<br>
+#### 60ft Time (Launch)<br>
+- Tire pressure recommendations<br>
+- Launch RPM optimization<br>
+- Throttle control advice<br>
+- Transbrake/launch control suggestions<br>
+- Suspension setup tips<br>
+<br>
+#### 1/8th Mile<br>
+- Shift point optimization<br>
+- Traction control settings<br>
+- Gear selection advice<br>
+- Acceleration technique<br>
+<br>
+#### 1/4 Mile<br>
+- Top-end performance tips<br>
+- Aerodynamics recommendations<br>
+- Power band optimization<br>
+- Boost/nitrous timing<br>
+<br>
+#### 1/2 Mile<br>
+- High-speed aerodynamics<br>
+- Gearing optimization<br>
+- Cooling considerations<br>
+- Power delivery timing<br>
+<br>
+## Usage<br>
+<br>
+### In the UI<br>
+1. Start a drag racing session<br>
+2. Complete a run<br>
+3. View coaching advice in the Drag Coaching Widget<br>
+4. Review actionable steps for improvement<br>
+<br>
+### Programmatic<br>
+```python<br>
+from services import DragRacingAnalyzer, DragRun<br>
+<br>
+# Create analyzer<br>
+analyzer = DragRacingAnalyzer(voice_feedback=voice_feedback)<br>
+<br>
+# Record a run<br>
+run = DragRun(<br>
+    run_id="run_001",<br>
+    timestamp=time.time(),<br>
+    times={<br>
+        "60ft": 1.85,<br>
+        "1/8 mile": 7.92,<br>
+        "1/4 mile": 12.45,<br>
+    },<br>
+    speeds={<br>
+        "1/4 mile": 112.5,<br>
+    },<br>
+)<br>
+<br>
+# Record and analyze<br>
+analyzer.record_run(run)<br>
+advice = analyzer.analyze_run(run)<br>
+<br>
+# Get statistics<br>
+stats = analyzer.get_statistics()<br>
+```<br>
+<br>
+## Coaching Examples<br>
+<br>
+### Example 1: Slow 60ft Time<br>
+**Current**: 2.1s  <br>
+**Best**: 1.8s  <br>
+**Advice**: "Your 60ft time is slow. Focus on launch technique."<br>
+<br>
+**Actionable Steps**:<br>
+- Check tire pressure (lower for better grip)<br>
+- Improve launch RPM (find optimal RPM for your setup)<br>
+- Work on throttle control (smooth application, avoid wheelspin)<br>
+- Consider transbrake or launch control if available<br>
+- Check suspension setup for weight transfer<br>
+<br>
+### Example 2: Inconsistent Times<br>
+**Issue**: Times vary by 0.5s between runs  <br>
+**Advice**: "Your times vary significantly. Focus on consistency."<br>
+<br>
+**Actionable Steps**:<br>
+- Practice consistent launch technique<br>
+- Record what's different between runs<br>
+- Focus on repeatability over speed initially<br>
+<br>
+## Integration<br>
+<br>
+The drag racing analyzer integrates with:<br>
+- **Performance Tracker** - Tracks all drag segments<br>
+- **AI Racing Coach** - Provides overall coaching<br>
+- **Voice Feedback** - Spoken coaching advice<br>
+- **UI Components** - Visual display of advice<br>
+- **Data Logger** - Records all runs for analysis<br>
+<br>
+## Best Practices<br>
+<br>
+1. **Consistency First**: Focus on consistent times before pushing for faster<br>
+2. **One Change at a Time**: Make one adjustment per run to see what works<br>
+3. **Record Everything**: Note conditions, setup, and changes<br>
+4. **Review Trends**: Look at improvement trends over time<br>
+5. **Follow Advice**: The AI provides specific, actionable steps<br>
+<br>
+## Future Enhancements<br>
+<br>
+- Machine learning-based optimal launch RPM prediction<br>
+- Weather condition adjustments<br>
+- Vehicle-specific tuning recommendations<br>
+- Integration with ECU tuning for automatic adjustments<br>
+- Social comparison with other racers<br>
+<br>
+---<br>
+<br>
+**This is a UNIQUE feature** - no other racing telemetry system provides AI-powered drag racing coaching with actionable advice!<br>
+<br>
+
+</body>
+</html>

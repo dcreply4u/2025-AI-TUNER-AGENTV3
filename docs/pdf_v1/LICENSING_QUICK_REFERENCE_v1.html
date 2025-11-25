@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>LICENSING_QUICK_REFERENCE</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # Licensing System - Quick Reference<br>
+<br>
+## Quick Summary<br>
+<br>
+**Current Status:** Basic license infrastructure exists, but no demo mode restrictions implemented.<br>
+<br>
+**Recommended Approach:** Start with Simple License Key System (Option 1), upgrade to Hybrid System (Option 3) for production.<br>
+<br>
+## Options Comparison<br>
+<br>
+| Option | Security | Complexity | Cost | Best For |<br>
+|-------|----------|------------|------|----------|<br>
+| **1. Simple Key** | Low-Medium | Low | Free | MVP, Quick Launch |<br>
+| **2. Server-Based** | High | Medium | $10-50/mo | Production, Subscriptions |<br>
+| **3. Hybrid** | High | Medium-High | $10-50/mo | **Recommended** |<br>
+| **4. YubiKey** | Very High | Low | $50-100/key | Enterprise |<br>
+| **5. Third-Party** | High | Low | $50-500/mo | Fast Launch |<br>
+<br>
+## Implementation Checklist<br>
+<br>
+### Phase 1: Basic License System (1-2 days)<br>
+- [ ] Create `core/license_manager.py`<br>
+- [ ] Create `core/demo_restrictions.py`<br>
+- [ ] Add license entry dialog<br>
+- [ ] Add license status indicator<br>
+- [ ] Implement feature gating<br>
+<br>
+### Phase 2: Demo Mode Restrictions (1 day)<br>
+- [ ] Disable ECU write operations<br>
+- [ ] Limit data logging (5 min sessions)<br>
+- [ ] Limit exports (10 max)<br>
+- [ ] Disable advanced AI features<br>
+- [ ] Disable cloud sync<br>
+- [ ] Add "Demo Mode" badges<br>
+<br>
+### Phase 3: Server Integration (Optional, 1-2 weeks)<br>
+- [ ] Create license server API<br>
+- [ ] Implement online validation<br>
+- [ ] Add offline cache<br>
+- [ ] Add periodic validation<br>
+<br>
+## Quick Start Code<br>
+<br>
+```python<br>
+# In main application startup<br>
+from core.license_manager import LicenseManager<br>
+<br>
+license_manager = LicenseManager()<br>
+<br>
+if license_manager.is_demo_mode():<br>
+    print("DEMO MODE - Limited features")<br>
+else:<br>
+    print(f"Licensed: {license_manager.get_license_type().value}")<br>
+<br>
+# Feature check<br>
+if license_manager.is_feature_enabled('ecu_tuning_write'):<br>
+    # Allow ECU writes<br>
+    pass<br>
+else:<br>
+    # Show demo mode message<br>
+    pass<br>
+```<br>
+<br>
+## Demo Mode Restrictions<br>
+<br>
+### ✅ Allowed<br>
+- View all UI<br>
+- View telemetry<br>
+- View settings (read-only)<br>
+- Basic AI advisor<br>
+- Limited exports (10 max)<br>
+<br>
+### ❌ Restricted<br>
+- ECU tuning writes<br>
+- Advanced AI (ML models)<br>
+- Cloud sync<br>
+- Video recording<br>
+- Auto tuning<br>
+- Racing controls (write)<br>
+- Unlimited data logging<br>
+<br>
+## License Key Format<br>
+<br>
+```<br>
+AI-TUNER-XXXX-XXXX-XXXX-XXXX<br>
+```<br>
+<br>
+Example: `AI-TUNER-B123-A456-C789-D012`<br>
+<br>
+## Files to Create/Modify<br>
+<br>
+1. **New Files:**<br>
+   - `core/license_manager.py` - License validation<br>
+   - `core/demo_restrictions.py` - Usage limits<br>
+   - `ui/license_dialog.py` - License entry UI<br>
+<br>
+2. **Modify:**<br>
+   - `demo.py` - Add license check<br>
+   - `ui/main_container.py` - Add license status<br>
+   - Feature modules - Add license checks<br>
+<br>
+## See Also<br>
+<br>
+- [Full Licensing Options Document](LICENSING_OPTIONS.md)<br>
+- [Code Protection System](../core/code_protection.py)<br>
+- [YubiKey Integration](YUBIKEY_INTEGRATION.md)<br>
+<br>
+<br>
+<br>
+<br>
+
+</body>
+</html>

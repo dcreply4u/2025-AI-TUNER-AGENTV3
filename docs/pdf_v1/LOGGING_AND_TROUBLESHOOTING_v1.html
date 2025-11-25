@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>LOGGING_AND_TROUBLESHOOTING</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # Logging and Troubleshooting Guide<br>
+<br>
+## Overview<br>
+<br>
+The AI Tuner application includes a comprehensive logging and troubleshooting system designed to help diagnose issues, monitor performance, and track application behavior across all modules.<br>
+<br>
+## Features<br>
+<br>
+### Logging System<br>
+<br>
+- **Centralized Configuration**: Single configuration point for all logging<br>
+- **Multiple Log Levels**: DEBUG, INFO, WARNING, ERROR, CRITICAL<br>
+- **File Rotation**: Automatic log file rotation with configurable size limits<br>
+- **Colored Console Output**: Color-coded log levels for easy reading<br>
+- **Structured Logging**: JSON-formatted logs for log aggregation tools<br>
+- **Performance Logging**: Separate performance metrics logging<br>
+- **Context-Aware**: Automatic module and function name tracking<br>
+<br>
+### Troubleshooting System<br>
+<br>
+- **System Diagnostics**: Comprehensive health checks<br>
+- **Component Status**: Verify all system components<br>
+- **Performance Analysis**: Monitor resource usage<br>
+- **Error Pattern Detection**: Identify recurring issues<br>
+- **Configuration Validation**: Verify settings and dependencies<br>
+- **Hardware Detection**: Check available hardware interfaces<br>
+<br>
+## Quick Start<br>
+<br>
+### Initialize Logging<br>
+<br>
+```python<br>
+from core.init_logging import initialize_logging<br>
+<br>
+# Initialize at application startup<br>
+initialize_logging(<br>
+    log_level="INFO",<br>
+    log_file=Path("logs/ai_tuner.log"),<br>
+    enable_performance=True,<br>
+    enable_structured=True,<br>
+    colorize=True<br>
+)<br>
+```<br>
+<br>
+### Using Loggers in Your Modules<br>
+<br>
+```python<br>
+from core.logging_config import get_logger<br>
+<br>
+# Get a logger for your module<br>
+logger = get_logger(__name__)<br>
+<br>
+# Use it<br>
+logger.debug("Detailed debug information")<br>
+logger.info("General information")<br>
+logger.warning("Warning message")<br>
+logger.error("Error occurred")<br>
+logger.critical("Critical error")<br>
+```<br>
+<br>
+### Performance Logging<br>
+<br>
+```python<br>
+from core.logging_utils import log_performance_metric, log_execution_time<br>
+<br>
+# Decorator approach<br>
+@log_performance_metric("database_query")<br>
+def query_database():<br>
+    # Your code here<br>
+    pass<br>
+<br>
+# Context manager approach<br>
+with log_execution_time("data_processing"):<br>
+    # Your code here<br>
+    process_data()<br>
+```<br>
+<br>
+### Error Logging with Context<br>
+<br>
+```python<br>
+from core.logging_utils import log_error_with_context<br>
+<br>
+@log_error_with_context(reraise=True, include_traceback=True)<br>
+def risky_operation():<br>
+    # Your code here<br>
+    pass<br>
+```<br>
+<br>
+## Advanced Usage<br>
+<br>
+### Custom Log Configuration<br>
+<br>
+```python<br>
+from core.logging_config import LoggingConfig, configure_logging, LogLevel<br>
+<br>
+config = LoggingConfig(<br>
+    level=LogLevel.DEBUG,<br>
+    console_enabled=True,<br>
+    file_enabled=True,<br>
+    file_path=Path("logs/custom.log"),<br>
+    max_file_size_mb=50,<br>
+    backup_count=10,<br>
+    enable_performance_logging=True,<br>
+    enable_structured_logging=True,<br>
+    colorize_console=True,<br>
+    include_timestamp=True,<br>
+    include_module=True,<br>
+    include_thread=True,<br>
+)<br>
+<br>
+configure_logging(config)<br>
+```<br>
+<br>
+### Running Diagnostics<br>
+<br>
+```python<br>
+from core.troubleshooter import Troubleshooter, DiagnosticLevel<br>
+<br>
+troubleshooter = Troubleshooter()<br>
+diagnostics = troubleshooter.run_diagnostics(DiagnosticLevel.STANDARD)<br>
+<br>
+# Check results<br>
+for check in diagnostics.checks:<br>
+    print(f"{check.name}: {check.status.value} - {check.message}")<br>
+    if check.details:<br>
+        print(f"  Details: {check.details}")<br>
+```<br>
+<br>
+### Using the Log Viewer UI<br>
+<br>
+```python<br>
+from ui.log_viewer import LogViewer<br>
+<br>
+# Create log viewer widget<br>
+log_viewer = LogViewer()<br>
+log_viewer.set_log_file(Path("logs/ai_tuner.log"))<br>
+<br>
+# Add to your UI<br>
+layout.addWidget(log_viewer)<br>
+```<br>
+<br>
+### Using the Diagnostics Dialog<br>
+<br>
+```python<br>
+from ui.diagnostics_dialog import DiagnosticsDialog<br>
+<br>
+# Create and show diagnostics dialog<br>
+dialog = DiagnosticsDialog(parent=self)<br>
+dialog.exec()<br>
+```<br>
+<br>
+## Log Levels<br>
+<br>
+- **DEBUG**: Detailed information for debugging<br>
+- **INFO**: General informational messages<br>
+- **WARNING**: Warning messages for potential issues<br>
+- **ERROR**: Error messages for failures<br>
+- **CRITICAL**: Critical errors that may cause system failure<br>
+<br>
+## Log Files<br>
+<br>
+### Main Log File<br>
+- Location: `logs/ai_tuner.log`<br>
+- Contains: All log messages<br>
+- Rotation: 10MB per file, 5 backups<br>
+<br>
+### Performance Log File<br>
+- Location: `logs/performance_ai_tuner.log`<br>
+- Contains: Performance metrics only<br>
+- Format: JSON structured logs<br>
+<br>
+## Environment Variables<br>
+<br>
+You can configure logging via environment variables:<br>
+<br>
+```bash<br>
+# Set log level<br>
+export AITUNER_LOG_LEVEL=DEBUG<br>
+<br>
+# Enable demo mode (disables network camera scanning)<br>
+export AITUNER_DEMO_MODE=true<br>
+```<br>
+<br>
+## Best Practices<br>
+<br>
+### 1. Use Appropriate Log Levels<br>
+<br>
+```python<br>
+# Good<br>
+logger.debug("Processing item %d", item_id)  # Detailed debugging<br>
+logger.info("User logged in: %s", username)  # Important events<br>
+logger.warning("Low disk space: %d%%", percent)  # Potential issues<br>
+logger.error("Failed to connect: %s", error)  # Errors<br>
+logger.critical("Database connection lost")  # Critical failures<br>
+```<br>
+<br>
+### 2. Include Context<br>
+<br>
+```python<br>
+# Good - includes context<br>
+logger.error("Failed to save data", extra={<br>
+    'user_id': user_id,<br>
+    'file_path': file_path,<br>
+    'error_code': error_code<br>
+})<br>
+<br>
+# Bad - no context<br>
+logger.error("Failed to save")<br>
+```<br>
+<br>
+### 3. Use Performance Logging for Slow Operations<br>
+<br>
+```python<br>
+# Good - track performance<br>
+@log_performance_metric("heavy_computation")<br>
+def process_large_dataset():<br>
+    # Your code<br>
+    pass<br>
+```<br>
+<br>
+### 4. Log Errors with Full Context<br>
+<br>
+```python<br>
+# Good - includes traceback<br>
+try:<br>
+    risky_operation()<br>
+except Exception as e:<br>
+    logger.error("Operation failed", exc_info=True)<br>
+```<br>
+<br>
+## Troubleshooting Common Issues<br>
+<br>
+### Issue: Logs not appearing<br>
+<br>
+**Solution**: Check that logging is initialized:<br>
+```python<br>
+from core.init_logging import initialize_logging<br>
+initialize_logging()<br>
+```<br>
+<br>
+### Issue: Too many log messages<br>
+<br>
+**Solution**: Adjust log level:<br>
+```python<br>
+from core.logging_config import set_log_level, LogLevel<br>
+set_log_level(LogLevel.WARNING)  # Only warnings and errors<br>
+```<br>
+<br>
+### Issue: Log file too large<br>
+<br>
+**Solution**: Adjust rotation settings:<br>
+```python<br>
+config = LoggingConfig(<br>
+    max_file_size_mb=5,  # Smaller files<br>
+    backup_count=3,  # Fewer backups<br>
+)<br>
+```<br>
+<br>
+### Issue: Performance logging not working<br>
+<br>
+**Solution**: Ensure performance logging is enabled:<br>
+```python<br>
+config = LoggingConfig(enable_performance_logging=True)<br>
+configure_logging(config)<br>
+```<br>
+<br>
+## Integration Examples<br>
+<br>
+### Adding Logging to a New Module<br>
+<br>
+```python<br>
+"""<br>
+My New Module<br>
+<br>
+Provides functionality for...<br>
+"""<br>
+<br>
+from core.logging_config import get_logger<br>
+from core.logging_utils import log_function_call, log_error_with_context<br>
+<br>
+logger = get_logger(__name__)<br>
+<br>
+class MyModule:<br>
+    def __init__(self):<br>
+        logger.info("Initializing MyModule")<br>
+        # Your initialization code<br>
+    <br>
+    @log_function_call(log_args=False, log_result=False)<br>
+    def my_function(self, param1, param2):<br>
+        logger.debug("Processing with param1=%s, param2=%s", param1, param2)<br>
+        try:<br>
+            result = self._do_work(param1, param2)<br>
+            logger.info("Function completed successfully")<br>
+            return result<br>
+        except Exception as e:<br>
+            logger.error("Function failed: %s", e, exc_info=True)<br>
+            raise<br>
+    <br>
+    @log_error_with_context()<br>
+    def risky_operation(self):<br>
+        # This will automatically log errors with context<br>
+        pass<br>
+```<br>
+<br>
+## Diagnostic Checks<br>
+<br>
+The troubleshooting system performs the following checks:<br>
+<br>
+1. **Python Version**: Verifies Python 3.8+<br>
+2. **Dependencies**: Checks required and optional dependencies<br>
+3. **File Permissions**: Verifies write access to log/data directories<br>
+4. **Disk Space**: Checks available disk space<br>
+5. **Memory**: Checks available system memory<br>
+6. **CPU**: Monitors CPU usage<br>
+7. **Network**: Tests network connectivity<br>
+8. **Configuration**: Validates configuration files<br>
+9. **Log Files**: Checks log file accessibility<br>
+10. **Hardware Interfaces** (comprehensive): Checks serial ports, cameras<br>
+11. **Database Connectivity** (comprehensive): Tests SQLite and PostgreSQL<br>
+12. **Camera Availability** (comprehensive): Detects available cameras<br>
+<br>
+## Performance Monitoring<br>
+<br>
+The system automatically tracks:<br>
+<br>
+- Function execution times<br>
+- Resource usage (memory, CPU)<br>
+- Operation durations<br>
+- Error rates<br>
+- Component health<br>
+<br>
+View performance logs:<br>
+```python<br>
+from core.logging_config import LoggingManager<br>
+<br>
+manager = LoggingManager()<br>
+stats = manager.get_log_statistics()<br>
+print(f"Log file size: {stats['log_file_size_mb']:.2f}MB")<br>
+```<br>
+<br>
+## Support<br>
+<br>
+For issues or questions about logging and troubleshooting:<br>
+<br>
+1. Check the log files in `logs/`<br>
+2. Run diagnostics: `DiagnosticsDialog`<br>
+3. Review this documentation<br>
+4. Check error messages in the console<br>
+<br>
+
+</body>
+</html>

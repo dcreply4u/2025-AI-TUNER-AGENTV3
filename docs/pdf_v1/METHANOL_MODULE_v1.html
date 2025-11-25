@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>METHANOL_MODULE</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # Methanol Module – Feature Summary<br>
+<br>
+## Overview<br>
+The Methanol tab is now a full-featured tuning workstation for water/meth injection and 100 % meth fuel systems. It combines real-time diagnostics, dynamic control tables, environmental compensation, and logging/failsafes so you can tune safely for street, race, or kill maps.<br>
+<br>
+## Real-Time Monitoring<br>
+- Gauges for injection duty, tank level, flow rate, AFR/Lambda, fuel pressure, EGT, boost, and coolant.<br>
+- Diagnostics indicator + soft-failsafe banner on the top control bar.<br>
+- Individual-cylinder EGT graph plus VE, AFR, timing, and pressure graphs.<br>
+<br>
+## Control Bar / Modes<br>
+- One-tap Street / Race / Kill switching adjusts base timing and fuel multipliers automatically.<br>
+- Failsafe status light with “Armed” / “Safe map active”.<br>
+- Buttons to clear fault codes and export session logs.<br>
+<br>
+## Center Tabs<br>
+1. **VE / Base Fuel Map** – VETableWidget for methanol’s ~2.3× fuel requirement.<br>
+2. **Target AFR/Lambda** – high-resolution table (3.5–6.4:1 AFR) with color coding.<br>
+3. **Ignition Timing** – methanol-specific advance map (10–50° window).<br>
+4. **Injection Flow Map** – boost/EGT/TPS matrix for progressive duty control.<br>
+5. **Temperature Corrections** – coolant + air temp enrichment/retard tables.<br>
+6. **Dynamic Control** – RPM/load grid for live duty scheduling.<br>
+7. **Diagnostics** – fault-code table with timestamped entries.<br>
+8. **Environment** – ambient temp/humidity/baro inputs + density correction summary.<br>
+9. **Data Logging** – rolling session table (time, RPM, boost, AFR, duty, faults) with clear/export options.<br>
+<br>
+## Safety & Failsafes<br>
+- Thresholds for tank level, fuel pressure, flow, coolant, and EGT.<br>
+- Automatic fault capture with detents in the Diagnostics tab and status indicator.<br>
+- “Failsafe: Safe map active” banner when thresholds are breached (if failsafe enabled).<br>
+- Emergency map switching supported through the base ModuleTab stack.<br>
+<br>
+## Environmental Compensation<br>
+- Inputs for ambient temperature, humidity, barometric pressure, and density altitude.<br>
+- Live text summary suggests timing/fuel trims so you can pre-empt conditions that cause lean surging.<br>
+<br>
+## Logging & Analysis<br>
+- Session log deque (240 entries) mirrored in the Data Logging tab.<br>
+- CSV export button on the control bar.<br>
+- Logs capture RPM, boost, AFR, duty, and any active fault string at each timestamp.<br>
+<br>
+## Integration Hooks<br>
+- `update_telemetry()` handles sensor inputs (`meth_duty`, `MethInjectionDuty`, `methanol_level`, `Fuel_Pressure`, `AFR`, `EGT`, `Coolant_Temp`, `Boost_Pressure`, etc.).<br>
+- Failsafe logic respects UI thresholds and automatically records faults/log samples.<br>
+- Environment slider updates can be tied to backend compensation if you integrate a closed-loop table.<br>
+<br>
+## Operator Tips<br>
+1. Run Street mode for commuting, Race for track days, Kill for dyno hero pulls only.<br>
+2. Watch the Diagnostics indicator—if it flips to orange/red, investigate before next pass.<br>
+3. Use the Dynamic Control tab to smooth duty vs RPM/load for spool-friendly injection.<br>
+4. Export logs after each session and attach them to tune revisions or customer builds.<br>
+5. Keep ambient inputs updated on race day for accurate density trim suggestions.<br>
+<br>
+This module now meets the requested requirements: real-time vitals, diagnostics, dynamic methanol control, failsafes, custom map editing, logging, environmental adjustments, mode switching, per-cylinder data, and boost-integrated behavior.<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+</body>
+</html>

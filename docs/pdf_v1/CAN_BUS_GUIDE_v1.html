@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>CAN_BUS_GUIDE</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # CAN Bus Integration Guide<br>
+<br>
+## Overview<br>
+<br>
+The AI Tuner Agent includes a comprehensive, optimized CAN bus system with support for 100+ CAN IDs across multiple vendors, real-time monitoring, and advanced analysis capabilities.<br>
+<br>
+## Features<br>
+<br>
+### 1. Extended CAN ID Database<br>
+- **100+ CAN IDs** across 10+ vendors<br>
+- Holley, Haltech, AEM, Link, MegaSquirt, MoTec, Emtron, FuelTech, RaceCapture, OBD-II<br>
+- Racing-specific IDs (FlexFuel, Methanol, Nitrous, Transbrake)<br>
+- Automatic ID recognition and naming<br>
+<br>
+### 2. Optimized Performance<br>
+- **High-speed message processing** with buffering<br>
+- **Multi-channel support** (dual CAN for reTerminal DM)<br>
+- **Message filtering** for reduced CPU usage<br>
+- **Statistics tracking** in real-time<br>
+<br>
+### 3. Real-Time Monitoring<br>
+- Background monitoring threads<br>
+- Message callbacks for custom processing<br>
+- Statistics (messages/sec, bus load, error frames)<br>
+- Recent message buffer (last 1000 messages)<br>
+<br>
+### 4. Advanced Analysis<br>
+- Bus load calculation<br>
+- Timing analysis per CAN ID<br>
+- Anomaly detection<br>
+- Protocol compliance checking<br>
+- Pattern recognition<br>
+<br>
+## Usage<br>
+<br>
+### Basic CAN Interface<br>
+<br>
+```python<br>
+from interfaces import OptimizedCANInterface<br>
+<br>
+# Initialize CAN interface<br>
+can_interface = OptimizedCANInterface(<br>
+    channel="can0",<br>
+    bitrate=500000,<br>
+    secondary_channel="can1",  # Optional for dual CAN<br>
+    message_callback=my_callback,  # Optional<br>
+    filter_ids={0x180, 0x181},  # Optional filter<br>
+)<br>
+<br>
+# Connect and start monitoring<br>
+can_interface.connect()<br>
+can_interface.start_monitoring()<br>
+<br>
+# Read messages<br>
+message = can_interface.read_message(timeout=1.0)<br>
+if message:<br>
+    print(f"CAN ID: 0x{message.arbitration_id:X}")<br>
+    print(f"Data: {message.data.hex()}")<br>
+<br>
+# Get statistics<br>
+stats = can_interface.get_statistics()<br>
+print(f"Messages/sec: {stats.messages_per_second:.1f}")<br>
+print(f"Unique IDs: {len(stats.unique_ids)}")<br>
+<br>
+# Stop monitoring<br>
+can_interface.stop_monitoring()<br>
+can_interface.disconnect()<br>
+```<br>
+<br>
+### CAN Analyzer<br>
+<br>
+```python<br>
+from services import CANAnalyzer<br>
+from interfaces import OptimizedCANInterface<br>
+<br>
+# Initialize analyzer<br>
+analyzer = CANAnalyzer()<br>
+<br>
+# Set up CAN interface with callback<br>
+def on_message(msg):<br>
+    analyzer.add_message(msg)<br>
+<br>
+can_interface = OptimizedCANInterface(<br>
+    channel="can0",<br>
+    message_callback=on_message,<br>
+)<br>
+can_interface.start_monitoring()<br>
+<br>
+# Perform analysis<br>
+analysis = analyzer.analyze()<br>
+print(f"Bus Load: {analysis.bus_load_percent:.1f}%")<br>
+print(f"Average Rate: {analysis.average_message_rate:.1f} msg/s")<br>
+print(f"Peak Rate: {analysis.peak_message_rate:.1f} msg/s")<br>
+<br>
+# Check for anomalies<br>
+if analysis.anomalies:<br>
+    print("Anomalies detected:")<br>
+    for anomaly in analysis.anomalies:<br>
+        print(f"  - {anomaly}")<br>
+```<br>
+<br>
+### Vendor Detection<br>
+<br>
+```python<br>
+from services import CANVendorDetector<br>
+<br>
+# Initialize detector<br>
+detector = CANVendorDetector(<br>
+    can_channel="can0",<br>
+    bitrate=500000,<br>
+)<br>
+<br>
+# Detect vendor<br>
+vendor = detector.detect_vendor(sample_time=5.0)<br>
+print(f"Detected vendor: {vendor.value if vendor else 'Unknown'}")<br>
+<br>
+# Load DBC file for detected vendor<br>
+if vendor:<br>
+    detector.load_dbc(vendor)<br>
+    <br>
+    # Decode messages<br>
+    decoded = detector.decode_message(can_id=0x180, data=b"\x01\x02\x03...")<br>
+    if decoded:<br>
+        print(f"Message: {decoded['name']}")<br>
+        print(f"Signals: {decoded['signals']}")<br>
+```<br>
+<br>
+### CAN Monitor Tool<br>
+<br>
+Use the command-line monitor tool:<br>
+<br>
+```bash<br>
+# Basic monitoring<br>
+python -m tools.can_monitor --channel can0<br>
+<br>
+# With filtering<br>
+python -m tools.can_monitor --channel can0 --filter 0x180 0x181<br>
+<br>
+# List all known CAN IDs<br>
+python -m tools.can_monitor --list-ids<br>
+<br>
+# Custom bitrate<br>
+python -m tools.can_monitor --channel can0 --bitrate 1000000<br>
+```<br>
+<br>
+## Supported CAN IDs<br>
+<br>
+### Holley EFI<br>
+- `0x180` - Engine Data (RPM, MAP, TPS)<br>
+- `0x181` - Temperature Data<br>
+- `0x182` - Fuel Data<br>
+- `0x183` - Ignition Data<br>
+- `0x184` - System Status<br>
+- `0x185` - Extended Parameters<br>
+- `0x186` - FlexFuel<br>
+- `0x187` - Boost Control<br>
+<br>
+### Haltech<br>
+- `0x200-0x207` - Various ECU parameters<br>
+<br>
+### AEM Infinity<br>
+- `0x300-0x305` - Engine, Fuel, Ignition, I/O<br>
+<br>
+### Racing-Specific IDs<br>
+- `0x18FF65E5` - FlexFuel Percent (Ethanol Content)<br>
+- `0x18FF70E5` - Methanol Injection Duty<br>
+- `0x18FF75E5` - Methanol Tank Level<br>
+- `0x18EF12A0` - Nitrous Bottle Pressure<br>
+- `0x18EF12A1` - Nitrous Solenoid State<br>
+- `0x18EF12A2` - Transbrake Status<br>
+<br>
+### OBD-II<br>
+- `0x7DF` - OBD Request<br>
+- `0x7E0-0x7EB` - OBD Responses<br>
+<br>
+## Performance Optimization<br>
+<br>
+### Filtering<br>
+Filter only the CAN IDs you need to reduce CPU usage:<br>
+<br>
+```python<br>
+# Monitor only specific IDs<br>
+filter_ids = {0x180, 0x181, 0x182}<br>
+can_interface.set_filter(filter_ids)<br>
+```<br>
+<br>
+### Multi-Channel Support<br>
+For reTerminal DM with dual CAN:<br>
+<br>
+```python<br>
+can_interface = OptimizedCANInterface(<br>
+    channel="can0",<br>
+    secondary_channel="can1",  # Second CAN bus<br>
+    bitrate=500000,<br>
+)<br>
+```<br>
+<br>
+### Statistics<br>
+Monitor bus health:<br>
+<br>
+```python<br>
+stats = can_interface.get_statistics()<br>
+if stats.messages_per_second > 1000:<br>
+    print("High bus load detected")<br>
+if stats.error_frames > 0:<br>
+    print(f"Error frames: {stats.error_frames}")<br>
+```<br>
+<br>
+## Integration with Data Stream Controller<br>
+<br>
+The CAN interface integrates seamlessly with the data stream controller:<br>
+<br>
+```python<br>
+from controllers.data_stream_controller import DataStreamController<br>
+from interfaces import OptimizedCANInterface<br>
+<br>
+# Create CAN interface<br>
+can_interface = OptimizedCANInterface(channel="can0")<br>
+<br>
+# The controller will automatically use CAN if configured<br>
+# See config.py for CAN_CHANNEL and CAN_BITRATE settings<br>
+```<br>
+<br>
+## Troubleshooting<br>
+<br>
+### No CAN Messages<br>
+1. Check CAN interface is up: `ip link show can0`<br>
+2. Verify bitrate matches bus: `ip -details link show can0`<br>
+3. Check permissions: May need `sudo` or add user to `dialout` group<br>
+<br>
+### High CPU Usage<br>
+1. Use message filtering to reduce processing<br>
+2. Increase buffer size if needed<br>
+3. Check bus load - may be too high<br>
+<br>
+### Detection Issues<br>
+1. Increase sample time for vendor detection<br>
+2. Verify CAN IDs match expected vendor<br>
+3. Check DBC file exists for vendor<br>
+<br>
+## Advanced Features<br>
+<br>
+### Custom DBC Files<br>
+Place vendor-specific DBC files in `dbc/` directory:<br>
+- `dbc/holley.dbc`<br>
+- `dbc/haltech.dbc`<br>
+- `dbc/aem.dbc`<br>
+- etc.<br>
+<br>
+### Message Decoding<br>
+With DBC loaded, messages are automatically decoded:<br>
+<br>
+```python<br>
+can_msg = can_interface.read_message()<br>
+decoded = can_interface.decode_message(can_msg)<br>
+if decoded:<br>
+    print(f"Signals: {decoded['signals']}")<br>
+```<br>
+<br>
+### Timing Analysis<br>
+Analyze message timing patterns:<br>
+<br>
+```python<br>
+stats = analyzer.get_id_statistics(0x180)<br>
+if stats:<br>
+    print(f"Average interval: {stats['avg_interval']:.3f}s")<br>
+    print(f"Message rate: {stats['message_rate']:.1f} msg/s")<br>
+```<br>
+<br>
+
+</body>
+</html>

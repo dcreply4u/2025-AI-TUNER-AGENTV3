@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>ARCHITECTURE</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # AI Tuner Agent - System Architecture<br>
+<br>
+## Overview<br>
+<br>
+The AI Tuner Agent is a comprehensive edge computing platform for automotive telemetry, performance tracking, and intelligent tuning assistance. Built with a modular, service-oriented architecture designed for reliability, extensibility, and real-time performance.<br>
+<br>
+## Architecture Principles<br>
+<br>
+1. **Modular Design**: Loosely coupled components with clear interfaces<br>
+2. **Hardware Abstraction**: Platform-agnostic with hardware-specific optimizations<br>
+3. **Fault Tolerance**: Graceful degradation and automatic recovery<br>
+4. **Real-time Performance**: Optimized for low-latency data processing<br>
+5. **Extensibility**: Easy to add new data sources, vendors, and features<br>
+<br>
+## System Layers<br>
+<br>
+```<br>
+┌─────────────────────────────────────────────────────────────┐<br>
+│                    Presentation Layer                       │<br>
+│  (UI Components, Dashboards, Visualizations)               │<br>
+└─────────────────────────────────────────────────────────────┘<br>
+                            ↕<br>
+┌─────────────────────────────────────────────────────────────┐<br>
+│                    Control Layer                             │<br>
+│  (Controllers, Orchestration, State Management)              │<br>
+└─────────────────────────────────────────────────────────────┘<br>
+                            ↕<br>
+┌─────────────────────────────────────────────────────────────┐<br>
+│                    Service Layer                             │<br>
+│  (Business Logic, Data Processing, Analytics)                │<br>
+└─────────────────────────────────────────────────────────────┘<br>
+                            ↕<br>
+┌─────────────────────────────────────────────────────────────┐<br>
+│                    Interface Layer                           │<br>
+│  (Hardware Interfaces, Protocols, Communication)             │<br>
+└─────────────────────────────────────────────────────────────┘<br>
+                            ↕<br>
+┌─────────────────────────────────────────────────────────────┐<br>
+│                    Core Layer                                │<br>
+│  (Platform Detection, Error Handling, Configuration)         │<br>
+└─────────────────────────────────────────────────────────────┘<br>
+                            ↕<br>
+┌─────────────────────────────────────────────────────────────┐<br>
+│                    Hardware Layer                            │<br>
+│  (CAN Bus, OBD-II, GPS, Cameras, USB Storage)                │<br>
+└─────────────────────────────────────────────────────────────┘<br>
+```<br>
+<br>
+## Core Components<br>
+<br>
+### 1. Core Layer (`core/`)<br>
+<br>
+**Purpose**: Foundation services and platform abstraction<br>
+<br>
+**Components**:<br>
+- `hardware_platform.py`: Hardware detection and configuration<br>
+- `error_handler.py`: Centralized error handling and recovery<br>
+- `config_manager.py`: Persistent configuration and profiles<br>
+- `data_validator.py`: Data quality and validation<br>
+- `security_manager.py`: Encryption and credential management<br>
+- `performance_manager.py`: Resource monitoring and optimization<br>
+<br>
+**Key Features**:<br>
+- Automatic hardware detection (reTerminal DM, Raspberry Pi, Jetson)<br>
+- Error recovery strategies<br>
+- Configuration persistence<br>
+- Data validation and outlier detection<br>
+<br>
+### 2. Interface Layer (`interfaces/`)<br>
+<br>
+**Purpose**: Hardware and protocol abstraction<br>
+<br>
+**Components**:<br>
+- `obd_interface.py`: OBD-II protocol support<br>
+- `racecapture_interface.py`: RaceCapture Pro integration<br>
+- `gps_interface.py`: GPS/NMEA support<br>
+- `camera_interface.py`: USB/WiFi camera support<br>
+- `voice_interface.py`: Speech recognition<br>
+- `voice_output.py`: Text-to-speech<br>
+- `simulated_interface.py`: Demo/testing data source<br>
+<br>
+**Key Features**:<br>
+- Unified interface for all data sources<br>
+- Automatic source detection<br>
+- Protocol abstraction<br>
+- Simulated mode for testing<br>
+<br>
+### 3. Service Layer (`services/`)<br>
+<br>
+**Purpose**: Business logic and data processing<br>
+<br>
+**Components**:<br>
+- `data_logger.py`: CSV logging<br>
+- `database_manager.py`: Local SQLite + Cloud PostgreSQL<br>
+- `cloud_sync.py`: Cloud synchronization<br>
+- `offline_manager.py`: Offline queue and sync<br>
+- `performance_tracker.py`: Dragy-style metrics<br>
+- `geo_logger.py`: GPS trace logging<br>
+- `video_logger.py`: Video recording with overlays<br>
+- `live_streamer.py`: YouTube/Twitch streaming<br>
+- `voice_feedback.py`: Proactive announcements<br>
+- `advanced_analytics.py`: Lap comparison, trends<br>
+- `usb_manager.py`: USB storage management<br>
+- `logging_health_monitor.py`: Logging status monitoring<br>
+<br>
+**Key Features**:<br>
+- Fast local database (SQLite) with cloud fallback<br>
+- Automatic USB detection and setup<br>
+- Real-time performance tracking<br>
+- Video overlay system<br>
+- Offline-first architecture<br>
+<br>
+### 4. Control Layer (`controllers/`)<br>
+<br>
+**Purpose**: Orchestration and state management<br>
+<br>
+**Components**:<br>
+- `data_stream_controller.py`: Main data flow orchestration<br>
+- `camera_manager.py`: Camera and video management<br>
+- `voice_controller.py`: Voice command handling<br>
+- `dragy_controller.py`: Performance tracking UI<br>
+<br>
+**Key Features**:<br>
+- Qt-friendly (thread-safe)<br>
+- Automatic reconnection<br>
+- State management<br>
+- Event-driven architecture<br>
+<br>
+### 5. AI Layer (`ai/`)<br>
+<br>
+**Purpose**: Machine learning and intelligent analysis<br>
+<br>
+**Components**:<br>
+- `predictive_fault_detector.py`: Anomaly detection (IsolationForest)<br>
+- `tuning_advisor.py`: Rule-based tuning recommendations<br>
+- `conversational_agent.py`: Natural language interaction<br>
+- `health_scoring_engine.py`: Engine health scoring<br>
+<br>
+**Key Features**:<br>
+- Real-time anomaly detection<br>
+- Predictive maintenance<br>
+- Natural language queries<br>
+- Health scoring algorithms<br>
+<br>
+### 6. Presentation Layer (`ui/`)<br>
+<br>
+**Purpose**: User interface and visualization<br>
+<br>
+**Components**:<br>
+- `main.py`: Main application window<br>
+- `telemetry_panel.py`: Real-time sensor display<br>
+- `health_score_widget.py`: Health gauge<br>
+- `ai_insight_panel.py`: AI recommendations<br>
+- `dragy_view.py`: Performance dashboard<br>
+- `fault_panel.py`: DTC display<br>
+- `status_bar.py`: System status<br>
+- `onboarding_wizard.py`: First-time setup<br>
+- `overlay_config_dialog.py`: Video overlay configuration<br>
+- `camera_config_dialog.py`: Camera setup<br>
+- `usb_setup_dialog.py`: USB configuration<br>
+<br>
+**Key Features**:<br>
+- Modern Qt6/PySide6 UI<br>
+- Real-time updates<br>
+- Dragy-style performance view<br>
+- Customizable video overlays<br>
+<br>
+## Data Flow<br>
+<br>
+```<br>
+Hardware (CAN/OBD/GPS)<br>
+    ↓<br>
+Interface Layer (Protocol Abstraction)<br>
+    ↓<br>
+Data Stream Controller (Orchestration)<br>
+    ↓<br>
+    ├─→ Data Validator (Quality Check)<br>
+    ├─→ Predictive Fault Detector (Anomaly Detection)<br>
+    ├─→ Health Scoring Engine (Health Calculation)<br>
+    ├─→ Tuning Advisor (Recommendations)<br>
+    ├─→ Performance Tracker (Metrics)<br>
+    ├─→ Data Logger (CSV)<br>
+    ├─→ Database Manager (SQLite/PostgreSQL)<br>
+    ├─→ Cloud Sync (Optional)<br>
+    └─→ UI Components (Display)<br>
+```<br>
+<br>
+## Database Architecture<br>
+<br>
+### Local Database (SQLite)<br>
+- **Primary Storage**: Fast, always available<br>
+- **Tables**: telemetry, sessions, events, performance_metrics<br>
+- **Features**: WAL mode, indexed queries, transaction support<br>
+<br>
+### Cloud Database (PostgreSQL)<br>
+- **Fallback/Sync**: When connectivity available<br>
+- **Automatic Sync**: Background thread syncs local → cloud<br>
+- **Features**: Connection pooling, SSL, conflict resolution<br>
+<br>
+### Sync Strategy<br>
+1. Write to local first (fast, always available)<br>
+2. Queue for cloud sync<br>
+3. Background worker syncs when online<br>
+4. Automatic retry with backoff<br>
+<br>
+## Communication Protocols<br>
+<br>
+### Supported Protocols<br>
+- **CAN Bus**: ISO 15765, J1939, custom protocols<br>
+- **OBD-II**: ELM327, ISO 9141, ISO 14230, ISO 15765<br>
+- **RaceCapture**: Serial protocol<br>
+- **GPS**: NMEA 0183<br>
+- **Video**: USB UVC, RTSP, HTTP streams<br>
+- **Cloud**: MQTT, HTTPS REST<br>
+<br>
+## Security Architecture<br>
+<br>
+### Credential Management<br>
+- Encrypted storage (Fernet/AES)<br>
+- Secure key management<br>
+- Password hashing (PBKDF2)<br>
+- File permission protection<br>
+<br>
+### Data Protection<br>
+- Optional encryption for sensitive logs<br>
+- Secure cloud connections (SSL/TLS)<br>
+- Access control for operations<br>
+<br>
+## Performance Optimizations<br>
+<br>
+### Resource Management<br>
+- Thread pool for concurrent operations<br>
+- Memory optimization (garbage collection)<br>
+- CPU/memory monitoring<br>
+- Automatic resource cleanup<br>
+<br>
+### Real-time Processing<br>
+- Low-latency data pipelines<br>
+- Efficient data structures<br>
+- Minimal copying<br>
+- Optimized algorithms<br>
+<br>
+## Extensibility Points<br>
+<br>
+### Adding New Data Sources<br>
+1. Create interface in `interfaces/`<br>
+2. Implement `read_data()` method<br>
+3. Register in `data_stream_controller.py`<br>
+4. Add to auto-detection logic<br>
+<br>
+### Adding New Vendors<br>
+1. Add signature to `can_vendor_detector.py`<br>
+2. Create/import DBC file<br>
+3. Add to vendor detection logic<br>
+<br>
+### Adding New Features<br>
+1. Create service in `services/`<br>
+2. Integrate with controller<br>
+3. Add UI components if needed<br>
+4. Update configuration system<br>
+<br>
+## Deployment Architecture<br>
+<br>
+### Edge Device (reTerminal DM / Raspberry Pi)<br>
+- Runs full application<br>
+- Local database<br>
+- Real-time processing<br>
+- USB storage support<br>
+<br>
+### Cloud Services (Optional)<br>
+- PostgreSQL database<br>
+- REST API<br>
+- MQTT broker<br>
+- Analytics backend<br>
+<br>
+### Mobile Companion (Future)<br>
+- Remote monitoring<br>
+- Push notifications<br>
+- Mobile dashboard<br>
+<br>
+## Scalability<br>
+<br>
+### Horizontal Scaling<br>
+- Multiple edge devices<br>
+- Centralized cloud database<br>
+- Load balancing for API<br>
+<br>
+### Vertical Scaling<br>
+- Optimized for single device<br>
+- Efficient resource usage<br>
+- Background processing<br>
+<br>
+## Reliability<br>
+<br>
+### Fault Tolerance<br>
+- Automatic error recovery<br>
+- Graceful degradation<br>
+- Fallback mechanisms<br>
+- Health monitoring<br>
+<br>
+### Data Integrity<br>
+- Transaction support<br>
+- Validation checks<br>
+- Backup strategies<br>
+- Sync verification<br>
+<br>
+## Technology Stack<br>
+<br>
+### Core<br>
+- **Python 3.8+**: Main language<br>
+- **PySide6/Qt6**: UI framework<br>
+- **SQLite**: Local database<br>
+- **PostgreSQL**: Cloud database<br>
+<br>
+### AI/ML<br>
+- **scikit-learn**: Machine learning<br>
+- **numpy/pandas**: Data processing<br>
+- **joblib**: Model persistence<br>
+<br>
+### Hardware<br>
+- **python-can**: CAN bus<br>
+- **python-OBD**: OBD-II<br>
+- **pyserial**: Serial communication<br>
+- **opencv-python**: Video processing<br>
+<br>
+### Communication<br>
+- **paho-mqtt**: MQTT client<br>
+- **requests**: HTTP client<br>
+- **psycopg2**: PostgreSQL driver<br>
+<br>
+## Development Workflow<br>
+<br>
+1. **Local Development**: Demo mode with simulated data<br>
+2. **Testing**: Unit tests, integration tests<br>
+3. **Hardware Testing**: Real device testing<br>
+4. **Deployment**: Edge device deployment<br>
+5. **Monitoring**: Health monitoring and logging<br>
+<br>
+## Future Architecture Enhancements<br>
+<br>
+1. **Microservices**: Split into smaller services<br>
+2. **Containerization**: Docker support<br>
+3. **Kubernetes**: Orchestration for cloud<br>
+4. **GraphQL API**: Flexible data queries<br>
+5. **WebSocket**: Real-time updates<br>
+6. **Edge AI**: On-device model inference<br>
+<br>
+
+</body>
+</html>

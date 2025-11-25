@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>HARDWARE_CONNECTIONS</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # Hardware Connection Guide<br>
+<br>
+## Quick Reference: How Sensors Connect<br>
+<br>
+### reTerminal DM (Recommended Platform)<br>
+<br>
+```<br>
+┌─────────────────────────────────────────────────────────┐<br>
+│              Seeed reTerminal DM                        │<br>
+│                                                          │<br>
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐              │<br>
+│  │  CAN0    │  │  CAN1    │  │   GPIO   │              │<br>
+│  │ (Built-in)│ │ (Built-in)│ │  Header  │              │<br>
+│  └──────────┘  └──────────┘  └──────────┘              │<br>
+│       │              │              │                    │<br>
+│       │              │              │                    │<br>
+│  ┌────┴────┐   ┌────┴────┐   ┌────┴────┐              │<br>
+│  │   USB   │   │   USB   │   │   I2C   │              │<br>
+│  │ Ports   │   │ Ports   │   │  /SPI   │              │<br>
+│  └─────────┘   └─────────┘   └─────────┘              │<br>
+└─────────────────────────────────────────────────────────┘<br>
+         │              │              │<br>
+         │              │              │<br>
+    ┌────▼────┐   ┌────▼────┐   ┌────▼────┐<br>
+    │  GPS     │   │ Camera  │   │  ADC    │<br>
+    │  Module  │   │  (USB)  │   │  Board  │<br>
+    └──────────┘   └─────────┘   └─────────┘<br>
+                                              │<br>
+                                         ┌────▼────┐<br>
+                                         │ Analog  │<br>
+                                         │ Sensors │<br>
+                                         └─────────┘<br>
+```<br>
+<br>
+## Connection Methods by Sensor Type<br>
+<br>
+### 1. CAN Bus Sensors (Best for Automotive)<br>
+<br>
+**What connects:**<br>
+- ECU (Engine Control Unit)<br>
+- Wideband O2 controllers<br>
+- Data loggers (RaceCapture, etc.)<br>
+- CAN-enabled sensors<br>
+<br>
+**Cables needed:**<br>
+- 2 wires: CAN-H (high) and CAN-L (low)<br>
+- Twisted pair cable recommended<br>
+- 120Ω termination resistors (one at each end)<br>
+<br>
+**reTerminal DM:**<br>
+- ✅ **Built-in CAN0 and CAN1** - No additional hardware!<br>
+- Just connect CAN-H and CAN-L wires<br>
+<br>
+**Raspberry Pi:**<br>
+- Need CAN HAT (e.g., PiCAN2, ~$30-50)<br>
+- Then connect CAN wires<br>
+<br>
+**Example:**<br>
+```<br>
+ECU CAN-H ──────────────── CAN-H (can0)<br>
+ECU CAN-L ──────────────── CAN-L (can0)<br>
+ECU GND   ──────────────── GND<br>
+```<br>
+<br>
+### 2. Analog Sensors (Pressure, Temperature, etc.)<br>
+<br>
+**What connects:**<br>
+- Oil pressure sensors (0-5V output)<br>
+- Fuel pressure sensors<br>
+- Coolant temperature sensors<br>
+- Any sensor with voltage output<br>
+<br>
+**Cables needed:**<br>
+- Signal wire (carries 0-5V)<br>
+- Power wire (5V or 12V)<br>
+- Ground wire<br>
+<br>
+**Hardware needed:**<br>
+- ADC (Analog-to-Digital Converter) board<br>
+- Common: ADS1115 (I2C, ~$10-15)<br>
+- Connects via I2C bus<br>
+<br>
+**Example:**<br>
+```<br>
+Pressure Sensor          ADC Board          reTerminal DM<br>
+Signal ──────────────── ADC Ch0 ────────── I2C (SDA/SCL)<br>
++5V    ──────────────── VCC<br>
+GND    ──────────────── GND ────────────── GND<br>
+```<br>
+<br>
+### 3. Digital Sensors (Switches, On/Off)<br>
+<br>
+**What connects:**<br>
+- Transbrake switch<br>
+- Nitrous solenoid status<br>
+- Safety switches<br>
+- Any on/off sensor<br>
+<br>
+**Cables needed:**<br>
+- Signal wire<br>
+- Ground wire<br>
+- Optional: Pull-up resistor<br>
+<br>
+**Hardware needed:**<br>
+- ✅ **Built-in GPIO** on all platforms<br>
+- No additional hardware!<br>
+<br>
+**Example:**<br>
+```<br>
+Switch                  reTerminal DM<br>
+Signal ──────────────── GPIO Pin 18<br>
+GND    ──────────────── GND<br>
+(3.3V pull-up via software)<br>
+```<br>
+<br>
+### 4. Serial Sensors (GPS, Some Controllers)<br>
+<br>
+**What connects:**<br>
+- GPS modules<br>
+- Some wideband controllers<br>
+- Serial data loggers<br>
+<br>
+**Cables needed:**<br>
+- USB cable (if USB device)<br>
+- OR: TX, RX, GND wires (if UART)<br>
+<br>
+**Hardware needed:**<br>
+- ✅ **Built-in USB ports** - No additional hardware!<br>
+- OR: UART pins on GPIO header<br>
+<br>
+**Example:**<br>
+```<br>
+GPS Module (USB) ─────── USB Port<br>
+OR<br>
+GPS Module (UART) ────── TX/RX/GND on GPIO<br>
+```<br>
+<br>
+### 5. I2C Sensors (Multiple Sensors on One Bus)<br>
+<br>
+**What connects:**<br>
+- Temperature sensors (DS18B20, TMP102)<br>
+- Pressure sensors with I2C<br>
+- Accelerometers<br>
+- Multiple sensors (up to 127 devices)<br>
+<br>
+**Cables needed:**<br>
+- SDA (data) wire<br>
+- SCL (clock) wire<br>
+- Power and ground<br>
+<br>
+**Hardware needed:**<br>
+- ✅ **Built-in I2C bus** on all platforms<br>
+- Pull-up resistors (usually on sensor board)<br>
+<br>
+**Example:**<br>
+```<br>
+Sensor 1 ────┬─── SDA ──── reTerminal DM<br>
+Sensor 2 ────┤<br>
+Sensor 3 ────┘<br>
+             └─── SCL ──── reTerminal DM<br>
+             └─── 3.3V ──── reTerminal DM<br>
+             └─── GND ──── reTerminal DM<br>
+```<br>
+<br>
+## Complete Racing Setup Example<br>
+<br>
+### Hardware Configuration<br>
+<br>
+**reTerminal DM with:**<br>
+1. **CAN0** → Holley ECU<br>
+2. **CAN1** → Wideband O2 Controller<br>
+3. **GPIO Pin 18** → Transbrake switch<br>
+4. **GPIO Pin 19** → Nitrous solenoid status<br>
+5. **I2C ADC Board** → Oil pressure sensor (channel 0)<br>
+6. **I2C ADC Board** → Fuel pressure sensor (channel 1)<br>
+7. **USB** → GPS module<br>
+8. **USB** → Front camera<br>
+9. **USB** → Rear camera<br>
+<br>
+### Wiring Summary<br>
+<br>
+**CAN Bus (2 buses):**<br>
+- CAN0: ECU (CAN-H, CAN-L, GND)<br>
+- CAN1: Wideband (CAN-H, CAN-L, GND)<br>
+- 120Ω resistors at each end<br>
+<br>
+**GPIO (Digital):**<br>
+- Pin 18: Transbrake (signal + GND)<br>
+- Pin 19: Nitrous (signal + GND)<br>
+<br>
+**I2C (Analog via ADC):**<br>
+- ADS1115 board connected to I2C<br>
+- Channel 0: Oil pressure sensor<br>
+- Channel 1: Fuel pressure sensor<br>
+<br>
+**USB:**<br>
+- GPS module<br>
+- Cameras (2x)<br>
+<br>
+### Software Configuration<br>
+<br>
+```python<br>
+# sensors_config.json<br>
+{<br>
+    "can_sensors": {<br>
+        "can0": {<br>
+            "ecu": {<br>
+                "vendor": "holley",<br>
+                "dbc_file": "holley.dbc"<br>
+            }<br>
+        },<br>
+        "can1": {<br>
+            "wideband": {<br>
+                "id": 0x200,<br>
+                "type": "lambda"<br>
+            }<br>
+        }<br>
+    },<br>
+    "analog_sensors": {<br>
+        "oil_pressure": {<br>
+            "channel": 0,<br>
+            "type": "pressure",<br>
+            "min_voltage": 0.5,<br>
+            "max_voltage": 4.5,<br>
+            "min_value": 0,<br>
+            "max_value": 100,<br>
+            "unit": "psi"<br>
+        },<br>
+        "fuel_pressure": {<br>
+            "channel": 1,<br>
+            "type": "pressure",<br>
+            "min_voltage": 0.5,<br>
+            "max_voltage": 4.5,<br>
+            "min_value": 0,<br>
+            "max_value": 100,<br>
+            "unit": "psi"<br>
+        }<br>
+    },<br>
+    "digital_sensors": {<br>
+        "transbrake": {<br>
+            "pin": 18,<br>
+            "pull": "up",<br>
+            "active_low": false<br>
+        },<br>
+        "nitrous_solenoid": {<br>
+            "pin": 19,<br>
+            "pull": "up",<br>
+            "active_low": false<br>
+        }<br>
+    }<br>
+}<br>
+```<br>
+<br>
+## Cost Breakdown<br>
+<br>
+### reTerminal DM Setup<br>
+- **reTerminal DM**: ~$300-400<br>
+- **ADC Board (ADS1115)**: ~$10-15<br>
+- **Cables/Connectors**: ~$20-30<br>
+- **Termination Resistors**: ~$5<br>
+- **Total**: ~$335-450<br>
+<br>
+### Raspberry Pi Setup<br>
+- **Raspberry Pi 5**: ~$75<br>
+- **CAN HAT**: ~$30-50<br>
+- **ADC HAT**: ~$10-15<br>
+- **Cables/Connectors**: ~$20-30<br>
+- **Total**: ~$135-170<br>
+<br>
+## Power Requirements<br>
+<br>
+**reTerminal DM:**<br>
+- Input: 12V DC (2.5A recommended)<br>
+- Can power sensors via GPIO (3.3V/5V, limited current)<br>
+- Use external power supply for high-current sensors<br>
+<br>
+**Sensor Power:**<br>
+- Most sensors: 5V or 12V<br>
+- Check sensor datasheet for current requirements<br>
+- Use voltage regulators for sensitive sensors<br>
+<br>
+## Troubleshooting<br>
+<br>
+### CAN Bus Not Working<br>
+1. Check termination resistors (120Ω at each end)<br>
+2. Verify CAN-H and CAN-L are not swapped<br>
+3. Check bitrate matches (usually 500kbps)<br>
+4. Test with: `candump can0`<br>
+<br>
+### Analog Sensor Reading Wrong Values<br>
+1. Verify voltage range (0-3.3V or 0-5V)<br>
+2. Check ADC reference voltage<br>
+3. Calibrate sensor (use known values)<br>
+4. Check for electrical noise (use shielded cables)<br>
+<br>
+### Digital Sensor Not Responding<br>
+1. Verify pull-up/pull-down configuration<br>
+2. Check GPIO pin number<br>
+3. Verify voltage levels (3.3V vs 5V)<br>
+4. Test with multimeter<br>
+<br>
+## Next Steps<br>
+<br>
+1. **Identify your sensors** - What type of output do they have?<br>
+2. **Choose connection method** - CAN, analog, digital, serial?<br>
+3. **Get required hardware** - ADC board, CAN HAT, etc.<br>
+4. **Wire everything up** - Follow wiring diagrams<br>
+5. **Configure in software** - Use sensor configuration files<br>
+6. **Test with demo mode** - Verify readings before real use<br>
+<br>
+For detailed sensor-specific instructions, see the sensor manufacturer's documentation.<br>
+<br>
+
+</body>
+</html>

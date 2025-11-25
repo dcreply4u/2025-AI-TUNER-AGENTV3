@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>MOBILE_APP_QUICK_START</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # Mobile App Quick Start Guide<br>
+<br>
+Quick start guide for connecting Android/iOS apps to TelemetryIQ.<br>
+<br>
+## Prerequisites<br>
+<br>
+1. **Python 3.8+** installed<br>
+2. **FastAPI dependencies** installed:<br>
+   ```bash<br>
+   pip install fastapi uvicorn websockets aiohttp<br>
+   ```<br>
+<br>
+## Starting the Mobile API Server<br>
+<br>
+### Option 1: Direct Python Script<br>
+```bash<br>
+python api/mobile_api_start.py<br>
+```<br>
+<br>
+### Option 2: Uvicorn Command<br>
+```bash<br>
+uvicorn api.mobile_api_server:app --host 0.0.0.0 --port 8000<br>
+```<br>
+<br>
+### Option 3: Background Service (Windows)<br>
+```powershell<br>
+Start-Process python -ArgumentList "api/mobile_api_start.py" -WindowStyle Hidden<br>
+```<br>
+<br>
+## Server Status<br>
+<br>
+Once started, verify the server is running:<br>
+<br>
+- **API Root**: http://localhost:8000<br>
+- **Health Check**: http://localhost:8000/health<br>
+- **API Docs**: http://localhost:8000/docs (Swagger UI)<br>
+- **ReDoc**: http://localhost:8000/redoc<br>
+<br>
+## Mobile App Connection<br>
+<br>
+### Finding Your Server IP<br>
+<br>
+**Windows:**<br>
+```powershell<br>
+ipconfig<br>
+# Look for "IPv4 Address" under your active network adapter<br>
+```<br>
+<br>
+**Linux/Mac:**<br>
+```bash<br>
+ifconfig<br>
+# or<br>
+ip addr show<br>
+```<br>
+<br>
+### Android Connection Example<br>
+<br>
+```kotlin<br>
+// Replace with your server IP<br>
+val baseUrl = "http://192.168.1.100:8000"<br>
+<br>
+// Retrofit setup<br>
+val retrofit = Retrofit.Builder()<br>
+    .baseUrl(baseUrl)<br>
+    .addConverterFactory(GsonConverterFactory.create())<br>
+    .build()<br>
+<br>
+val api = retrofit.create(TelemetryIQAPI::class.java)<br>
+<br>
+// Get current telemetry<br>
+val telemetry = api.getCurrentTelemetry().execute()<br>
+```<br>
+<br>
+### iOS Connection Example<br>
+<br>
+```swift<br>
+// Replace with your server IP<br>
+let baseURL = URL(string: "http://192.168.1.100:8000")!<br>
+<br>
+// URLSession request<br>
+let url = baseURL.appendingPathComponent("api/telemetry/current")<br>
+let task = URLSession.shared.dataTask(with: url) { data, response, error in<br>
+    // Handle response<br>
+}<br>
+task.resume()<br>
+```<br>
+<br>
+## WebSocket Connection<br>
+<br>
+### Android (OkHttp)<br>
+<br>
+```kotlin<br>
+val request = Request.Builder()<br>
+    .url("ws://192.168.1.100:8000/ws/telemetry")<br>
+    .build()<br>
+<br>
+val client = OkHttpClient()<br>
+val ws = client.newWebSocket(request, object : WebSocketListener() {<br>
+    override fun onMessage(webSocket: WebSocket, text: String) {<br>
+        // Parse JSON telemetry data<br>
+        val data = Gson().fromJson(text, TelemetryData::class.java)<br>
+    }<br>
+})<br>
+```<br>
+<br>
+### iOS (URLSessionWebSocketTask)<br>
+<br>
+```swift<br>
+let url = URL(string: "ws://192.168.1.100:8000/ws/telemetry")!<br>
+let ws = URLSession.shared.webSocketTask(with: url)<br>
+ws.resume()<br>
+<br>
+// Receive messages<br>
+ws.receive { result in<br>
+    switch result {<br>
+    case .success(let message):<br>
+        if case .string(let text) = message {<br>
+            // Parse JSON telemetry data<br>
+        }<br>
+    case .failure(let error):<br>
+        print("Error: \(error)")<br>
+    }<br>
+}<br>
+```<br>
+<br>
+## Key Endpoints for Mobile Apps<br>
+<br>
+### 1. Real-time Telemetry<br>
+- **WebSocket**: `ws://<server-ip>:8000/ws/telemetry`<br>
+- **REST**: `GET /api/telemetry/current`<br>
+<br>
+### 2. Configuration Changes<br>
+- **POST** `/api/config/change` - Apply config change with AI warnings<br>
+<br>
+### 3. AI Advisor<br>
+- **POST** `/api/ai/ask` - Ask Q questions<br>
+- **GET** `/api/ai/suggestions` - Get question suggestions<br>
+<br>
+### 4. Backup Management<br>
+- **POST** `/api/backup/create` - Create backup<br>
+- **GET** `/api/backup/list` - List backups<br>
+- **POST** `/api/backup/revert/{file_path}/{backup_id}` - Revert to backup<br>
+<br>
+### 5. Hardware Control<br>
+- **GET** `/api/hardware/interfaces` - List hardware<br>
+- **GET/POST** `/api/hardware/gpio/{interface_id}/{pin}` - GPIO control<br>
+<br>
+### 6. Camera Feeds<br>
+- **GET** `/api/cameras` - List cameras<br>
+- **GET** `/api/cameras/{device_id}/preview` - Camera preview (JPEG)<br>
+<br>
+## Testing with curl<br>
+<br>
+### Get Current Telemetry<br>
+```bash<br>
+curl http://localhost:8000/api/telemetry/current<br>
+```<br>
+<br>
+### Apply Configuration Change<br>
+```bash<br>
+curl -X POST http://localhost:8000/api/config/change \<br>
+  -H "Content-Type: application/json" \<br>
+  -d '{<br>
+    "change_type": "ecu_tuning",<br>
+    "category": "Ignition Timing",<br>
+    "parameter": "base_timing",<br>
+    "new_value": 32.0,<br>
+    "old_value": 28.0<br>
+  }'<br>
+```<br>
+<br>
+### Ask AI Advisor<br>
+```bash<br>
+curl -X POST http://localhost:8000/api/ai/ask \<br>
+  -H "Content-Type: application/json" \<br>
+  -d '{<br>
+    "question": "How do I configure boost control?",<br>
+    "context": {}<br>
+  }'<br>
+```<br>
+<br>
+## Desktop App Integration<br>
+<br>
+The desktop app automatically connects to the mobile API server when running. Telemetry data is pushed to the server in real-time.<br>
+<br>
+To verify desktop app is connected:<br>
+1. Start the mobile API server<br>
+2. Start the desktop app (`python demo.py`)<br>
+3. Check `/api/system/status` - should show active telemetry updates<br>
+<br>
+## Troubleshooting<br>
+<br>
+### Server Won't Start<br>
+- Check if port 8000 is already in use<br>
+- Verify Python dependencies are installed<br>
+- Check firewall settings<br>
+<br>
+### Mobile App Can't Connect<br>
+- Verify server IP address is correct<br>
+- Check both devices are on same network<br>
+- Verify firewall allows port 8000<br>
+- Test with `curl` from mobile device (if possible)<br>
+<br>
+### WebSocket Connection Fails<br>
+- Verify WebSocket URL uses `ws://` (not `http://`)<br>
+- Check server logs for connection errors<br>
+- Ensure WebSocket support in mobile app framework<br>
+<br>
+## Security Notes<br>
+<br>
+⚠️ **Current Implementation**: No authentication required<br>
+<br>
+**For Production:**<br>
+1. Implement JWT authentication<br>
+2. Restrict CORS origins<br>
+3. Add rate limiting<br>
+4. Use HTTPS/WSS<br>
+5. Add API key authentication<br>
+<br>
+## Next Steps<br>
+<br>
+1. **Start the server**: `python api/mobile_api_start.py`<br>
+2. **Test connection**: Visit http://localhost:8000/docs<br>
+3. **Connect mobile app**: Use your server's IP address<br>
+4. **Monitor telemetry**: Connect via WebSocket for real-time data<br>
+<br>
+## Full Documentation<br>
+<br>
+See [MOBILE_API_DOCUMENTATION.md](./MOBILE_API_DOCUMENTATION.md) for complete API reference.<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+</body>
+</html>

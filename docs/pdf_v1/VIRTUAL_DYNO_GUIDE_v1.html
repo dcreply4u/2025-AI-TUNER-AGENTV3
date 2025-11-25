@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>VIRTUAL_DYNO_GUIDE</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # Virtual Dyno Guide - Complete Feature Documentation<br>
+<br>
+## 🎯 Overview<br>
+<br>
+The Virtual Dyno is a **GAME CHANGER** - calculate horsepower from real driving data without expensive dyno runs!<br>
+<br>
+**Target Accuracy:**<br>
+- Without calibration: ±10-15%<br>
+- With 1 calibration: ±5-8%<br>
+- With 3+ calibrations: ±3-5% (comparable to real dyno!)<br>
+<br>
+## 🚀 Quick Start<br>
+<br>
+### Step 1: Set Vehicle Specs<br>
+<br>
+Before using the virtual dyno, you need accurate vehicle specifications:<br>
+<br>
+```python<br>
+from services.virtual_dyno import VehicleSpecs, VirtualDyno<br>
+<br>
+specs = VehicleSpecs(<br>
+    curb_weight_kg=1500,      # Vehicle weight (lookup your car)<br>
+    driver_weight_kg=80,      # Your weight<br>
+    fuel_weight_kg=50,         # Current fuel weight (~0.75 kg/L)<br>
+    frontal_area_m2=2.0,       # Frontal area (lookup your car)<br>
+    drag_coefficient=0.30,     # Cd (lookup your car)<br>
+    rolling_resistance_coef=0.015,  # Typical: 0.012-0.018<br>
+    drivetrain_loss=0.18,     # 15% FWD, 18% RWD, 20% AWD<br>
+    drivetrain_type="RWD",<br>
+)<br>
+<br>
+dyno = VirtualDyno(vehicle_specs=specs)<br>
+```<br>
+<br>
+### Step 2: Calibrate (For Maximum Accuracy)<br>
+<br>
+**Option A: Import Real Dyno File**<br>
+1. Go to Settings → Calibrate Virtual Dyno<br>
+2. Click "Import CSV" or "Import JSON"<br>
+3. Select your dyno file<br>
+4. System calculates calibration factor automatically<br>
+<br>
+**Option B: Manual Entry**<br>
+1. Go to Settings → Calibrate Virtual Dyno<br>
+2. Click "Manual Entry" tab<br>
+3. Enter your peak HP, peak torque, and RPMs<br>
+4. System prompts for additional data if needed<br>
+<br>
+### Step 3: Use During Runs (GUI Workflow)<br>
+<br>
+1. Open the **Virtual Dyno** tab in the desktop UI<br>
+2. Click **Start Logging** right before the pull (20 Hz capture)<br>
+3. Perform the acceleration run (smooth throttle, full pull)<br>
+4. Click **Stop Logging** once the run is complete<br>
+5. Review the live horsepower trace and run summary dialog (peak HP/TQ + RPM)<br>
+6. Use **Export Data** (single run) or **Export Session** (all runs) as needed<br>
+<br>
+### Step 3b: Use Programmatically<br>
+<br>
+The service API still supports direct telemetry feeds:<br>
+<br>
+```python<br>
+reading = dyno.calculate_horsepower(<br>
+    speed_mph=60.0,<br>
+    acceleration_mps2=2.5,<br>
+    rpm=5000,<br>
+)<br>
+<br>
+print(f"Current HP: {reading.horsepower_crank:.0f}")<br>
+print(f"Peak HP: {dyno.current_curve.peak_hp_crank:.0f}")<br>
+```<br>
+<br>
+## 📊 Features<br>
+<br>
+### 1. Real-Time HP Display<br>
+- Live horsepower and torque readings<br>
+- Updates during acceleration<br>
+- Shows RPM, HP, and torque simultaneously<br>
+<br>
+### 2. Dyno Curve Plotting<br>
+- Beautiful HP vs RPM curve<br>
+- Torque vs RPM curve<br>
+- Peak markers<br>
+- Before/after comparisons<br>
+<br>
+### 3. Calibration System<br>
+- Import CSV/JSON dyno files<br>
+- Manual entry with prompts<br>
+- Automatic calibration factor calculation<br>
+- Multiple calibration runs for accuracy<br>
+<br>
+### 4. Advanced Analysis<br>
+- Power band analysis<br>
+- Torque band analysis<br>
+- Before/after mod comparisons<br>
+- Weather correction (SAE standard)<br>
+- Mod impact analysis<br>
+<br>
+### 5. Session Management<br>
+- Start/Stop logging buttons in UI<br>
+- Live horsepower preview during capture<br>
+- Automatic run naming (`Run_1`, `Run_2`, …)<br>
+- Run summary dialog with peak HP/TQ + RPM<br>
+- Session reset without restarting the app<br>
+<br>
+### 6. Export & Share<br>
+- Export dyno curves to CSV/JSON<br>
+- Export current run with time/RPM/HP/Torque<br>
+- Session-wide CSV export with metadata<br>
+- Share results and historical tracking<br>
+- Compare multiple runs<br>
+<br>
+## 🎯 Accuracy Tips<br>
+<br>
+### Maximum Accuracy Checklist:<br>
+<br>
+✅ **Vehicle Specs**<br>
+- Accurate curb weight (check manufacturer specs)<br>
+- Correct drag coefficient (Cd) - lookup your car<br>
+- Frontal area (A) - lookup or measure<br>
+- Drivetrain type (FWD/RWD/AWD)<br>
+<br>
+✅ **Calibration**<br>
+- Calibrate with at least 1 real dyno run<br>
+- More calibrations = better accuracy<br>
+- Calibrate in similar conditions<br>
+<br>
+✅ **Data Quality**<br>
+- Use GPS speed (most accurate)<br>
+- Smooth acceleration data (not jerky)<br>
+- Higher speeds (30+ mph better)<br>
+- Full throttle pulls<br>
+<br>
+✅ **Environmental**<br>
+- Enter temperature<br>
+- Enter altitude<br>
+- System corrects for air density<br>
+<br>
+## 📈 Using the UI<br>
+<br>
+### Main Dyno View<br>
+- **Real-Time HP Meter**: Shows current HP, RPM, torque<br>
+- **Dyno Curve Graph**: HP and torque vs RPM (HP/TQ overlays per run)<br>
+- **Live HP Trace**: Orange preview while logging<br>
+- **Session Controls**: Start/Stop logging, Export Data, Export Session<br>
+- **Stats**: Peak values, accuracy estimate, confidence<br>
+<br>
+### Calibration Dialog<br>
+- **Import Tab**: Import CSV/JSON files<br>
+- **Manual Entry Tab**: Enter values manually<br>
+- System prompts for missing data<br>
+<br>
+### Comparison View<br>
+- Compare before/after mods<br>
+- Side-by-side curves<br>
+- HP/torque differences<br>
+- Mod impact analysis<br>
+<br>
+## 🧪 Logging Workflow<br>
+<br>
+1. **Prep** – Confirm vehicle specs + environmental inputs, then click **Start Logging**.<br>
+2. **Capture** – Perform the pull; live horsepower trace updates every ~0.5 s.<br>
+3. **Process** – Click **Stop Logging** to trigger Savitzky–Golay smoothing + `np.gradient` acceleration.<br>
+4. **Review** – Run Summary dialog surfaces peak HP/TQ, RPM, and data-point counts; curves update instantly.<br>
+5. **Repeat** – Start another run; previous runs remain in-session until you hit **Reset Session**.<br>
+<br>
+## 📤 Exporting Data<br>
+<br>
+- **Export Data** – Saves the current run to CSV with relative time, RPM, HP/TQ, acceleration, method, and confidence.<br>
+- **Export Session** – Combines every run (name, timestamp, readings) into a single CSV compatible with Excel, Dynojet, or data science notebooks.<br>
+- **Automation Hooks** – Use `virtual_dyno.export_session("session_summary.csv")` for scripted exports during test automation.<br>
+<br>
+## 🔧 Advanced Features<br>
+<br>
+### Weather Correction<br>
+Corrects power to standard conditions (SAE J1349) and shares the same enhanced air-density formula used in real-time logging:<br>
+<br>
+```python<br>
+from services.dyno_analyzer import DynoAnalyzer, WeatherStandard<br>
+<br>
+analyzer = DynoAnalyzer()<br>
+corrected_curve = analyzer.apply_weather_correction(<br>
+    curve=my_curve,<br>
+    actual_temp_c=25.0,<br>
+    actual_pressure_kpa=101.325,<br>
+    actual_humidity_percent=50.0,<br>
+    standard=WeatherStandard.SAE_J1349,<br>
+)<br>
+```<br>
+<br>
+### Power Band Analysis<br>
+Analyze power band characteristics:<br>
+<br>
+```python<br>
+analysis = analyzer.analyze_power_band(my_curve)<br>
+print(f"Power band width: {analysis.power_band_width_rpm:.0f} RPM")<br>
+print(f"Flatness score: {analysis.flatness_score:.2f}")<br>
+print(f"Recommendations: {analysis.recommendations}")<br>
+```<br>
+<br>
+### Before/After Comparison<br>
+Compare two dyno runs:<br>
+<br>
+```python<br>
+comparison = analyzer.compare_runs(<br>
+    run1_name="Stock",<br>
+    run1_curve=stock_curve,<br>
+    run2_name="After Tune",<br>
+    run2_curve=tuned_curve,<br>
+)<br>
+<br>
+print(f"HP gain: {comparison.hp_difference:.1f} HP")<br>
+print(f"Improvement: {comparison.improvement_percent:.1f}%")<br>
+```<br>
+<br>
+## 📝 Manual Entry Guide<br>
+<br>
+If you don't have a dyno file, you can manually enter:<br>
+<br>
+### Required:<br>
+- **Peak Horsepower**: Maximum HP from dyno<br>
+- **Peak HP RPM**: RPM where peak HP occurs<br>
+<br>
+### Recommended:<br>
+- **Peak Torque**: Maximum torque<br>
+- **Peak Torque RPM**: RPM where peak torque occurs<br>
+<br>
+### Optional (More Accurate):<br>
+- HP and torque at 2000, 3000, 4000, 5000, 6000, 7000 RPM<br>
+- System will prompt for these if you want better accuracy<br>
+<br>
+## 🎨 Example Workflow<br>
+<br>
+1. **First Time Setup**<br>
+   - Enter vehicle specs<br>
+   - Run a few acceleration pulls<br>
+   - Check virtual dyno results<br>
+<br>
+2. **Calibration**<br>
+   - Go to real dyno (one time)<br>
+   - Get dyno sheet<br>
+   - Import file or enter manually<br>
+   - System calibrates automatically<br>
+<br>
+3. **Future Runs**<br>
+   - Virtual dyno now accurate to ±3-5%<br>
+   - No more expensive dyno runs needed!<br>
+   - Track HP changes over time<br>
+   - Compare before/after mods<br>
+<br>
+## 🔍 Troubleshooting<br>
+<br>
+### Low Accuracy<br>
+- Check vehicle specs (weight, Cd, etc.)<br>
+- Calibrate with real dyno run<br>
+- Ensure good GPS/speed data<br>
+- Enter environmental conditions<br>
+<br>
+### Missing Data<br>
+- System prompts for required fields<br>
+- Can work with just peak HP/RPM<br>
+- More data = better accuracy<br>
+<br>
+### Import Errors<br>
+- Check CSV format (RPM, HP, Torque columns)<br>
+- Try manual entry instead<br>
+- System will guide you through<br>
+<br>
+## 💡 Pro Tips<br>
+<br>
+1. **Calibrate Early**: Do one real dyno run, then use virtual dyno forever<br>
+2. **Track Changes**: Compare runs to see mod impact<br>
+3. **Weather Correct**: Use SAE correction for fair comparisons<br>
+4. **Multiple Calibrations**: More calibrations = better accuracy<br>
+5. **Good Data**: Use GPS speed, smooth acceleration, full throttle<br>
+<br>
+---<br>
+<br>
+**This feature alone could save thousands in dyno costs!** 🚀<br>
+<br>
+
+</body>
+</html>

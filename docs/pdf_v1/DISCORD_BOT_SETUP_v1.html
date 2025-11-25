@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>DISCORD_BOT_SETUP</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # Discord Bot Setup Guide - AI Tuner Advisor Demo<br>
+<br>
+## Overview<br>
+<br>
+This guide will help you set up the AI Tuner Advisor Discord bot for pre-launch marketing and community building.<br>
+<br>
+**Why This Is Great:**<br>
+- ✅ Showcases AI capabilities<br>
+- ✅ Builds community before launch<br>
+- ✅ Collects real user questions<br>
+- ✅ Low cost (free to host)<br>
+- ✅ Generates buzz and interest<br>
+<br>
+---<br>
+<br>
+## Prerequisites<br>
+<br>
+1. **Discord Account** (free)<br>
+2. **Python 3.8+** installed<br>
+3. **Discord Bot Token** (we'll create this)<br>
+4. **Server to host bot** (can be free tier)<br>
+<br>
+---<br>
+<br>
+## Step 1: Create Discord Bot<br>
+<br>
+### 1.1 Go to Discord Developer Portal<br>
+- Visit: https://discord.com/developers/applications<br>
+- Click "New Application"<br>
+- Name it "AI Tuner Advisor" (or your choice)<br>
+- Click "Create"<br>
+<br>
+### 1.2 Create Bot<br>
+- Go to "Bot" section (left sidebar)<br>
+- Click "Add Bot"<br>
+- Click "Yes, do it!"<br>
+- **Copy the token** (you'll need this - keep it secret!)<br>
+<br>
+### 1.3 Configure Bot<br>
+- **Username**: AI Tuner Advisor (or your choice)<br>
+- **Icon**: Upload your logo/icon<br>
+- **Description**: "AI-powered tuning advisor - Ask me anything about ECU tuning, fuel, timing, boost, and more!"<br>
+- **Public Bot**: OFF (for now, can enable later)<br>
+- **Requires OAuth2 Code Grant**: OFF<br>
+- **Message Content Intent**: ON (required for reading messages)<br>
+<br>
+### 1.4 Invite Bot to Server<br>
+- Go to "OAuth2" > "URL Generator"<br>
+- Select scopes:<br>
+  - ✅ `bot`<br>
+  - ✅ `applications.commands` (optional, for slash commands)<br>
+- Select bot permissions:<br>
+  - ✅ `Send Messages`<br>
+  - ✅ `Read Message History`<br>
+  - ✅ `Embed Links`<br>
+  - ✅ `Use External Emojis`<br>
+- Copy the generated URL<br>
+- Open URL in browser<br>
+- Select your server<br>
+- Click "Authorize"<br>
+<br>
+---<br>
+<br>
+## Step 2: Install Dependencies<br>
+<br>
+```bash<br>
+# Install discord.py<br>
+pip install discord.py<br>
+<br>
+# Or add to requirements.txt<br>
+echo "discord.py>=2.3.0" >> requirements.txt<br>
+pip install -r requirements.txt<br>
+```<br>
+<br>
+---<br>
+<br>
+## Step 3: Configure Bot<br>
+<br>
+### 3.1 Set Environment Variable<br>
+<br>
+**Windows (PowerShell):**<br>
+```powershell<br>
+$env:DISCORD_BOT_TOKEN="YOUR_BOT_TOKEN_HERE"<br>
+```<br>
+<br>
+**Windows (Command Prompt):**<br>
+```cmd<br>
+set DISCORD_BOT_TOKEN=YOUR_BOT_TOKEN_HERE<br>
+```<br>
+<br>
+**Linux/Mac:**<br>
+```bash<br>
+export DISCORD_BOT_TOKEN="YOUR_BOT_TOKEN_HERE"<br>
+```<br>
+<br>
+### 3.2 Or Create .env File<br>
+<br>
+Create `.env` file in project root:<br>
+```<br>
+DISCORD_BOT_TOKEN=YOUR_BOT_TOKEN_HERE<br>
+```<br>
+<br>
+Then install python-dotenv:<br>
+```bash<br>
+pip install python-dotenv<br>
+```<br>
+<br>
+And load in code:<br>
+```python<br>
+from dotenv import load_dotenv<br>
+load_dotenv()<br>
+```<br>
+<br>
+---<br>
+<br>
+## Step 4: Run Bot<br>
+<br>
+### 4.1 Test Locally<br>
+<br>
+```bash<br>
+# From AI-TUNER-AGENT directory<br>
+python services/discord_bot.py YOUR_BOT_TOKEN<br>
+```<br>
+<br>
+Or with environment variable:<br>
+```bash<br>
+python services/discord_bot.py<br>
+```<br>
+<br>
+### 4.2 Verify It Works<br>
+<br>
+1. Go to your Discord server<br>
+2. Type: `!tuner help`<br>
+3. Bot should respond with help message<br>
+4. Try: `!tuner ask How do I tune fuel?`<br>
+5. Bot should answer!<br>
+<br>
+---<br>
+<br>
+## Step 5: Deploy Bot (Choose One)<br>
+<br>
+### Option 1: Free Hosting (Recommended for Demo)<br>
+<br>
+#### Replit (Free Tier)<br>
+1. Go to https://replit.com<br>
+2. Create new Python repl<br>
+3. Upload `discord_bot.py`<br>
+4. Set `DISCORD_BOT_TOKEN` in Secrets<br>
+5. Click "Run"<br>
+6. Bot stays online (free tier has limits)<br>
+<br>
+#### Railway (Free Tier)<br>
+1. Go to https://railway.app<br>
+2. New Project > Deploy from GitHub<br>
+3. Connect your repo<br>
+4. Set `DISCORD_BOT_TOKEN` in Variables<br>
+5. Deploy<br>
+6. Free tier: 500 hours/month<br>
+<br>
+#### Render (Free Tier)<br>
+1. Go to https://render.com<br>
+2. New > Web Service<br>
+3. Connect GitHub repo<br>
+4. Build command: `pip install -r requirements.txt`<br>
+5. Start command: `python services/discord_bot.py`<br>
+6. Set `DISCORD_BOT_TOKEN` in Environment<br>
+7. Free tier: Spins down after inactivity<br>
+<br>
+### Option 2: VPS (More Control)<br>
+<br>
+#### DigitalOcean Droplet ($5/month)<br>
+1. Create Ubuntu droplet<br>
+2. SSH into server<br>
+3. Install Python and dependencies<br>
+4. Clone your repo<br>
+5. Set up systemd service (see below)<br>
+6. Bot runs 24/7<br>
+<br>
+#### Systemd Service (Linux VPS)<br>
+<br>
+Create `/etc/systemd/system/ai-tuner-bot.service`:<br>
+```ini<br>
+[Unit]<br>
+Description=AI Tuner Discord Bot<br>
+After=network.target<br>
+<br>
+[Service]<br>
+Type=simple<br>
+User=your-user<br>
+WorkingDirectory=/path/to/AI-TUNER-AGENT<br>
+Environment="DISCORD_BOT_TOKEN=YOUR_TOKEN"<br>
+ExecStart=/usr/bin/python3 services/discord_bot.py<br>
+Restart=always<br>
+RestartSec=10<br>
+<br>
+[Install]<br>
+WantedBy=multi-user.target<br>
+```<br>
+<br>
+Enable and start:<br>
+```bash<br>
+sudo systemctl enable ai-tuner-bot<br>
+sudo systemctl start ai-tuner-bot<br>
+sudo systemctl status ai-tuner-bot<br>
+```<br>
+<br>
+---<br>
+<br>
+## Step 6: Customize Bot<br>
+<br>
+### 6.1 Change Command Prefix<br>
+<br>
+Edit `discord_bot.py`:<br>
+```python<br>
+bot = AITunerDiscordBot(<br>
+    token=token,<br>
+    command_prefix="!ai",  # Change this<br>
+    demo_mode=True,<br>
+)<br>
+```<br>
+<br>
+### 6.2 Adjust Demo Limits<br>
+<br>
+Edit demo stats in `discord_bot.py`:<br>
+```python<br>
+self.demo_stats = {<br>
+    'questions_answered': 0,<br>
+    'max_questions_per_user': 20,  # Change this<br>
+    'user_question_count': {},<br>
+}<br>
+```<br>
+<br>
+### 6.3 Customize Welcome Message<br>
+<br>
+Edit the help command response in `discord_bot.py`.<br>
+<br>
+### 6.4 Add Custom Commands<br>
+<br>
+Add new commands in `_setup_commands()` method:<br>
+```python<br>
+@self.bot.command(name='feature')<br>
+async def feature_command(ctx: commands.Context):<br>
+    await ctx.send("Check out our website: https://your-site.com")<br>
+```<br>
+<br>
+---<br>
+<br>
+## Step 7: Promote Bot<br>
+<br>
+### 7.1 Server Setup<br>
+- Create dedicated channel: `#ai-tuner-advisor`<br>
+- Pin welcome message<br>
+- Add bot description in channel topic<br>
+- Set up role permissions<br>
+<br>
+### 7.2 Marketing<br>
+- Announce in your community<br>
+- Share on social media<br>
+- Add to Discord server list<br>
+- Create demo video<br>
+- Blog post about the bot<br>
+<br>
+### 7.3 Community Engagement<br>
+- Monitor questions<br>
+- Collect feedback<br>
+- Improve responses<br>
+- Add requested features<br>
+- Build anticipation for launch<br>
+<br>
+---<br>
+<br>
+## Commands Reference<br>
+<br>
+### User Commands:<br>
+- `!tuner ask <question>` - Ask the AI advisor<br>
+- `!tuner help` - Show help<br>
+- `!tuner stats` - Show demo statistics<br>
+- `!tuner examples` - Show example questions<br>
+<br>
+### Mention Bot:<br>
+- `@AI Tuner Advisor How do I tune fuel?` - Bot responds to mentions<br>
+<br>
+---<br>
+<br>
+## Demo Mode Features<br>
+<br>
+### Limitations:<br>
+- ✅ 10 questions per user (configurable)<br>
+- ✅ Shows "Full version coming soon" message<br>
+- ✅ Tracks usage statistics<br>
+- ✅ No live telemetry (demo only)<br>
+<br>
+### Benefits:<br>
+- ✅ Generates interest<br>
+- ✅ Showcases capabilities<br>
+- ✅ Collects feedback<br>
+- ✅ Builds community<br>
+<br>
+---<br>
+<br>
+## Troubleshooting<br>
+<br>
+### Bot Not Responding:<br>
+- ✅ Check bot is online (green dot in Discord)<br>
+- ✅ Check bot has permissions<br>
+- ✅ Check command prefix is correct<br>
+- ✅ Check bot token is valid<br>
+- ✅ Check logs for errors<br>
+<br>
+### Import Errors:<br>
+```bash<br>
+pip install discord.py<br>
+pip install python-dotenv  # If using .env<br>
+```<br>
+<br>
+### Token Issues:<br>
+- ✅ Token must be kept secret<br>
+- ✅ Regenerate if exposed<br>
+- ✅ Use environment variables (not hardcoded)<br>
+<br>
+### Hosting Issues:<br>
+- ✅ Check server logs<br>
+- ✅ Verify Python version (3.8+)<br>
+- ✅ Check dependencies installed<br>
+- ✅ Verify environment variables set<br>
+<br>
+---<br>
+<br>
+## Security Best Practices<br>
+<br>
+1. **Never commit token to Git**<br>
+   - Add to `.gitignore`<br>
+   - Use environment variables<br>
+   - Use secrets management<br>
+<br>
+2. **Rotate token if exposed**<br>
+   - Go to Discord Developer Portal<br>
+   - Regenerate token<br>
+   - Update environment variable<br>
+<br>
+3. **Limit bot permissions**<br>
+   - Only grant necessary permissions<br>
+   - Don't give admin access<br>
+   - Review permissions regularly<br>
+<br>
+4. **Monitor usage**<br>
+   - Watch for abuse<br>
+   - Rate limit if needed<br>
+   - Block problematic users<br>
+<br>
+---<br>
+<br>
+## Next Steps<br>
+<br>
+1. ✅ Deploy bot to server<br>
+2. ✅ Test all commands<br>
+3. ✅ Customize for your brand<br>
+4. ✅ Promote in communities<br>
+5. ✅ Collect feedback<br>
+6. ✅ Improve responses<br>
+7. ✅ Build anticipation for launch<br>
+<br>
+---<br>
+<br>
+## Support<br>
+<br>
+If you need help:<br>
+- Check Discord.py docs: https://discordpy.readthedocs.io/<br>
+- Check bot logs for errors<br>
+- Review this guide<br>
+- Test commands locally first<br>
+<br>
+---<br>
+<br>
+## Cost Estimate<br>
+<br>
+**Free Option:**<br>
+- Replit/Railway/Render free tier<br>
+- **Cost: $0/month**<br>
+- Limitations: May spin down, limited resources<br>
+<br>
+**Paid Option:**<br>
+- DigitalOcean Droplet ($5/month)<br>
+- **Cost: $5/month**<br>
+- Benefits: Always online, full control<br>
+<br>
+**Recommended for Demo:**<br>
+- Start with free tier<br>
+- Upgrade if needed<br>
+- **Total: $0-5/month**<br>
+<br>
+---<br>
+<br>
+## Success Metrics<br>
+<br>
+Track these to measure success:<br>
+- Questions answered per day<br>
+- Unique users<br>
+- Most common questions<br>
+- User feedback<br>
+- Community growth<br>
+- Interest in full product<br>
+<br>
+---<br>
+<br>
+**Good luck with your pre-launch marketing! 🚀**<br>
+<br>
+<br>
+<br>
+<br>
+
+</body>
+</html>

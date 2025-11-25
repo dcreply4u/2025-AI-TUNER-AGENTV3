@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>SENSOR_QUICK_REFERENCE</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # Sensor Connection Quick Reference<br>
+<br>
+## TL;DR - How to Connect Sensors<br>
+<br>
+### reTerminal DM (Easiest - Built-in CAN!)<br>
+<br>
+**CAN Bus Sensors (ECU, Wideband, etc.):**<br>
+```<br>
+Sensor CAN-H ──── CAN-H (can0 or can1)<br>
+Sensor CAN-L ──── CAN-L (can0 or can1)<br>
+Sensor GND   ──── GND<br>
++ 120Ω resistor at each end<br>
+```<br>
+<br>
+**Analog Sensors (Pressure, Temp):**<br>
+```<br>
+Sensor Signal ──── ADC Board ──── I2C ──── reTerminal DM<br>
+Sensor Power  ──── ADC Board<br>
+Sensor GND    ──── ADC Board ──── GND<br>
+```<br>
+<br>
+**Digital Sensors (Switches):**<br>
+```<br>
+Switch Signal ──── GPIO Pin (e.g., 18)<br>
+Switch GND    ──── GND<br>
+```<br>
+<br>
+**USB Sensors (GPS, Cameras):**<br>
+```<br>
+Just plug into USB port!<br>
+```<br>
+<br>
+## Sensor Types → Connection Method<br>
+<br>
+| Sensor Type | Connection Method | Hardware Needed | Cost |<br>
+|------------|------------------|-----------------|------|<br>
+| ECU Data | CAN Bus | None (built-in on reTerminal DM) | $0 |<br>
+| Wideband O2 | CAN Bus or Serial | None (CAN) or USB adapter | $0-10 |<br>
+| Oil Pressure | Analog → ADC | ADC board (ADS1115) | $10-15 |<br>
+| Fuel Pressure | Analog → ADC | ADC board (ADS1115) | $10-15 |<br>
+| Transbrake Switch | Digital GPIO | None (built-in) | $0 |<br>
+| Nitrous Solenoid | Digital GPIO | None (built-in) | $0 |<br>
+| GPS | USB Serial | None (USB) | $0 |<br>
+| Camera | USB | None (USB) | $0 |<br>
+<br>
+## reTerminal DM Advantages<br>
+<br>
+✅ **Dual CAN FD built-in** - No CAN HAT needed!  <br>
+✅ **GPIO header** - Direct digital sensor connection  <br>
+✅ **USB ports** - Plug-and-play for GPS, cameras  <br>
+✅ **I2C/SPI buses** - For ADC boards and I2C sensors  <br>
+✅ **Industrial grade** - Rugged for automotive use  <br>
+<br>
+## Minimum Setup (Just ECU)<br>
+<br>
+**Hardware:**<br>
+- reTerminal DM<br>
+- CAN wires (2 wires)<br>
+- 120Ω resistors (2x)<br>
+<br>
+**Connection:**<br>
+```<br>
+ECU ──CAN── reTerminal DM (can0)<br>
+```<br>
+<br>
+**That's it!** The software auto-detects the ECU vendor.<br>
+<br>
+## Typical Racing Setup<br>
+<br>
+**Hardware:**<br>
+- reTerminal DM<br>
+- ADC board (ADS1115) - $15<br>
+- CAN wires<br>
+- GPIO wires<br>
+- USB devices (GPS, cameras)<br>
+<br>
+**Connections:**<br>
+- CAN0: ECU<br>
+- CAN1: Wideband<br>
+- ADC: Oil pressure, Fuel pressure<br>
+- GPIO: Transbrake, Nitrous<br>
+- USB: GPS, 2x Cameras<br>
+<br>
+**Total Additional Cost:** ~$15-20 (just the ADC board)<br>
+<br>
+## Software Configuration<br>
+<br>
+All sensors are configured in `sensors_config.json`:<br>
+<br>
+```json<br>
+{<br>
+    "can_sensors": { ... },<br>
+    "analog_sensors": { ... },<br>
+    "digital_sensors": { ... }<br>
+}<br>
+```<br>
+<br>
+The software automatically:<br>
+- Detects CAN vendor<br>
+- Reads all configured sensors<br>
+- Combines data into unified telemetry stream<br>
+- Logs everything<br>
+- Displays in GUI<br>
+<br>
+## Need Help?<br>
+<br>
+1. Check sensor datasheet for output type<br>
+2. Choose appropriate connection method<br>
+3. Wire according to diagrams<br>
+4. Configure in software<br>
+5. Test with demo mode first<br>
+<br>
+See `SENSOR_INTEGRATION.md` for detailed instructions.<br>
+<br>
+
+</body>
+</html>

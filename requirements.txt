@@ -1,0 +1,47 @@
+pyside6
+pyqtgraph
+obd
+racecapture
+numpy
+pandas
+openpyxl
+pyarrow
+scikit-learn
+discord.py>=2.3.0
+python-dotenv>=1.0.0
+joblib
+requests
+SpeechRecognition
+PyAudio
+pyttsx3
+pyserial
+pyusb  # For USB device detection on Windows
+pynmea2
+opencv-python
+psutil
+cantools
+python-can
+paho-mqtt
+cryptography
+psycopg2-binary
+pytest
+pytest-cov
+colorama
+# Mobile API Server dependencies
+fastapi
+uvicorn[standard]
+websockets>=11.0
+aiohttp>=3.8.0
+# Optional: YubiKey support (install separately if needed)
+# yubikit
+
+# Optional: Advanced ML features (for optimized AI algorithms)
+# torch  # For LSTM models in optimized fault detector
+scipy  # For advanced statistics and signal processing (Savitzky-Golay filter for dyno)
+# Optional: For analog sensors (ADC boards)
+# adafruit-circuitpython-ads1x15
+# Optional: For GPIO/digital sensors (Raspberry Pi)
+# RPi.GPIO
+# Optional: For GPIO on Jetson
+# Jetson.GPIO
+

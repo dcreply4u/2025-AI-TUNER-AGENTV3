@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>PERFORMANCE_OPTIMIZATION</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # Performance Optimization Guide<br>
+<br>
+## Overview<br>
+<br>
+The AI Tuner Agent now includes comprehensive performance optimizations to ensure:<br>
+- **Snappy UI** - No lag when switching screens/menus<br>
+- **Low Memory Usage** - Automatic cleanup and memory management<br>
+- **Low Disk Usage** - Automatic compression and cleanup of old files<br>
+- **Fast Database** - Optimized queries and indexing<br>
+<br>
+## Quick Integration<br>
+<br>
+### 1. Initialize Resource Optimizer in Main Window<br>
+<br>
+```python<br>
+from core import ResourceOptimizer<br>
+<br>
+class MainWindow(QWidget):<br>
+    def __init__(self):<br>
+        super().__init__()<br>
+        <br>
+        # Initialize resource optimizer<br>
+        self.resource_optimizer = ResourceOptimizer(parent=self)<br>
+        <br>
+        # Connect signals for notifications<br>
+        self.resource_optimizer.memory_warning.connect(self._on_memory_warning)<br>
+        self.resource_optimizer.disk_warning.connect(self._on_disk_warning)<br>
+        <br>
+        # Optimize this window<br>
+        self.resource_optimizer.optimize_ui_widget(self)<br>
+```<br>
+<br>
+### 2. Use Lazy Loading for Heavy Widgets<br>
+<br>
+```python<br>
+from core import UIOptimizer<br>
+<br>
+# Register widgets for lazy loading<br>
+self.resource_optimizer.register_lazy_widget(<br>
+    "camera_view",<br>
+    CameraView,<br>
+    parent=self<br>
+)<br>
+<br>
+# Load only when needed<br>
+def show_camera_view(self):<br>
+    widget = self.resource_optimizer.get_lazy_widget("camera_view")<br>
+    if widget:<br>
+        # Add to layout or show<br>
+        pass<br>
+```<br>
+<br>
+### 3. Use Debounce/Throttle for Expensive Operations<br>
+<br>
+```python<br>
+from core import debounce, throttle<br>
+<br>
+@throttle(0.1)  # Max once per 100ms<br>
+def update_telemetry_display(self, data):<br>
+    # Expensive UI update<br>
+    pass<br>
+<br>
+@debounce(0.5)  # Wait 500ms after last call<br>
+def search_function(self, query):<br>
+    # Expensive search operation<br>
+    pass<br>
+```<br>
+<br>
+### 4. Optimize Data Loading<br>
+<br>
+```python<br>
+from core import EfficientDataModel<br>
+<br>
+class TelemetryModel(EfficientDataModel):<br>
+    def _load_page(self, page):<br>
+        # Load only one page at a time<br>
+        offset = page * self.page_size<br>
+        return self.db.query_telemetry(limit=self.page_size, offset=offset)<br>
+```<br>
+<br>
+## Automatic Optimizations<br>
+<br>
+The system automatically:<br>
+- **Cleans memory** every 30 seconds if usage > 80%<br>
+- **Cleans disk** every 5 minutes if usage > 90%<br>
+- **Compresses old logs** after 7 days<br>
+- **Deletes old files** after 30 days (configurable)<br>
+- **Optimizes database** periodically<br>
+- **Unloads unused widgets** automatically<br>
+<br>
+## Manual Optimization<br>
+<br>
+```python<br>
+# Force immediate cleanup<br>
+results = self.resource_optimizer.force_cleanup()<br>
+<br>
+# Get statistics<br>
+memory_stats = self.resource_optimizer.get_memory_stats()<br>
+disk_stats = self.resource_optimizer.get_disk_stats()<br>
+perf_stats = self.resource_optimizer.get_performance_stats()<br>
+```<br>
+<br>
+## Best Practices<br>
+<br>
+1. **Use lazy loading** for screens that aren't always visible<br>
+2. **Debounce/throttle** expensive operations (search, filtering)<br>
+3. **Paginate data** instead of loading everything at once<br>
+4. **Clean up** event handlers and timers in `closeEvent`<br>
+5. **Use weak references** for callbacks to prevent memory leaks<br>
+<br>
+## Configuration<br>
+<br>
+Adjust thresholds in `ResourceOptimizer`:<br>
+- `max_memory_mb`: Maximum memory (default: 512 MB)<br>
+- `cleanup_threshold`: Cleanup trigger (default: 80%)<br>
+- `retention_days`: Keep data for N days (default: 30)<br>
+<br>
+## Monitoring<br>
+<br>
+Check resource usage:<br>
+```python<br>
+# Memory<br>
+stats = resource_optimizer.get_memory_stats()<br>
+print(f"Memory: {stats['rss_mb']:.1f} MB ({stats['percent']:.1f}%)")<br>
+<br>
+# Disk<br>
+stats = resource_optimizer.get_disk_stats()<br>
+print(f"Disk: {stats['used_gb']:.1f} GB / {stats['total_gb']:.1f} GB")<br>
+```<br>
+
+</body>
+</html>

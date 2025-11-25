@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>FILE_ENCRYPTION</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # File Encryption Guide<br>
+<br>
+## Overview<br>
+<br>
+The AI Tuner Agent includes comprehensive file encryption capabilities to protect:<br>
+- Configuration files<br>
+- Data logs<br>
+- Database files<br>
+- User settings<br>
+- Sensitive telemetry data<br>
+<br>
+## Features<br>
+<br>
+### 1. Transparent Encryption<br>
+- Files automatically encrypted/decrypted on read/write<br>
+- No code changes needed - works transparently<br>
+- Supports both encrypted and plain files<br>
+<br>
+### 2. Multiple Encryption Methods<br>
+- **YubiKey**: Hardware-based key storage (most secure)<br>
+- **Password**: User-provided password<br>
+- **Device Key**: Automatic device-based key (no password needed)<br>
+<br>
+### 3. Selective Encryption<br>
+- Choose which directories to encrypt<br>
+- Encrypt existing files on demand<br>
+- Decrypt files when needed<br>
+<br>
+## Usage<br>
+<br>
+### Enable Encryption via UI<br>
+<br>
+1. Click **"Encryption"** button in main window<br>
+2. Check **"Enable file encryption"**<br>
+3. Choose encryption method:<br>
+   - **YubiKey**: Requires YubiKey hardware<br>
+   - **Password**: Enter encryption password<br>
+   - **Device Key**: Automatic (recommended)<br>
+4. Select directories to encrypt:<br>
+   - Configuration files<br>
+   - Data logs<br>
+   - Database files<br>
+5. Click **"OK"** to save<br>
+<br>
+### Encrypt Existing Files<br>
+<br>
+1. Open Encryption Settings<br>
+2. Click **"Encrypt Existing Files..."**<br>
+3. Select directory<br>
+4. Enter file pattern (e.g., `*.json`, `*.db`, `*`)<br>
+5. Files will be encrypted with `.encrypted` extension<br>
+<br>
+### Decrypt Files<br>
+<br>
+1. Open Encryption Settings<br>
+2. Click **"Decrypt Existing Files..."**<br>
+3. Select directory with encrypted files<br>
+4. Files will be decrypted (`.encrypted` extension removed)<br>
+<br>
+## Programmatic Usage<br>
+<br>
+### Basic Encryption<br>
+<br>
+```python<br>
+from core.file_encryption import FileEncryption<br>
+<br>
+# Initialize encryption<br>
+encryption = FileEncryption(<br>
+    encryption_enabled=True,<br>
+    use_yubikey=False,  # Set to True for YubiKey<br>
+    password="your-password",  # Optional<br>
+)<br>
+<br>
+# Encrypt a file<br>
+encryption.encrypt_file("config/settings.json")<br>
+<br>
+# Decrypt a file<br>
+encryption.decrypt_file("config/settings.json.encrypted")<br>
+```<br>
+<br>
+### Transparent File Manager<br>
+<br>
+```python<br>
+from core.file_encryption import EncryptedFileManager<br>
+<br>
+# Initialize manager<br>
+manager = EncryptedFileManager(<br>
+    encryption_enabled=True,<br>
+    use_yubikey=False,<br>
+)<br>
+<br>
+# Read file (automatically decrypts)<br>
+data = manager.read_text_file("config/settings.json")<br>
+<br>
+# Write file (automatically encrypts)<br>
+manager.write_text_file("config/settings.json", json_data)<br>
+```<br>
+<br>
+### With Config Manager<br>
+<br>
+```python<br>
+from core.config_manager import ConfigManager<br>
+from core.file_encryption import EncryptedFileManager<br>
+<br>
+# Create encryption manager<br>
+encryption_manager = EncryptedFileManager(encryption_enabled=True)<br>
+<br>
+# Use with config manager<br>
+config = ConfigManager(encryption_manager=encryption_manager)<br>
+<br>
+# Config files are automatically encrypted/decrypted<br>
+config.save_profile("my_car", profile)<br>
+```<br>
+<br>
+## Encryption Methods<br>
+<br>
+### 1. YubiKey (Most Secure)<br>
+<br>
+**Pros:**<br>
+- Hardware-based security<br>
+- Keys cannot be extracted<br>
+- Physical device required<br>
+<br>
+**Cons:**<br>
+- Requires YubiKey hardware<br>
+- Setup required<br>
+<br>
+**Setup:**<br>
+```bash<br>
+python tools/setup_yubikey.py<br>
+```<br>
+<br>
+### 2. Password-Based<br>
+<br>
+**Pros:**<br>
+- No hardware required<br>
+- User controls password<br>
+<br>
+**Cons:**<br>
+- Password must be remembered<br>
+- Less secure if password weak<br>
+<br>
+**Usage:**<br>
+```python<br>
+encryption = FileEncryption(<br>
+    encryption_enabled=True,<br>
+    password="strong-password-here",<br>
+)<br>
+```<br>
+<br>
+### 3. Device Key (Automatic)<br>
+<br>
+**Pros:**<br>
+- No password needed<br>
+- Automatic setup<br>
+- Device-specific<br>
+<br>
+**Cons:**<br>
+- Key stored on device<br>
+- Less secure if device compromised<br>
+<br>
+**Usage:**<br>
+```python<br>
+encryption = FileEncryption(encryption_enabled=True)<br>
+# Key automatically generated and stored<br>
+```<br>
+<br>
+## Security Considerations<br>
+<br>
+### Best Practices<br>
+<br>
+1. **Use YubiKey for production**<br>
+   - Most secure option<br>
+   - Keys stored on hardware<br>
+<br>
+2. **Strong passwords**<br>
+   - Minimum 16 characters<br>
+   - Mix of letters, numbers, symbols<br>
+<br>
+3. **Backup encryption keys**<br>
+   - Store keys securely<br>
+   - Can't recover files without keys<br>
+<br>
+4. **Regular key rotation**<br>
+   - Change keys periodically<br>
+   - Re-encrypt files with new keys<br>
+<br>
+### What Gets Encrypted<br>
+<br>
+- **Configuration files**: `config/*.json`<br>
+- **Data logs**: `logs/*.csv`, `logs/*.log`<br>
+- **Database files**: `*.db`, `*.sqlite`<br>
+- **User settings**: `config/user_settings.json`<br>
+<br>
+### What Doesn't Get Encrypted<br>
+<br>
+- **Application code**: Not encrypted (use code protection)<br>
+- **Temporary files**: Not encrypted<br>
+- **Video files**: Optional (large files, slower)<br>
+<br>
+## Troubleshooting<br>
+<br>
+### "Encryption not enabled"<br>
+<br>
+**Solution:**<br>
+- Check `cryptography` library installed: `pip install cryptography`<br>
+- Verify encryption is enabled in settings<br>
+<br>
+### "Failed to decrypt file"<br>
+<br>
+**Possible causes:**<br>
+- Wrong password<br>
+- YubiKey not present<br>
+- Corrupted encrypted file<br>
+- Wrong encryption key<br>
+<br>
+**Solution:**<br>
+- Verify password/YubiKey<br>
+- Check file integrity<br>
+- Restore from backup<br>
+<br>
+### "Permission denied"<br>
+<br>
+**Solution:**<br>
+- Check file permissions<br>
+- Run with appropriate user<br>
+- Check encryption key file permissions<br>
+<br>
+## Integration with Code Protection<br>
+<br>
+File encryption works with code protection:<br>
+<br>
+```python<br>
+from core.code_protection import CodeProtection<br>
+from core.file_encryption import EncryptedFileManager<br>
+<br>
+# Code protection<br>
+protection = CodeProtection(require_yubikey=True)<br>
+<br>
+# File encryption (uses YubiKey if available)<br>
+encryption = EncryptedFileManager(<br>
+    encryption_enabled=True,<br>
+    use_yubikey=True,<br>
+)<br>
+```<br>
+<br>
+## Environment Variables<br>
+<br>
+```bash<br>
+# Enable encryption<br>
+export AI_TUNER_ENCRYPTION_ENABLED=true<br>
+<br>
+# Use YubiKey<br>
+export AI_TUNER_USE_YUBIKEY=true<br>
+<br>
+# Encryption password (if not using YubiKey)<br>
+export AI_TUNER_ENCRYPTION_PASSWORD=your-password<br>
+<br>
+# YubiKey PIN<br>
+export YUBIKEY_PIN=123456<br>
+```<br>
+<br>
+## Performance<br>
+<br>
+- **Encryption overhead**: ~5-10% for small files<br>
+- **Large files**: May be slower (consider selective encryption)<br>
+- **Memory usage**: Minimal (streaming encryption)<br>
+<br>
+## Backup and Recovery<br>
+<br>
+### Backup Encryption Keys<br>
+<br>
+```python<br>
+# Save key to secure location<br>
+key = encryption._get_or_create_device_key()<br>
+# Store securely (encrypted backup, secure storage, etc.)<br>
+```<br>
+<br>
+### Recover Encrypted Files<br>
+<br>
+1. Restore encryption key<br>
+2. Initialize encryption with key<br>
+3. Decrypt files<br>
+<br>
+**WARNING**: Without the encryption key, encrypted files cannot be recovered!<br>
+<br>
+---<br>
+<br>
+**File encryption is CRITICAL for protecting sensitive data on hardware devices!**<br>
+<br>
+
+</body>
+</html>

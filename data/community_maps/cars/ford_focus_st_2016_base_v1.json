@@ -1,0 +1,120 @@
+{
+  "tune_id": "ford_focus_st_2016_base_v1",
+  "name": "Ford Focus ST 2016 - Base Map",
+  "description": "Safe base map for stock Ford Focus ST (MK3). Conservative parameters for initial setup and testing.",
+  "tune_type": "base_map",
+  "vehicle": {
+    "make": "Ford",
+    "model": "Focus ST",
+    "year": 2016,
+    "engine_code": "EcoBoost 2.0L",
+    "engine_displacement": 2.0,
+    "fuel_type": "gasoline",
+    "forced_induction": "turbo"
+  },
+  "ecu_type": "Ford",
+  "maps": [
+    {
+      "category": "fuel_map",
+      "name": "Base Fuel Map",
+      "description": "IAP/TPS fuel map - conservative AFR targets",
+      "data": {
+        "rpm_axis": [1000, 2000, 3000, 4000, 5000, 6000, 6500],
+        "load_axis": [0, 20, 40, 60, 80, 100],
+        "afr_targets": [
+          [14.7, 14.7, 14.7, 14.7, 14.7, 14.7],
+          [14.7, 14.7, 14.6, 14.5, 14.4, 14.3],
+          [14.7, 14.6, 14.5, 14.3, 14.1, 13.9],
+          [14.7, 14.5, 14.3, 14.0, 13.8, 13.6],
+          [14.7, 14.4, 14.2, 13.9, 13.7, 13.5],
+          [14.7, 14.3, 14.1, 13.8, 13.6, 13.4],
+          [14.7, 14.3, 14.1, 13.8, 13.6, 13.4]
+        ],
+        "unit": "AFR"
+      },
+      "unit": "AFR",
+      "min_value": 13.0,
+      "max_value": 14.7,
+      "safety_level": "safe"
+    },
+    {
+      "category": "ignition_timing",
+      "name": "Ignition Timing Map",
+      "description": "Conservative ignition timing",
+      "data": {
+        "rpm_axis": [1000, 2000, 3000, 4000, 5000, 6000, 6500],
+        "load_axis": [0, 20, 40, 60, 80, 100],
+        "timing_values": [
+          [12, 12, 12, 12, 12, 12],
+          [12, 16, 20, 24, 26, 28],
+          [12, 18, 22, 26, 28, 30],
+          [12, 20, 24, 28, 30, 32],
+          [12, 22, 26, 30, 32, 34],
+          [12, 22, 26, 30, 32, 34],
+          [12, 22, 26, 30, 32, 34]
+        ],
+        "unit": "degrees"
+      },
+      "unit": "degrees",
+      "min_value": 10,
+      "max_value": 38,
+      "safety_level": "safe"
+    },
+    {
+      "category": "rpm_limiter",
+      "name": "RPM Limiter",
+      "description": "Stock RPM limit",
+      "data": {
+        "rev_limit": 6500,
+        "unit": "RPM"
+      },
+      "unit": "RPM",
+      "min_value": 1000,
+      "max_value": 6500,
+      "safety_level": "safe"
+    },
+    {
+      "category": "boost_control",
+      "name": "Boost Control",
+      "description": "Stock boost pressure",
+      "data": {
+        "boost_target": 15.2,
+        "unit": "PSI"
+      },
+      "unit": "PSI",
+      "min_value": 0,
+      "max_value": 15.2,
+      "safety_level": "safe"
+    }
+  ],
+  "hardware_requirements": [],
+  "performance_gains": {
+    "hp_gain": 0,
+    "torque_gain": 0,
+    "notes": "Base map - no performance gains"
+  },
+  "created_at": 1700000000,
+  "updated_at": 1700000000,
+  "created_by": "system",
+  "version": "1.0.0",
+  "validated": true,
+  "validation_notes": "Base map for stock Focus ST",
+  "safety_warnings": [
+    "Base map for stock configuration only",
+    "Verify compatibility with your vehicle",
+    "Use at your own risk",
+    "Requires 91+ octane fuel"
+  ],
+  "shared": false,
+  "share_id": null,
+  "download_count": 0,
+  "rating": null,
+  "rating_count": 0,
+  "tags": ["base", "ford", "focus", "st", "stock", "turbo", "2016"],
+  "tuning_notes": "Conservative base map for stock Focus ST. Safe for daily driving.",
+  "installation_notes": "Load as starting point. Verify vehicle operation before adjustments.",
+  "dyno_results": null
+}
+
+
+

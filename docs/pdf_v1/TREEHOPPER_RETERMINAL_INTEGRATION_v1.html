@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>TREEHOPPER_RETERMINAL_INTEGRATION</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # Treehopper + reTerminal DM Integration Plan<br>
+<br>
+## Overview<br>
+<br>
+This document outlines the technical implementation for supporting both reTerminal DM and Treehopper simultaneously, creating a unified I/O system with maximum capabilities.<br>
+<br>
+---<br>
+<br>
+## Architecture<br>
+<br>
+### **Unified I/O Manager**<br>
+<br>
+```<br>
+┌─────────────────────────────────────────────────┐<br>
+│         AI Tuner Agent Software                 │<br>
+│                                                  │<br>
+│  ┌──────────────────────────────────────────┐   │<br>
+│  │     Unified I/O Manager                  │   │<br>
+│  │  - Combines I/O from all devices        │   │<br>
+│  │  - Presents unified interface           │   │<br>
+│  │  - Handles device communication         │   │<br>
+│  └──────────────────────────────────────────┘   │<br>
+│           │                    │                  │<br>
+│           ▼                    ▼                  │<br>
+│  ┌──────────────┐    ┌──────────────────┐       │<br>
+│  │ reTerminal DM│    │   Treehopper      │       │<br>
+│  │  Interface   │    │   Interface       │       │<br>
+│  └──────────────┘    └──────────────────┘       │<br>
+│           │                    │                  │<br>
+│           ▼                    ▼                  │<br>
+│  ┌──────────────┐    ┌──────────────────┐       │<br>
+│  │ reTerminal DM│    │   Treehopper     │       │<br>
+│  │  Hardware    │    │   USB Device     │       │<br>
+│  └──────────────┘    └──────────────────┘       │<br>
+└─────────────────────────────────────────────────┘<br>
+```<br>
+<br>
+---<br>
+<br>
+## Implementation Plan<br>
+<br>
+### **Phase 1: Treehopper Detection & Basic I/O**<br>
+<br>
+**File**: `interfaces/treehopper_adapter.py`<br>
+<br>
+```python<br>
+class TreehopperAdapter:<br>
+    """Treehopper USB interface adapter."""<br>
+    <br>
+    def detect() -> bool:<br>
+        """Detect Treehopper USB device."""<br>
+        # USB HID detection<br>
+        # Check for Treehopper VID/PID<br>
+        <br>
+    def read_digital(pin: int) -> bool:<br>
+        """Read digital pin."""<br>
+        <br>
+    def write_digital(pin: int, value: bool):<br>
+        """Write digital pin."""<br>
+        <br>
+    def read_analog(pin: int) -> float:<br>
+        """Read analog pin (0-3.3V)."""<br>
+        <br>
+    def write_pwm(pin: int, duty_cycle: float):<br>
+        """Write PWM signal."""<br>
+        <br>
+    def i2c_scan() -> List[int]:<br>
+        """Scan I2C bus."""<br>
+        <br>
+    def spi_transfer(data: bytes) -> bytes:<br>
+        """SPI data transfer."""<br>
+```<br>
+<br>
+### **Phase 2: Unified I/O Manager**<br>
+<br>
+**File**: `interfaces/unified_io_manager.py`<br>
+<br>
+```python<br>
+class UnifiedIOManager:<br>
+    """Manages I/O from multiple devices (reTerminal DM + Treehopper)."""<br>
+    <br>
+    def __init__(self):<br>
+        self.reterminal_io = None  # reTerminal DM I/O<br>
+        self.treehopper_io = None  # Treehopper I/O<br>
+        self.pin_map = {}  # Unified pin mapping<br>
+        <br>
+    def detect_devices(self):<br>
+        """Detect all available I/O devices."""<br>
+        # Detect reTerminal DM<br>
+        # Detect Treehopper<br>
+        # Create unified pin map<br>
+        <br>
+    def read_gpio(self, pin: int) -> bool:<br>
+        """Read GPIO from appropriate device."""<br>
+        device, local_pin = self._resolve_pin(pin)<br>
+        return device.read_digital(local_pin)<br>
+        <br>
+    def write_gpio(self, pin: int, value: bool):<br>
+        """Write GPIO to appropriate device."""<br>
+        device, local_pin = self._resolve_pin(pin)<br>
+        device.write_digital(local_pin, value)<br>
+        <br>
+    def read_analog(self, channel: int) -> float:<br>
+        """Read analog from appropriate device."""<br>
+        device, local_channel = self._resolve_analog(channel)<br>
+        return device.read_analog(local_channel)<br>
+        <br>
+    def _resolve_pin(self, pin: int) -> Tuple[Device, int]:<br>
+        """Resolve unified pin to device and local pin."""<br>
+        # Pins 0-39: reTerminal DM<br>
+        # Pins 40-59: Treehopper<br>
+        if pin < 40:<br>
+            return self.reterminal_io, pin<br>
+        else:<br>
+            return self.treehopper_io, pin - 40<br>
+```<br>
+<br>
+### **Phase 3: Integration with Existing System**<br>
+<br>
+**Update**: `interfaces/sensor_manager.py`<br>
+<br>
+```python<br>
+class SensorManager:<br>
+    """Unified manager for all sensor types."""<br>
+    <br>
+    def __init__(self):<br>
+        # Existing managers<br>
+        self.analog_manager = AnalogSensorManager()<br>
+        self.digital_manager = DigitalSensorManager()<br>
+        <br>
+        # NEW: Unified I/O manager<br>
+        self.io_manager = UnifiedIOManager()<br>
+        self.io_manager.detect_devices()<br>
+        <br>
+    def add_analog_sensor(self, config: AnalogSensorConfig) -> bool:<br>
+        """Add analog sensor (can use reTerminal or Treehopper)."""<br>
+        # Check which device has available ADC<br>
+        # Assign to appropriate device<br>
+        return self.io_manager.add_analog_sensor(config)<br>
+        <br>
+    def add_digital_sensor(self, config: DigitalSensorConfig) -> bool:<br>
+        """Add digital sensor (can use reTerminal or Treehopper)."""<br>
+        # Check which device has available GPIO<br>
+        # Assign to appropriate device<br>
+        return self.io_manager.add_digital_sensor(config)<br>
+```<br>
+<br>
+### **Phase 4: Hardware Platform Detection**<br>
+<br>
+**Update**: `core/hardware_platform.py`<br>
+<br>
+```python<br>
+class HardwareDetector:<br>
+    @staticmethod<br>
+    def detect() -> HardwareConfig:<br>
+        """Detect hardware platform and additional devices."""<br>
+        config = HardwareDetector._detect_base_platform()<br>
+        <br>
+        # Check for Treehopper<br>
+        if TreehopperAdapter.detect():<br>
+            config.has_treehopper = True<br>
+            config.total_gpio_pins = config.gpio_pins + 20  # Add Treehopper pins<br>
+            config.total_adc_channels = config.adc_channels + TreehopperAdapter.ADC_CHANNELS<br>
+            LOGGER.info("Treehopper detected - additional I/O available")<br>
+        <br>
+        return config<br>
+```<br>
+<br>
+---<br>
+<br>
+## Pin Mapping Strategy<br>
+<br>
+### **Unified Pin Numbering**<br>
+<br>
+| Pin Range | Device | Description |<br>
+|-----------|--------|-------------|<br>
+| **0-39** | reTerminal DM | 40-pin GPIO header |<br>
+| **40-59** | Treehopper | 20 GPIO pins |<br>
+| **Total** | **60 pins** | Unified GPIO interface |<br>
+<br>
+### **ADC Channel Mapping**<br>
+<br>
+| Channel Range | Device | Description |<br>
+|---------------|--------|-------------|<br>
+| **0-6** | reTerminal DM | 7 ADC channels (via HAT) |<br>
+| **7-14** | Treehopper | 8 ADC channels |<br>
+| **Total** | **15 channels** | Unified ADC interface |<br>
+<br>
+### **Protocol Buses**<br>
+<br>
+| Protocol | reTerminal DM | Treehopper | Combined |<br>
+|----------|---------------|------------|----------|<br>
+| **I2C** | ✅ 1 bus | ✅ 1 bus | ✅ 2 buses |<br>
+| **SPI** | ✅ 1 bus | ✅ 1 bus | ✅ 2 buses |<br>
+| **UART** | ✅ Multiple | ✅ 1 bus | ✅ Multiple |<br>
+<br>
+---<br>
+<br>
+## Software Features<br>
+<br>
+### **1. Auto-Detection**<br>
+<br>
+The software will automatically:<br>
+- ✅ Detect reTerminal DM (if present)<br>
+- ✅ Detect Treehopper (if present)<br>
+- ✅ Combine I/O capabilities<br>
+- ✅ Present unified interface<br>
+<br>
+### **2. Device Status**<br>
+<br>
+UI will show:<br>
+- ✅ reTerminal DM status (connected/disconnected)<br>
+- ✅ Treehopper status (connected/disconnected)<br>
+- ✅ Total available I/O (GPIO, ADC, etc.)<br>
+- ✅ Device capabilities<br>
+<br>
+### **3. Sensor Assignment**<br>
+<br>
+When adding sensors:<br>
+- ✅ Software suggests best device<br>
+- ✅ User can manually select device<br>
+- ✅ Automatic load balancing<br>
+- ✅ Conflict detection<br>
+<br>
+### **4. Error Handling**<br>
+<br>
+- ✅ Graceful degradation if Treehopper disconnected<br>
+- ✅ Automatic reconnection<br>
+- ✅ Fallback to reTerminal DM only<br>
+- ✅ Clear error messages<br>
+<br>
+---<br>
+<br>
+## Configuration Examples<br>
+<br>
+### **Example 1: Maximum Sensors**<br>
+<br>
+```json<br>
+{<br>
+  "io_devices": {<br>
+    "reterminal_dm": {<br>
+      "enabled": true,<br>
+      "gpio_pins": [0, 1, 2, 3, 4, 5, 6, 7],<br>
+      "adc_channels": [0, 1, 2, 3],<br>
+      "i2c_bus": 1,<br>
+      "spi_bus": 0<br>
+    },<br>
+    "treehopper": {<br>
+      "enabled": true,<br>
+      "gpio_pins": [40, 41, 42, 43, 44, 45],<br>
+      "adc_channels": [7, 8, 9, 10],<br>
+      "i2c_bus": 2,<br>
+      "spi_bus": 1<br>
+    }<br>
+  },<br>
+  "sensors": {<br>
+    "oil_pressure": {<br>
+      "device": "reterminal_dm",<br>
+      "adc_channel": 0<br>
+    },<br>
+    "fuel_pressure": {<br>
+      "device": "treehopper",<br>
+      "adc_channel": 7<br>
+    },<br>
+    "transbrake": {<br>
+      "device": "reterminal_dm",<br>
+      "gpio_pin": 18<br>
+    },<br>
+    "nitrous_solenoid": {<br>
+      "device": "treehopper",<br>
+      "gpio_pin": 40<br>
+    }<br>
+  }<br>
+}<br>
+```<br>
+<br>
+### **Example 2: Budget Configuration (Treehopper Only)**<br>
+<br>
+```json<br>
+{<br>
+  "io_devices": {<br>
+    "reterminal_dm": {<br>
+      "enabled": false<br>
+    },<br>
+    "treehopper": {<br>
+      "enabled": true,<br>
+      "gpio_pins": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],<br>
+      "adc_channels": [0, 1, 2, 3, 4, 5],<br>
+      "i2c_bus": 1,<br>
+      "spi_bus": 0<br>
+    }<br>
+  },<br>
+  "can_bus": {<br>
+    "device": "usb_can_adapter",<br>
+    "channels": ["can0", "can1"]<br>
+  }<br>
+}<br>
+```<br>
+<br>
+---<br>
+<br>
+## Benefits of Combined System<br>
+<br>
+### **1. Maximum I/O**<br>
+- **60 GPIO pins** (vs 40 or 20 alone)<br>
+- **15 ADC channels** (vs 7 or 8 alone)<br>
+- **Multiple I2C/SPI buses** (vs 1 alone)<br>
+<br>
+### **2. Flexibility**<br>
+- **Redundancy**: Backup I/O if one device fails<br>
+- **Expansion**: Add more sensors without replacing hardware<br>
+- **Remote placement**: Treehopper can be placed remotely via USB<br>
+<br>
+### **3. Professional + Portable**<br>
+- **reTerminal DM**: Fixed professional installation<br>
+- **Treehopper**: Can be used separately for portable logging<br>
+- **Best of both worlds**<br>
+<br>
+### **4. Future-Proof**<br>
+- **Easy expansion**: Add more Treehoppers if needed<br>
+- **Modular design**: Upgrade components independently<br>
+- **Scalable**: From basic to maximum configuration<br>
+<br>
+---<br>
+<br>
+## Implementation Timeline<br>
+<br>
+### **Week 1: Treehopper Adapter**<br>
+- ✅ Create `TreehopperAdapter` class<br>
+- ✅ Implement USB HID detection<br>
+- ✅ Implement basic I/O (digital, analog, PWM)<br>
+- ✅ Test with Treehopper hardware<br>
+<br>
+### **Week 2: Unified I/O Manager**<br>
+- ✅ Create `UnifiedIOManager` class<br>
+- ✅ Implement pin mapping<br>
+- ✅ Implement device detection<br>
+- ✅ Test with both devices<br>
+<br>
+### **Week 3: Integration**<br>
+- ✅ Update `SensorManager` to use unified I/O<br>
+- ✅ Update `HardwareDetector` for Treehopper<br>
+- ✅ Update UI to show device status<br>
+- ✅ Test sensor assignment<br>
+<br>
+### **Week 4: Testing & Documentation**<br>
+- ✅ Comprehensive testing<br>
+- ✅ Error handling<br>
+- ✅ Documentation<br>
+- ✅ Setup guides for both configurations<br>
+<br>
+---<br>
+<br>
+## Testing Strategy<br>
+<br>
+### **Test Scenarios**<br>
+<br>
+1. **reTerminal DM Only**<br>
+   - ✅ All features work<br>
+   - ✅ No Treehopper errors<br>
+   - ✅ Graceful handling<br>
+<br>
+2. **Treehopper Only**<br>
+   - ✅ All features work<br>
+   - ✅ USB-CAN adapter works<br>
+   - ✅ No reTerminal DM errors<br>
+<br>
+3. **Both Devices**<br>
+   - ✅ Unified I/O works<br>
+   - ✅ Pin mapping correct<br>
+   - ✅ No conflicts<br>
+   - ✅ Maximum sensors supported<br>
+<br>
+4. **Device Disconnection**<br>
+   - ✅ Treehopper disconnected gracefully<br>
+   - ✅ reTerminal DM disconnected gracefully<br>
+   - ✅ Automatic reconnection<br>
+<br>
+---<br>
+<br>
+## Next Steps<br>
+<br>
+1. ✅ **Research Treehopper API** - Get USB HID protocol details<br>
+2. ✅ **Create TreehopperAdapter** - Basic I/O implementation<br>
+3. ✅ **Create UnifiedIOManager** - Combine I/O from both devices<br>
+4. ✅ **Update SensorManager** - Use unified I/O<br>
+5. ✅ **Update UI** - Show device status and capabilities<br>
+6. ✅ **Testing** - Comprehensive testing with both configurations<br>
+7. ✅ **Documentation** - Setup guides for both product tiers<br>
+<br>
+---<br>
+<br>
+**This integration enables the ultimate solution: reTerminal DM + Treehopper for maximum I/O capabilities!**<br>
+<br>
+<br>
+<br>
+
+</body>
+</html>

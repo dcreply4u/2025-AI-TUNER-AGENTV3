@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+pandas
+plotly
+dash
+dash-bootstrap-components
+sqlalchemy
+

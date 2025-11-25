@@ -1,0 +1,843 @@
+from __future__ import annotations
+
+"""
+=========================================================
+AI Tuner Desktop – main shell and responsive layout host
+=========================================================
+"""
+
+import platform
+import sys
+
+# Platform detection for OS-specific sizing
+IS_WINDOWS = platform.system().lower().startswith("win")
+from pathlib import Path
+
+from PySide6.QtCore import QTimer
+from PySide6.QtGui import QScreen
+from PySide6.QtWidgets import (
+    QApplication,
+    QFileDialog,
+    QGroupBox,
+    QHBoxLayout,
+    QPushButton,
+    QSizePolicy,
+    QVBoxLayout,
+    QWidget,
+)
+
+from ai import ConversationalAgent, PredictiveFaultDetector, TuningAdvisor
+from controllers import CameraManager, start_data_stream, start_voice_listener
+from interfaces import CameraConfig, CameraType, GPSInterface, OBDInterface
+
+try:
+    from interfaces import VoiceOutput
+except ImportError:
+    VoiceOutput = None  # type: ignore
+
+from services import (
+    CloudSync,
+    ConnectivityManager,
+    DataLogger,
+    DisplayManager,
+    GeoLogger,
+    PerformanceTracker,
+    USBManager,
+)
+from ui.ai_insight_panel import AIInsightPanel
+from ui.camera_quick_widget import CameraQuickWidget
+from ui.dragy_view import DragyPerformanceView
+from ui.enhanced_widgets import apply_standard_margins, make_expanding, make_hgrow
+from ui.fault_panel import FaultPanel
+from ui.health_score_widget import HealthScoreWidget
+from ui.notification_widget import NotificationLevel, NotificationWidget
+from ui.settings_dialog import SettingsDialog
+from ui.status_bar import StatusBar
+from ui.telemetry_panel import TelemetryPanel
+from ui.theme_dialog import ThemeDialog
+from ui.theme_manager import ThemeManager
+from ui.youtube_stream_widget import YouTubeStreamWidget
+
+
+class MainWindow(QWidget):
+    """
+    Main application window.
+
+    This class orchestrates the high-level layout and ensures that panels and
+    controls resize predictably across resolutions. All content is managed by
+    Qt layouts with explicit stretch factors and size policies to prevent
+    overlapping / "bleeding" UI elements.
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.setWindowTitle("AI Tuner Edge Agent V2")
+
+        screen = QApplication.primaryScreen()
+        if screen is not None:
+            available = screen.availableGeometry()
+
+            if IS_WINDOWS:
+                # On Windows, be more conservative: smaller and never full-height.
+                target_width = min(1280, int(available.width() * 0.7))
+                target_height = min(720, int(available.height() * 0.65))
+            else:
+                # On Pi / Linux / others, keep the previous behavior.
+                target_width = min(1280, int(available.width() * 0.85))
+                target_height = min(720, int(available.height() * 0.85))
+
+            # Apply a reasonable minimum to avoid a tiny window
+            min_width = min(960, target_width)
+            min_height = min(540, target_height)
+            self.setMinimumSize(min_width, min_height)
+
+            self.resize(target_width, target_height)
+
+            # Center in the available area
+            x = available.x() + (available.width() - target_width) // 2
+            y = available.y() + (available.height() - target_height) // 2
+            self.move(x, y)
+
+            # Hard cap: never allow window taller than available area
+            self.setMaximumHeight(available.height())
+        else:
+            # Fallback if no screen info
+            self.resize(960, 540)
+
+        # Initialize theme manager
+        self.theme_manager = ThemeManager()
+        self._apply_theme()
+
+        # Core stream settings (used by data stream + connectivity)
+        self.stream_settings = {
+            "source": "Auto",
+            "port": "/dev/ttyUSB0",
+            "baud": 115200,
+            "interval_sec": 0.5,
+            "mode": "live",
+            "replay_file": None,
+            "network_preference": "Auto",
+            "obd_transport": "Auto",
+            "bluetooth_address": "",
+            "wifi_interface": "wlan0",
+            "lte_interface": "wwan0",
+        }
+
+        # ------------------------------------------------------------------
+        # Layout skeleton
+        # ------------------------------------------------------------------
+        root_layout = QVBoxLayout(self)
+        root_layout.setContentsMargins(8, 8, 8, 8)
+        root_layout.setSpacing(6)
+
+        content_layout = QHBoxLayout()
+        content_layout.setSpacing(8)
+
+        left_column = QVBoxLayout()
+        left_column.setSpacing(6)
+        right_column = QVBoxLayout()
+        right_column.setSpacing(6)
+
+        # ------------------------------------------------------------------
+        # Left column: telemetry, health, AI insights, advice, performance
+        # ------------------------------------------------------------------
+        self.telemetry_panel = TelemetryPanel()
+        self.health_widget = HealthScoreWidget()
+        self.ai_panel = AIInsightPanel()
+        from ui.advice_panel import AdvicePanel
+
+        self.advice_panel = AdvicePanel()
+        self.dragy_view = DragyPerformanceView()
+
+        # OBD & faults
+        self.obd_interface = OBDInterface()
+        self.fault_panel = FaultPanel(self.obd_interface)
+
+        # Status bar
+        self.status_bar = StatusBar()
+        self.status_bar.update_connectivity("Scanning radios…")
+
+        # Ensure major panels expand with window size
+        for panel in (
+            self.telemetry_panel,
+            self.health_widget,
+            self.ai_panel,
+            self.advice_panel,
+            self.dragy_view,
+            self.fault_panel,
+        ):
+            panel.setSizePolicy(
+                QSizePolicy.Policy.Expanding,   # grow/shrink horizontally with window
+                QSizePolicy.Policy.Preferred,   # can shrink vertically as needed
+            )
+
+        # ------------------------------------------------------------------
+        # Notification + YouTube + camera quick widget (right column top)
+        # ------------------------------------------------------------------
+        self.notification_widget = NotificationWidget()
+
+        def show_notification(message: str, level: str = "info") -> None:
+            level_enum = {
+                "info": NotificationLevel.INFO,
+                "warning": NotificationLevel.WARNING,
+                "error": NotificationLevel.ERROR,
+                "success": NotificationLevel.SUCCESS,
+            }.get(level.lower(), NotificationLevel.INFO)
+            self.notification_widget.show_notification(message, level_enum)
+
+        self.show_notification = show_notification  # keep as attribute
+
+        self.live_streamer = None
+        self.youtube_widget: YouTubeStreamWidget | None = None
+        try:
+            from services.live_streamer import LiveStreamer
+
+            self.live_streamer = LiveStreamer(notification_callback=show_notification)
+            if self.live_streamer.enabled:
+                try:
+                    self.youtube_widget = YouTubeStreamWidget(
+                        live_streamer=self.live_streamer,
+                        parent=self,
+                    )
+                except ImportError:
+                    show_notification("YouTube streaming UI unavailable", "warning")
+        except Exception as exc:  # pragma: no cover - optional feature
+            show_notification(f"YouTube streaming unavailable: {str(exc)}", "warning")
+
+        # USB Manager for automatic storage detection and setup
+        self.usb_manager = USBManager(auto_setup=True, prompt_format=True)
+        self.usb_monitor = None
+        try:
+            from ui.usb_setup_dialog import USBMonitorWidget
+            from PySide6.QtCore import QTimer
+
+            self.usb_monitor = USBMonitorWidget(self.usb_manager, parent=self)
+            self.usb_monitor.setSizePolicy(
+                QSizePolicy.Policy.Expanding,
+                QSizePolicy.Policy.Fixed,
+            )
+            self.usb_scan_timer = QTimer(self)
+            self.usb_scan_timer.timeout.connect(self._scan_usb_devices)
+            self.usb_scan_timer.start(3000)  # Scan every 3 seconds
+            self._scan_usb_devices()  # Initial scan
+        except Exception as exc:  # pragma: no cover - hardware/OS dependent
+            print(f"[WARN] USB manager unavailable: {exc}")
+
+        # ------------------------------------------------------------------
+        # Shared service instances
+        # ------------------------------------------------------------------
+        self.fault_predictor = PredictiveFaultDetector()
+        self.tuning_advisor = TuningAdvisor()
+
+        log_path = (
+            self.usb_manager.get_logs_path("telemetry")
+            if self.usb_manager
+            else Path("logs/telemetry")
+        )
+        self.data_logger = DataLogger(log_dir=log_path)
+
+        self.cloud_sync = CloudSync()
+        self.performance_tracker = PerformanceTracker()
+        self.geo_logger = GeoLogger()
+        self.conversational_agent = ConversationalAgent()
+        self.voice_output = VoiceOutput() if VoiceOutput else None
+
+        try:
+            from services.voice_feedback import VoiceFeedback
+
+            self.voice_feedback = VoiceFeedback(
+                voice_output=self.voice_output,
+                enabled=True,
+            )
+        except Exception as exc:  # pragma: no cover - optional
+            self.voice_feedback = None
+            print(f"[WARN] Voice feedback unavailable: {exc}")
+
+        self.connectivity_manager = ConnectivityManager(
+            wifi_interface=self.stream_settings["wifi_interface"],
+            lte_interface=self.stream_settings["lte_interface"],
+        )
+        self.latest_connectivity = None
+        self.connectivity_manager.register_callback(self._on_connectivity_change)
+        self.connectivity_manager.start()
+
+        # ECU Auto-Configuration
+        self.config_manager = None
+        self.ecu_auto_config = None
+        try:
+            from core.config_manager import ConfigManager
+            from controllers.ecu_auto_config_controller import ECUAutoConfigController
+            from PySide6.QtCore import QTimer
+
+            self.config_manager = ConfigManager()
+            self.ecu_auto_config = ECUAutoConfigController(
+                config_manager=self.config_manager,
+                voice_feedback=self.voice_feedback,
+                parent=self,
+            )
+
+            self.ecu_auto_config.ecu_detected.connect(self._on_ecu_detected)
+            self.ecu_auto_config.configuration_complete.connect(
+                self._on_ecu_configured,
+            )
+            self.ecu_auto_config.detection_failed.connect(self._on_ecu_detection_failed)
+
+            # Auto-start detection on startup (after a short delay)
+            QTimer.singleShot(
+                2000,
+                lambda: self.ecu_auto_config.start_auto_detection(sample_time=5.0),
+            )
+        except Exception as exc:  # pragma: no cover - optional
+            print(f"[WARN] ECU auto-config unavailable: {exc}")
+
+        # Display Manager for external monitor output
+        try:
+            app = QApplication.instance()
+            self.display_manager = DisplayManager(app=app) if app else None
+        except Exception as exc:  # pragma: no cover - optional
+            self.display_manager = None
+            print(f"[WARN] Display manager unavailable: {exc}")
+
+        # GPS + camera manager
+        self.camera_manager = None
+        try:
+            self.gps_interface = GPSInterface()
+        except Exception as exc:  # pragma: no cover - hardware optional
+            self.gps_interface = None
+            print(f"[WARN] GPS interface unavailable: {exc}")
+
+        try:
+            from services import VideoLogger
+
+            video_log_path = (
+                self.usb_manager.get_session_path("video")
+                if self.usb_manager
+                else Path("logs/video")
+            )
+            video_logger = VideoLogger(output_dir=video_log_path)
+            camera_manager = CameraManager(
+                video_logger=video_logger,
+                voice_feedback=getattr(self, "voice_feedback", None),
+                live_streamer=getattr(self, "live_streamer", None),
+            )
+            # Cameras are configured by user via dialog
+            self.camera_manager = camera_manager
+            # We will connect camera_quick_widget later once it exists.
+        except Exception as exc:  # pragma: no cover - optional hardware
+            self.camera_manager = None
+            self.ai_panel.update_insight(f"[Camera] Disabled ({exc})", level="warning")
+
+        # ------------------------------------------------------------------
+        # Controls and camera quick widget
+        # ------------------------------------------------------------------
+        self.start_btn = QPushButton("Start Session")
+        self.voice_btn = QPushButton("Voice Control")
+        self.replay_btn = QPushButton("Replay Log")
+        self.settings_btn = QPushButton("Settings")
+        self.theme_btn = QPushButton("Theme")
+        self.camera_btn = QPushButton("Configure Cameras")
+        self.overlay_btn = QPushButton("Video Overlay")
+        self.diagnostics_btn = QPushButton("Diagnostics")
+        self.display_btn = QPushButton("External Display")
+        self.email_btn = QPushButton("Email Logs")
+        self.export_btn = QPushButton("Export Data")
+
+        # Quick camera widget for instant recording
+        self.camera_quick_widget = CameraQuickWidget(parent=self)
+
+        # Buttons: expand horizontally but fixed height
+        for btn in (
+            self.start_btn,
+            self.voice_btn,
+            self.replay_btn,
+            self.settings_btn,
+            self.theme_btn,
+            self.camera_btn,
+            self.overlay_btn,
+            self.diagnostics_btn,
+            self.display_btn,
+            self.email_btn,
+            self.export_btn,
+        ):
+            btn.setSizePolicy(
+                QSizePolicy.Policy.Expanding,
+                QSizePolicy.Policy.Fixed,
+            )
+
+        self.camera_quick_widget.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Fixed,
+        )
+        self.notification_widget.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Fixed,
+        )
+
+        # Bind actions
+        self.start_btn.clicked.connect(self.start_session)
+        self.voice_btn.clicked.connect(self.start_voice_control)
+        self.replay_btn.clicked.connect(self.start_replay_mode)
+        self.settings_btn.clicked.connect(self.open_settings)
+        self.theme_btn.clicked.connect(self.open_theme_dialog)
+        self.camera_btn.clicked.connect(self.configure_cameras)
+        self.email_btn.clicked.connect(self.email_logs)
+        self.overlay_btn.clicked.connect(self.configure_overlay)
+        self.display_btn.clicked.connect(self.configure_display)
+        self.diagnostics_btn.clicked.connect(self.show_diagnostics)
+        self.export_btn.clicked.connect(self.export_data)
+
+        # ------------------------------------------------------------------
+        # Column composition
+        # ------------------------------------------------------------------
+        # Left: primary telemetry stack
+        left_column.addWidget(make_expanding(self.telemetry_panel), 3)
+        left_column.addWidget(make_expanding(self.health_widget), 1)
+        left_column.addWidget(make_expanding(self.ai_panel), 1)
+        left_column.addWidget(make_expanding(self.advice_panel), 1)
+        left_column.addWidget(make_expanding(self.dragy_view), 2)
+
+        # Right: faults + utilities + controls
+        # 1) Faults / status group
+        fault_group = QGroupBox("System Status")
+        fault_layout = QVBoxLayout(fault_group)
+        fault_layout.setContentsMargins(8, 8, 8, 8)
+        fault_layout.setSpacing(6)
+        fault_layout.addWidget(make_expanding(self.fault_panel), 3)
+        fault_layout.addWidget(self.notification_widget, 0)
+        if self.usb_monitor:
+            fault_layout.addWidget(self.usb_monitor, 0)
+
+        right_column.addWidget(fault_group, 2)
+
+        # 2) Camera & streaming group
+        camera_group = QGroupBox("Camera & Streaming")
+        camera_layout = QVBoxLayout(camera_group)
+        camera_layout.setContentsMargins(8, 8, 8, 8)
+        camera_layout.setSpacing(6)
+        camera_layout.addWidget(self.camera_quick_widget)
+        if self.youtube_widget:
+            camera_layout.addWidget(self.youtube_widget)
+        right_column.addWidget(camera_group, 1)
+
+        # 3) Controls group
+        controls_group = QGroupBox("Session Controls")
+        controls_layout = QVBoxLayout(controls_group)
+        controls_layout.setContentsMargins(8, 8, 8, 8)
+        controls_layout.setSpacing(4)
+
+        for btn in (
+            self.start_btn,
+            self.voice_btn,
+            self.replay_btn,
+            self.settings_btn,
+            self.theme_btn,
+            self.diagnostics_btn,
+            self.email_btn,
+            self.export_btn,
+        ):
+            controls_layout.addWidget(btn)
+
+        if self.camera_manager:
+            controls_layout.addWidget(self.camera_btn)
+            controls_layout.addWidget(self.overlay_btn)
+
+        controls_layout.addWidget(self.display_btn)
+
+        right_column.addWidget(controls_group, 1)
+
+        # Finally, assemble columns into content layout
+        content_layout.addLayout(left_column, 3)   # main panels
+        content_layout.addLayout(right_column, 1)  # status + controls
+
+        root_layout.addLayout(content_layout)
+        root_layout.addWidget(make_hgrow(self.status_bar))
+
+        # ------------------------------------------------------------------
+        # Diagnostics integration
+        # ------------------------------------------------------------------
+        self.diagnostics_widget = None
+        self._init_diagnostics()
+
+        # Integrate camera manager with quick widget & YouTube (if available)
+        if self.camera_manager:
+            self.camera_quick_widget.set_camera_manager(self.camera_manager)
+            if self.youtube_widget:
+                camera_names = list(
+                    self.camera_manager.camera_manager.cameras.keys()
+                ) if hasattr(self.camera_manager, "camera_manager") else []
+                self.youtube_widget.set_cameras(camera_names)
+            self.ai_panel.update_insight("Camera manager ready.")
+
+    # ----------------------------------------------------------------------
+    # Session / control actions
+    # ----------------------------------------------------------------------
+    def start_session(self) -> None:
+        self.stream_settings["mode"] = "live"
+        self.connectivity_manager.configure(
+            wifi_interface=self.stream_settings["wifi_interface"],
+            lte_interface=self.stream_settings["lte_interface"],
+        )
+        start_data_stream(self, **self.stream_settings)
+
+    def open_settings(self) -> None:
+        dialog = SettingsDialog()
+        dialog.source_select.setCurrentText(self.stream_settings["source"])
+        dialog.port_input.setText(self.stream_settings["port"])
+        dialog.baud_input.setText(str(self.stream_settings["baud"]))
+        dialog.network_pref.setCurrentText(self.stream_settings["network_preference"])
+        dialog.obd_transport.setCurrentText(self.stream_settings["obd_transport"])
+        dialog.bluetooth_addr.setText(self.stream_settings["bluetooth_address"])
+        dialog.wifi_iface_input.setText(self.stream_settings["wifi_interface"])
+        dialog.lte_iface_input.setText(self.stream_settings["lte_interface"])
+        if dialog.exec():
+            settings = dialog.get_settings()
+            self.stream_settings.update(settings)
+            # Keep connectivity manager aligned with latest interfaces
+            self.connectivity_manager.configure(
+                wifi_interface=self.stream_settings["wifi_interface"],
+                lte_interface=self.stream_settings["lte_interface"],
+            )
+            controller = getattr(self, "data_stream_controller", None)
+            if controller:
+                controller.configure(
+                    source=settings["source"],
+                    port=settings["port"],
+                    baud=settings["baud"],
+                    network_preference=settings["network_preference"],
+                    obd_transport=settings["obd_transport"],
+                    bluetooth_address=settings["bluetooth_address"],
+                    wifi_interface=settings["wifi_interface"],
+                    lte_interface=settings["lte_interface"],
+                )
+
+    def start_voice_control(self) -> None:
+        self.ai_panel.update_insight("Voice control activated.")
+        start_voice_listener(self, lambda: start_data_stream(self, **self.stream_settings))
+
+    def start_replay_mode(self) -> None:
+        path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Select Telemetry Log",
+            "",
+            "CSV Files (*.csv);;All Files (*.*)",
+        )
+        if not path:
+            return
+        self.stream_settings["mode"] = "replay"
+        self.stream_settings["replay_file"] = path
+        self.ai_panel.update_insight(f"Replay selected: {Path(path).name}")
+        start_data_stream(self, **self.stream_settings)
+
+    def configure_cameras(self) -> None:
+        """Open camera configuration dialog."""
+        from ui.camera_config_dialog import CameraConfigDialog
+
+        if not self.camera_manager:
+            self.ai_panel.update_insight(
+                "Camera manager not available.",
+                level="warning",
+            )
+            return
+
+        dialog = CameraConfigDialog(self.camera_manager, parent=self)
+        if dialog.exec():
+            self.ai_panel.update_insight("Camera configuration updated.")
+
+    def configure_overlay(self) -> None:
+        """Open overlay configuration dialog."""
+        from ui.overlay_config_dialog import OverlayConfigDialog
+
+        if not self.camera_manager or not self.camera_manager.video_logger:
+            self.ai_panel.update_insight(
+                "Video logger not available.",
+                level="warning",
+            )
+            return
+
+        current_config = None
+        if self.camera_manager.video_logger.overlay:
+            current_config = self.camera_manager.video_logger.overlay.get_config()
+
+        dialog = OverlayConfigDialog(current_config=current_config, parent=self)
+        if dialog.exec():
+            config = dialog.get_config()
+            if self.camera_manager.video_logger.overlay:
+                self.camera_manager.video_logger.configure_overlay(**config)
+                self.ai_panel.update_insight("Overlay configuration updated.")
+
+    # ----------------------------------------------------------------------
+    # Theme handling
+    # ----------------------------------------------------------------------
+    def _apply_theme(self) -> None:
+        """Apply current theme to the application."""
+        stylesheet = self.theme_manager.get_stylesheet()
+        self.setStyleSheet(stylesheet)
+
+        bg_stylesheet = self.theme_manager.get_background_stylesheet()
+        if bg_stylesheet:
+            self.setStyleSheet(stylesheet + bg_stylesheet)
+
+        app = QApplication.instance()
+        if app:
+            app.setStyleSheet(stylesheet)
+
+    def open_theme_dialog(self) -> None:
+        """Open theme selection dialog."""
+        dialog = ThemeDialog(self.theme_manager, parent=self)
+        if dialog.exec():
+            self._apply_theme()
+            self._update_widget_styles()
+            self.ai_panel.update_insight("Theme updated.")
+
+    def _update_widget_styles(self) -> None:
+        """Update styles for all child widgets."""
+        for widget in self.findChildren(QWidget):
+            widget.style().unpolish(widget)
+            widget.style().polish(widget)
+            widget.update()
+
+    # ----------------------------------------------------------------------
+    # Diagnostics, email, display, export
+    # ----------------------------------------------------------------------
+    def _init_diagnostics(self) -> None:
+        """Initialize diagnostics system."""
+        try:
+            from services.system_diagnostics import SystemDiagnostics
+            from ui.diagnostics_widget import DiagnosticsWidget
+
+            diagnostics = SystemDiagnostics()
+            self.diagnostics_widget = DiagnosticsWidget(diagnostics, parent=self)
+            self.diagnostics_widget.hide()
+            self.diagnostics_widget.run_startup_check()
+        except Exception as exc:  # pragma: no cover - optional
+            print(f"[WARN] Diagnostics unavailable: {exc}")
+
+    def show_diagnostics(self) -> None:
+        """Show diagnostics screen."""
+        from ui.diagnostics_screen import show_diagnostics
+
+        diagnostics_screen = show_diagnostics(parent=self)
+        diagnostics_screen.show()
+
+    def email_logs(self) -> None:
+        """Open email logs dialog."""
+        from services.email_service import EmailService
+        from ui.email_logs_dialog import EmailLogsDialog
+
+        log_directories: list[Path] = []
+
+        if hasattr(self, "data_logger") and self.data_logger:
+            log_directories.append(Path(self.data_logger.log_dir))
+
+        if (
+            hasattr(self, "camera_manager")
+            and self.camera_manager
+            and self.camera_manager.video_logger
+        ):
+            log_directories.append(self.camera_manager.video_logger.output_dir)
+
+        if hasattr(self, "usb_manager") and self.usb_manager and self.usb_manager.active_device:
+            usb_log_path = self.usb_manager.get_logs_path("telemetry")
+            if usb_log_path.exists():
+                log_directories.append(usb_log_path)
+            usb_video_path = self.usb_manager.get_session_path("video")
+            if usb_video_path.exists():
+                log_directories.append(usb_video_path)
+
+        if not log_directories:
+            log_directories.append(Path("logs"))
+
+        email_service = EmailService()
+        dialog = EmailLogsDialog(
+            log_directories=log_directories,
+            email_service=email_service,
+            parent=self,
+        )
+        if dialog.exec():
+            self.ai_panel.update_insight("Log files emailed successfully.")
+
+    def configure_display(self) -> None:
+        """Open display configuration dialog."""
+        from ui.display_config_dialog import DisplayConfigDialog
+
+        if not self.display_manager:
+            self.ai_panel.update_insight(
+                "Display manager not available.",
+                level="warning",
+            )
+            return
+
+        dialog = DisplayConfigDialog(self.display_manager, parent=self)
+        if dialog.exec():
+            config = dialog.get_config()
+            display = config.get("display")
+            fullscreen = config.get("fullscreen", False)
+
+            if display:
+                if self.display_manager.move_window_to_display(
+                    self,
+                    display,
+                    fullscreen=fullscreen,
+                ):
+                    self.ai_panel.update_insight(
+                        f"Display output set to: {display.name}",
+                    )
+                else:
+                    self.ai_panel.update_insight(
+                        "Failed to configure display.",
+                        level="warning",
+                    )
+
+    def export_data(self) -> None:
+        """Open export dialog."""
+        from ui.export_dialog import ExportDialog
+
+        dialog = ExportDialog(parent=self)
+        if dialog.exec():
+            exported = dialog.get_exported_files()
+            if exported:
+                self.ai_panel.update_insight(
+                    f"Exported {len(exported)} file(s) successfully.",
+                )
+
+    # ----------------------------------------------------------------------
+    # USB / ECU / connectivity callbacks
+    # ----------------------------------------------------------------------
+    def _scan_usb_devices(self) -> None:
+        """
+        Scan for USB devices and update log paths.
+
+        Logging paths are always updated to point to USB if available, or
+        fall back to local disk. This avoids UI churn; the widget layout
+        itself is not changed here.
+        """
+        if not getattr(self, "usb_manager", None):
+            return
+
+        try:
+            self.usb_manager.scan_for_devices()
+
+            if hasattr(self, "data_logger") and self.data_logger:
+                log_path = self.usb_manager.get_logs_path("telemetry")
+                current_path = Path(self.data_logger.log_dir)
+                if log_path != current_path:
+                    self.data_logger = DataLogger(log_dir=log_path)
+                    if self.usb_manager.active_device:
+                        self.ai_panel.update_insight(
+                            f"Logging to USB: {self.usb_manager.active_device.label}",
+                        )
+                    else:
+                        self.ai_panel.update_insight(
+                            "Logging to local disk (no USB detected)",
+                        )
+
+            if self.camera_manager and self.camera_manager.video_logger:
+                video_path = self.usb_manager.get_session_path("video")
+                if self.camera_manager.video_logger.output_dir != video_path:
+                    self.camera_manager.video_logger.output_dir = video_path
+                    self.camera_manager.video_logger.output_dir.mkdir(
+                        parents=True,
+                        exist_ok=True,
+                    )
+        except Exception:  # pragma: no cover - best effort only
+            # Silently handle USB scan errors: logging continues to local disk
+            pass
+
+    def _on_ecu_detected(self, vendor: str) -> None:
+        """Handle ECU detection."""
+        vendor_name = vendor.upper()
+        self.ai_panel.update_insight(f"ECU Detected: {vendor_name}", level="success")
+        if self.status_bar:
+            self.status_bar.update_status(f"ECU: {vendor_name}")
+
+    def _on_ecu_configured(self, config: dict) -> None:
+        """Handle ECU configuration completion."""
+        vendor = config.get("vendor", "unknown")
+        self.ai_panel.update_insight(
+            f"ECU configured: {vendor.upper()}\n"
+            f"CAN: {config.get('can_bitrate', 0)}bps\n"
+            f"Optimizations applied",
+            level="success",
+        )
+
+        if getattr(self, "data_stream_controller", None) and self.ecu_auto_config:
+            self.ecu_auto_config.apply_to_data_stream(self.data_stream_controller)
+
+    def _on_ecu_detection_failed(self, error: str) -> None:
+        """Handle ECU detection failure."""
+        self.ai_panel.update_insight(
+            f"ECU detection failed: {error}\nUsing default settings",
+            level="warning",
+        )
+
+    def _on_connectivity_change(self, status) -> None:
+        self.latest_connectivity = status
+        if self.status_bar:
+            self.status_bar.update_connectivity(status.summary())
+
+    # ----------------------------------------------------------------------
+    # Qt lifecycle
+    # ----------------------------------------------------------------------
+    def showEvent(self, event) -> None:  # noqa: N802
+        super().showEvent(event)
+        screen = QApplication.primaryScreen()
+        if screen is None:
+            return
+
+        available = screen.availableGeometry()
+        geo = self.geometry()
+
+        # On Windows, if the window is still oddly tall, clamp height again
+        if IS_WINDOWS and geo.height() > available.height():
+            new_height = int(available.height() * 0.9)
+            self.resize(geo.width(), new_height)
+
+        geo = self.geometry()
+        x = min(max(geo.x(), available.x()), available.right() - geo.width())
+        y = min(max(geo.y(), available.y()), available.bottom() - geo.height())
+        self.move(x, y)
+
+    def closeEvent(self, event) -> None:  # noqa: N802
+        if getattr(self, "connectivity_manager", None):
+            self.connectivity_manager.stop()
+        if getattr(self, "voice_output", None):
+            self.voice_output.close()
+        if self.camera_manager:
+            self.camera_manager.stop_all()
+        super().closeEvent(event)
+
+
+def run() -> None:
+    # Apply platform optimizations (e.g., for reTerminal DM)
+    try:
+        from core import optimize_for_reterminal
+
+        optimize_for_reterminal()
+    except Exception as exc:  # pragma: no cover - optional
+        print(f"[WARN] Failed to apply platform optimizations: {exc}")
+
+    app = QApplication(sys.argv)
+
+    # Show startup diagnostics screen first
+    from ui.diagnostics_screen import DiagnosticsScreen
+
+    diagnostics = DiagnosticsScreen()
+    diagnostics.show()
+    app.processEvents()
+
+    # Create main window in background (but don't show yet)
+    window = MainWindow()
+
+    # Show main window when diagnostics is closed or skipped
+    def show_main_window() -> None:
+        window.show()
+        diagnostics.close()
+
+    diagnostics.set_accept_callback(show_main_window)
+    diagnostics.skip_btn.clicked.connect(show_main_window)
+
+    sys.exit(app.exec())
+
+
+if __name__ == "__main__":
+    run()

@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>MOBILE_API_DOCUMENTATION</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # TelemetryIQ Mobile API Documentation<br>
+<br>
+Complete API documentation for Android/iOS mobile app integration.<br>
+<br>
+## Base URL<br>
+<br>
+```<br>
+http://<server-ip>:8000<br>
+```<br>
+<br>
+For local development:<br>
+```<br>
+http://localhost:8000<br>
+```<br>
+<br>
+## Authentication<br>
+<br>
+Currently, the API is open (no authentication required). In production, implement JWT authentication.<br>
+<br>
+## API Endpoints<br>
+<br>
+### Health & Status<br>
+<br>
+#### GET `/`<br>
+Root endpoint - service information.<br>
+<br>
+**Response:**<br>
+```json<br>
+{<br>
+  "service": "TelemetryIQ Mobile API",<br>
+  "version": "1.0.0",<br>
+  "status": "online"<br>
+}<br>
+```<br>
+<br>
+#### GET `/health`<br>
+Health check endpoint.<br>
+<br>
+**Response:**<br>
+```json<br>
+{<br>
+  "status": "healthy",<br>
+  "timestamp": 1234567890.123,<br>
+  "services": {<br>
+    "config_monitor": true,<br>
+    "ai_advisor": true,<br>
+    "backup_manager": true,<br>
+    "hardware_manager": true,<br>
+    "camera_manager": true<br>
+  }<br>
+}<br>
+```<br>
+<br>
+### Telemetry<br>
+<br>
+#### GET `/api/telemetry/current`<br>
+Get current telemetry data.<br>
+<br>
+**Query Parameters:**<br>
+- `sensors` (optional): Comma-separated list of sensor names<br>
+<br>
+**Response:**<br>
+```json<br>
+{<br>
+  "timestamp": 1234567890.123,<br>
+  "data": {<br>
+    "RPM": 3500.0,<br>
+    "Boost_Pressure": 15.5,<br>
+    "AFR": 14.7,<br>
+    "Coolant_Temp": 90.0<br>
+  }<br>
+}<br>
+```<br>
+<br>
+#### GET `/api/telemetry/sensors`<br>
+List all available sensors.<br>
+<br>
+**Response:**<br>
+```json<br>
+{<br>
+  "sensors": ["RPM", "Boost_Pressure", "AFR", "Coolant_Temp"],<br>
+  "count": 4<br>
+}<br>
+```<br>
+<br>
+#### WebSocket `/ws/telemetry`<br>
+Real-time telemetry streaming via WebSocket.<br>
+<br>
+**Connection:**<br>
+```javascript<br>
+const ws = new WebSocket('ws://localhost:8000/ws/telemetry');<br>
+ws.onmessage = (event) => {<br>
+  const data = JSON.parse(event.data);<br>
+  // data.type = "telemetry"<br>
+  // data.timestamp = 1234567890.123<br>
+  // data.data = { "RPM": 3500, ... }<br>
+};<br>
+```<br>
+<br>
+**Keep-alive:**<br>
+Send `{"type": "ping"}` periodically. Server responds with `{"type": "pong"}`.<br>
+<br>
+### Configuration<br>
+<br>
+#### POST `/api/config/change`<br>
+Apply a configuration change.<br>
+<br>
+**Request Body:**<br>
+```json<br>
+{<br>
+  "change_type": "ecu_tuning",<br>
+  "category": "Ignition Timing",<br>
+  "parameter": "base_timing",<br>
+  "new_value": 32.0,<br>
+  "old_value": 28.0<br>
+}<br>
+```<br>
+<br>
+**Response:**<br>
+```json<br>
+{<br>
+  "status": "success",<br>
+  "warnings": [<br>
+    {<br>
+      "severity": "critical",<br>
+      "message": "⚠️ CRITICAL: High ignition advance (32.0°) detected!",<br>
+      "suggestion": "Reduce timing to 25° or less",<br>
+      "alternative_value": 25.0,<br>
+      "reasoning": "High timing + boost = high knock risk"<br>
+    }<br>
+  ],<br>
+  "change_applied": true<br>
+}<br>
+```<br>
+<br>
+#### GET `/api/config/history`<br>
+Get configuration change history.<br>
+<br>
+**Query Parameters:**<br>
+- `category` (optional): Filter by category<br>
+- `limit` (optional): Maximum number of records (default: 50)<br>
+<br>
+**Response:**<br>
+```json<br>
+{<br>
+  "changes": [<br>
+    {<br>
+      "change_id": "1234567890_abc123",<br>
+      "timestamp": 1234567890.123,<br>
+      "category": "Ignition Timing",<br>
+      "parameter": "base_timing",<br>
+      "old_value": 28.0,<br>
+      "new_value": 32.0,<br>
+      "severity": "high",<br>
+      "outcome": "success"<br>
+    }<br>
+  ],<br>
+  "count": 1<br>
+}<br>
+```<br>
+<br>
+#### GET `/api/config/best`<br>
+Get best performing configuration.<br>
+<br>
+**Query Parameters:**<br>
+- `config_type`: "ecu_tuning" or "motorsport"<br>
+- `metric`: Performance metric name (default: "power")<br>
+<br>
+**Response:**<br>
+```json<br>
+{<br>
+  "snapshot_id": "snapshot_1234567890_abc123",<br>
+  "timestamp": 1234567890.123,<br>
+  "configuration": {<br>
+    "base_timing": 28.5,<br>
+    "boost_target": 22.0<br>
+  },<br>
+  "performance_metrics": {<br>
+    "power": 450.0,<br>
+    "torque": 380.0<br>
+  },<br>
+  "description": "Best performing configuration"<br>
+}<br>
+```<br>
+<br>
+### AI Advisor<br>
+<br>
+#### POST `/api/ai/ask`<br>
+Ask AI advisor Q a question.<br>
+<br>
+**Request Body:**<br>
+```json<br>
+{<br>
+  "question": "How do I configure boost control?",<br>
+  "context": {<br>
+    "current_tab": "Boost Control"<br>
+  }<br>
+}<br>
+```<br>
+<br>
+**Response:**<br>
+```json<br>
+{<br>
+  "response": "Boost control configuration...",<br>
+  "timestamp": 1234567890.123<br>
+}<br>
+```<br>
+<br>
+#### GET `/api/ai/suggestions`<br>
+Get question suggestions.<br>
+<br>
+**Query Parameters:**<br>
+- `partial` (optional): Partial question text<br>
+<br>
+**Response:**<br>
+```json<br>
+{<br>
+  "suggestions": [<br>
+    "How do I configure ECU tuning?",<br>
+    "What are the keyboard shortcuts?",<br>
+    "How do I set up backups?"<br>
+  ]<br>
+}<br>
+```<br>
+<br>
+### Backup & Version Control<br>
+<br>
+#### POST `/api/backup/create`<br>
+Create a backup.<br>
+<br>
+**Request Body:**<br>
+```json<br>
+{<br>
+  "file_path": "/path/to/tuning/file.cal",<br>
+  "backup_type": "ecu_calibration",<br>
+  "description": "Before major changes"<br>
+}<br>
+```<br>
+<br>
+**Response:**<br>
+```json<br>
+{<br>
+  "status": "success",<br>
+  "backup_id": "1234567890_abc123",<br>
+  "timestamp": 1234567890.123,<br>
+  "file_path": "/path/to/tuning/file.cal"<br>
+}<br>
+```<br>
+<br>
+#### GET `/api/backup/list`<br>
+List backups for a file.<br>
+<br>
+**Query Parameters:**<br>
+- `file_path`: Path to file<br>
+<br>
+**Response:**<br>
+```json<br>
+{<br>
+  "backups": [<br>
+    {<br>
+      "backup_id": "1234567890_abc123",<br>
+      "timestamp": 1234567890.123,<br>
+      "description": "Before major changes",<br>
+      "file_size": 1024000,<br>
+      "file_hash": "abc123def456..."<br>
+    }<br>
+  ],<br>
+  "count": 1<br>
+}<br>
+```<br>
+<br>
+#### POST `/api/backup/revert/{file_path}/{backup_id}`<br>
+Revert file to backup.<br>
+<br>
+**Response:**<br>
+```json<br>
+{<br>
+  "status": "success",<br>
+  "message": "File reverted successfully"<br>
+}<br>
+```<br>
+<br>
+### Hardware<br>
+<br>
+#### GET `/api/hardware/interfaces`<br>
+List all hardware interfaces.<br>
+<br>
+**Response:**<br>
+```json<br>
+{<br>
+  "interfaces": [<br>
+    {<br>
+      "interface_id": "gpio_rpi",<br>
+      "interface_type": "gpio_direct",<br>
+      "board_type": "raspberry_pi",<br>
+      "name": "Raspberry Pi GPIO",<br>
+      "description": "Built-in GPIO pins",<br>
+      "connected": true,<br>
+      "gpio_pins": 5<br>
+    }<br>
+  ],<br>
+  "count": 1<br>
+}<br>
+```<br>
+<br>
+#### GET `/api/hardware/gpio/{interface_id}/{pin}`<br>
+Read GPIO pin value.<br>
+<br>
+**Response:**<br>
+```json<br>
+{<br>
+  "interface_id": "gpio_rpi",<br>
+  "pin": 18,<br>
+  "value": true<br>
+}<br>
+```<br>
+<br>
+#### POST `/api/hardware/gpio/{interface_id}/{pin}`<br>
+Write GPIO pin value.<br>
+<br>
+**Request Body:**<br>
+```json<br>
+{<br>
+  "value": true<br>
+}<br>
+```<br>
+<br>
+**Response:**<br>
+```json<br>
+{<br>
+  "status": "success",<br>
+  "interface_id": "gpio_rpi",<br>
+  "pin": 18,<br>
+  "value": true<br>
+}<br>
+```<br>
+<br>
+### Cameras<br>
+<br>
+#### GET `/api/cameras`<br>
+List all detected cameras.<br>
+<br>
+**Response:**<br>
+```json<br>
+{<br>
+  "cameras": [<br>
+    {<br>
+      "device_id": "0",<br>
+      "vendor": "logitech",<br>
+      "model": "C920",<br>
+      "driver": "v4l2",<br>
+      "max_fps": 30,<br>
+      "supported_resolutions": [[640, 480], [1280, 720], [1920, 1080]]<br>
+    }<br>
+  ],<br>
+  "count": 1<br>
+}<br>
+```<br>
+<br>
+#### GET `/api/cameras/{device_id}/preview`<br>
+Get camera preview frame (JPEG image).<br>
+<br>
+**Response:**<br>
+JPEG image stream<br>
+<br>
+### System Status<br>
+<br>
+#### GET `/api/system/status`<br>
+Get overall system status.<br>
+<br>
+**Response:**<br>
+```json<br>
+{<br>
+  "timestamp": 1234567890.123,<br>
+  "telemetry": {<br>
+    "sensors_count": 15,<br>
+    "last_update": 1234567890.123<br>
+  },<br>
+  "websockets": {<br>
+    "active_connections": 2<br>
+  },<br>
+  "services": {<br>
+    "config_monitor": true,<br>
+    "ai_advisor": true,<br>
+    "backup_manager": true,<br>
+    "hardware_manager": true,<br>
+    "camera_manager": true<br>
+  }<br>
+}<br>
+```<br>
+<br>
+## WebSocket Protocol<br>
+<br>
+### Connection<br>
+<br>
+```javascript<br>
+const ws = new WebSocket('ws://localhost:8000/ws/telemetry');<br>
+```<br>
+<br>
+### Message Types<br>
+<br>
+#### Telemetry Update (Server → Client)<br>
+```json<br>
+{<br>
+  "type": "telemetry",<br>
+  "timestamp": 1234567890.123,<br>
+  "data": {<br>
+    "RPM": 3500.0,<br>
+    "Boost_Pressure": 15.5,<br>
+    "AFR": 14.7<br>
+  }<br>
+}<br>
+```<br>
+<br>
+#### Ping (Client → Server)<br>
+```json<br>
+{<br>
+  "type": "ping"<br>
+}<br>
+```<br>
+<br>
+#### Pong (Server → Client)<br>
+```json<br>
+{<br>
+  "type": "pong",<br>
+  "timestamp": 1234567890.123<br>
+}<br>
+```<br>
+<br>
+## Mobile App Integration Examples<br>
+<br>
+### Android (Kotlin)<br>
+<br>
+```kotlin<br>
+// Retrofit interface<br>
+interface TelemetryIQAPI {<br>
+    @GET("api/telemetry/current")<br>
+    suspend fun getCurrentTelemetry(): TelemetryResponse<br>
+    <br>
+    @POST("api/config/change")<br>
+    suspend fun applyConfigChange(@Body request: ConfigChangeRequest): ConfigChangeResponse<br>
+    <br>
+    @WebSocket("ws/telemetry")<br>
+    fun createWebSocket(): WebSocket<br>
+}<br>
+<br>
+// Usage<br>
+val api = Retrofit.create(TelemetryIQAPI::class.java)<br>
+val telemetry = api.getCurrentTelemetry()<br>
+```<br>
+<br>
+### iOS (Swift)<br>
+<br>
+```swift<br>
+// URLSession<br>
+let url = URL(string: "http://localhost:8000/api/telemetry/current")!<br>
+let task = URLSession.shared.dataTask(with: url) { data, response, error in<br>
+    // Handle response<br>
+}<br>
+task.resume()<br>
+<br>
+// WebSocket<br>
+let ws = URLSessionWebSocketTask(url: URL(string: "ws://localhost:8000/ws/telemetry")!)<br>
+ws.resume()<br>
+```<br>
+<br>
+## Error Responses<br>
+<br>
+All errors follow this format:<br>
+<br>
+```json<br>
+{<br>
+  "detail": "Error message here"<br>
+}<br>
+```<br>
+<br>
+**HTTP Status Codes:**<br>
+- `200`: Success<br>
+- `400`: Bad Request<br>
+- `401`: Unauthorized<br>
+- `404`: Not Found<br>
+- `500`: Internal Server Error<br>
+- `503`: Service Unavailable<br>
+<br>
+## Rate Limiting<br>
+<br>
+Currently no rate limiting. In production, implement rate limiting per client.<br>
+<br>
+## CORS<br>
+<br>
+CORS is enabled for all origins. In production, restrict to specific domains.<br>
+<br>
+## Starting the Server<br>
+<br>
+```bash<br>
+python api/mobile_api_start.py<br>
+```<br>
+<br>
+Or:<br>
+<br>
+```bash<br>
+uvicorn api.mobile_api_server:app --host 0.0.0.0 --port 8000<br>
+```<br>
+<br>
+## API Documentation<br>
+<br>
+Interactive API documentation available at:<br>
+- Swagger UI: `http://localhost:8000/docs`<br>
+- ReDoc: `http://localhost:8000/redoc`<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+</body>
+</html>

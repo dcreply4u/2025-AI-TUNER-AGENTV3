@@ -1,0 +1,262 @@
+import os
+import ssl
+import json
+import time
+import sqlite3
+import can
+import cantools
+import numpy as np
+import pandas as pd
+import paho.mqtt.client as mqtt
+from datetime import datetime
+
+try:
+import tensorflow as tf
+from tensorflow.lite.python.interpreter import Interpreter
+except ImportError:
+from tflite_runtime.interpreter import Interpreter
+
+# ---------------- Configuration ----------------
+AWS_ENDPOINT = "your-iot-endpoint.amazonaws.com"
+AWS_PORT = 8883
+TOPIC = "ai-tuner/telemetry/car001"
+
+CA_CERT = "AmazonRootCA1.pem"
+DEVICE_CERT = "device-cert.pem"
+PRIVATE_KEY = "private-key.pem"
+
+CAN_CHANNEL = "can0"
+CAN_BUSTYPE = "socketcan"
+DBC_FILE = "vehicle.dbc"
+MODEL_FILE = "edge_model.tflite"
+PROJECT_NAME = "AI-Tuner"
+
+# ---------------- DBC Loader ----------------
+class DBCSignalMapper:
+def __init__(self, dbc_path=None):
+self.db = None
+if dbc_path and os.path.exists(dbc_path):
+try:
+self.db = cantools.database.load_file(dbc_path)
+print(f"[DBC] Loaded DBC file: {dbc_path}")
+except Exception as e:
+print(f"[ERROR] Failed to load DBC file: {e}")
+else:
+print("[WARN] No DBC file found, using static fallback mapping.")
+self.static_map = {
+0x0CFF050A: {"name": "Engine_RPM", "scale": 0.125, "unit": "rpm"},
+0x0CF00400: {"name": "Vehicle_Speed", "scale": 0.01, "unit": "km/h"},
+0x18FEF600: {"name": "Throttle_Position", "scale": 0.4, "unit": "%"},
+}
+
+def decode(self, msg):
+if self.db:
+try:
+message = self.db.get_message_by_frame_id(msg.arbitration_id)
+decoded_signals = message.decode(msg.data)
+results = []
+for name, value in decoded_signals.items():
+signal = message.get_signal_by_name(name)
+results.append({
+"metric": name,
+"value": round(value, 2),
+"unit": signal.unit or ""
+})
+return results
+except Exception:
+return None
+elif msg.arbitration_id in self.static_map:
+mapping = self.static_map[msg.arbitration_id]
+raw_value = int.from_bytes(msg.data[:2], byteorder="little", signed=False)
+scaled_value = raw_value * mapping["scale"]
+return [{
+"metric": mapping["name"],
+"value": round(scaled_value, 2),
+"unit": mapping["unit"]
+}]
+else:
+return None
+
+# ---------------- Local Buffer ----------------
+class LocalBuffer:
+def __init__(self, db_path="telemetry_buffer.db"):
+self.conn = sqlite3.connect(db_path)
+self.conn.execute("""
+CREATE TABLE IF NOT EXISTS buffer (
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+timestamp INTEGER,
+payload TEXT
+)
+""")
+
+def add(self, payload):
+self.conn.execute("INSERT INTO buffer (timestamp, payload) VALUES (?, ?)",
+(int(time.time()), json.dumps(payload)))
+self.conn.commit()
+
+def flush(self, publisher):
+cursor = self.conn.execute("SELECT id, payload FROM buffer ORDER BY id ASC")
+rows = cursor.fetchall()
+for row_id, payload in rows:
+if publisher.publish(json.loads(payload)):
+self.conn.execute("DELETE FROM buffer WHERE id=?", (row_id,))
+self.conn.commit()
+
+# ---------------- MQTT Publisher ----------------
+class TelemetryPublisher:
+def __init__(self):
+self.client = mqtt.Client()
+self.client.tls_set(
+ca_certs=CA_CERT,
+certfile=DEVICE_CERT,
+keyfile=PRIVATE_KEY,
+tls_version=ssl.PROTOCOL_TLSv1_2
+)
+self.client.on_connect = self.on_connect
+self.client.on_disconnect = self.on_disconnect
+self.connected = False
+
+try:
+self.client.connect(AWS_ENDPOINT, AWS_PORT)
+self.client.loop_start()
+except Exception as e:
+print(f"[ERROR] MQTT connection failed: {e}")
+
+def on_connect(self, client, userdata, flags, rc):
+self.connected = True
+print("[MQTT] Connected to AWS IoT Core")
+
+def on_disconnect(self, client, userdata, rc):
+self.connected = False
+print("[MQTT] Disconnected from AWS IoT Core")
+
+def publish(self, payload):
+if not self.connected:
+return False
+try:
+self.client.publish(TOPIC, json.dumps(payload), qos=1)
+return True
+except Exception as e:
+print(f"[ERROR] Publish failed: {e}")
+return False
+
+# ---------------- Edge Analytics ----------------
+class EdgeAnalytics:
+def __init__(self, window_size=20):
+self.window_size = window_size
+self.data = {}
+
+def update(self, metric, value):
+if metric not in self.data:
+self.data[metric] = []
+self.data[metric].append(value)
+if len(self.data[metric]) > self.window_size:
+self.data[metric].pop(0)
+
+def rolling_average(self, metric):
+if metric not in self.data or len(self.data[metric]) == 0:
+return None
+return float(np.mean(self.data[metric]))
+
+# ---------------- Edge ML Model ----------------
+class EdgeMLModel:
+"""
+TensorFlow Lite model for anomaly detection.
+The model expects a vector of normalized sensor values.
+"""
+
+def __init__(self, model_path):
+if not os.path.exists(model_path):
+print(f"[WARN] No model found at {model_path}, skipping ML inference.")
+self.model = None
+return
+self.model = Interpreter(model_path=model_path)
+self.model.allocate_tensors()
+self.input_details = self.model.get_input_details()
+self.output_details = self.model.get_output_details()
+print(f"[ML] Loaded TensorFlow Lite model: {model_path}")
+
+def predict(self, features):
+if not self.model:
+return None
+input_data = np.array([features], dtype=np.float32)
+self.model.set_tensor(self.input_details[0]['index'], input_data)
+self.model.invoke()
+output_data = self.model.get_tensor(self.output_details[0]['index'])
+return float(output_data[0])
+
+# ---------------- CAN Reader ----------------
+class CANReader:
+def __init__(self, channel, bustype, mapper):
+self.bus = can.interface.Bus(channel=channel, bustype=bustype)
+self.mapper = mapper
+
+def read(self):
+msg = self.bus.recv(timeout=1)
+if msg:
+decoded_list = self.mapper.decode(msg)
+return msg, decoded_list
+return None, None
+
+# ---------------- Main Loop ----------------
+def main():
+mapper = DBCSignalMapper(DBC_FILE)
+analytics = EdgeAnalytics()
+ml_model = EdgeMLModel(MODEL_FILE)
+buffer = LocalBuffer()
+publisher = TelemetryPublisher()
+reader = CANReader(CAN_CHANNEL, CAN_BUSTYPE, mapper)
+
+print(f"[{PROJECT_NAME}] Starting AI‑enhanced CAN → Cloud telemetry stream...")
+while True:
+try:
+msg, decoded_signals = reader.read()
+if not decoded_signals:
+continue
+
+# Build feature vector for ML model
+feature_vector = []
+for signal in decoded_signals:
+analytics.update(signal["metric"], signal["value"])
+feature_vector.append(signal["value"])
+
+# Run ML inference
+ml_score = ml_model.predict(feature_vector) if ml_model.model else None
+ml_anomaly = ml_score is not None and ml_score > 0.8
+
+# Publish each signal
+for signal in decoded_signals:
+metric = signal["metric"]
+value = signal["value"]
+unit = signal["unit"]
+avg = analytics.rolling_average(metric)
+
+payload = {
+"device_id": "car001",
+"timestamp": int(time.time()),
+"metric": metric,
+"value": value,
+"unit": unit,
+"rolling_avg": avg,
+"ml_score": ml_score,
+"ml_anomaly": ml_anomaly
+}
+
+if not publisher.publish(payload):
+buffer.add(payload)
+else:
+buffer.flush(publisher)
+
+status = "⚠️ ML Anomaly" if ml_anomaly else ""
+print(f"[{datetime.now()}] {metric}: {value} {unit} (avg={avg}) {status}")
+
+except KeyboardInterrupt:
+print("\n[INFO] Stopping telemetry stream.")
+break
+except Exception as e:
+print(f"[ERROR] {e}")
+time.sleep(1)
+
+
+if __name__ == "__main__":
+main()

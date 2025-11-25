@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>INTEGRATION_SUMMARY</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # Integration Summary - Camera & Optimization Updates<br>
+<br>
+## Overview<br>
+This document summarizes the camera integration, video logging, and system optimizations added to the AI Tuner Agent.<br>
+<br>
+## Camera Integration<br>
+<br>
+### New Modules<br>
+<br>
+1. **`interfaces/camera_interface.py`**<br>
+   - `CameraInterface`: Unified interface for USB, RTSP, HTTP, and CSI cameras<br>
+   - `CameraManager`: Manages multiple camera sources<br>
+   - Supports frame-level telemetry synchronization<br>
+   - Thread-safe frame capture with queue management<br>
+<br>
+2. **`services/video_logger.py`**<br>
+   - Records video streams synchronized with telemetry data<br>
+   - Frame-level metadata embedding (JSON sidecar files)<br>
+   - Supports multiple simultaneous camera recordings<br>
+   - Automatic session management<br>
+<br>
+3. **`controllers/camera_manager.py`**<br>
+   - Integrates camera interfaces with video logging<br>
+   - Automatic telemetry synchronization<br>
+   - Session-based recording management<br>
+<br>
+### Integration Points<br>
+<br>
+- **Data Stream Controller**: Automatically starts/stops camera recording with data sessions<br>
+- **Main UI**: Initializes camera manager with default front/rear camera configs<br>
+- **Telemetry Sync**: Each video frame includes synchronized telemetry data<br>
+<br>
+### Usage<br>
+<br>
+Cameras are automatically configured when starting a data session. To enable cameras:<br>
+<br>
+1. Configure cameras via settings (future enhancement)<br>
+2. Cameras are disabled by default - enable via `CameraConfig.enabled = True`<br>
+3. Video logs are saved to `video_logs/` directory with session timestamps<br>
+<br>
+## System Optimizations<br>
+<br>
+### reTerminal DM Optimizations<br>
+<br>
+**`core/reterminal_optimizations.py`**<br>
+- Display brightness and screen blanking settings<br>
+- CPU governor optimization (performance mode)<br>
+- Network buffer tuning for low latency<br>
+- CAN interface auto-configuration<br>
+- Memory swappiness optimization<br>
+<br>
+Applied automatically on startup if reTerminal DM is detected.<br>
+<br>
+### Error Recovery<br>
+<br>
+**`core/error_recovery.py`**<br>
+- `retry_with_backoff`: Decorator for automatic retry with exponential backoff<br>
+- `ConnectionManager`: Automatic reconnection with health checks<br>
+- `CircuitBreaker`: Circuit breaker pattern for preventing cascading failures<br>
+<br>
+### Diagnostics<br>
+<br>
+**`tools/system_diagnostics.py`**<br>
+- Comprehensive system health checks<br>
+- Platform detection<br>
+- Dependency verification<br>
+- Hardware capability reporting<br>
+- Network and storage diagnostics<br>
+- CAN bus and USB device enumeration<br>
+<br>
+Run with: `python -m tools.system_diagnostics`<br>
+<br>
+## Vendor Communication<br>
+<br>
+**`vendors/seeed_reterminal_dm_request.txt`**<br>
+- Email template for requesting reTerminal DM hardware partnership<br>
+- Ready to customize with your details<br>
+<br>
+## Files Modified<br>
+<br>
+1. `interfaces/__init__.py` - Added camera interface exports<br>
+2. `services/__init__.py` - Already includes VideoLogger<br>
+3. `controllers/data_stream_controller.py` - Integrated camera manager and telemetry sync<br>
+4. `ui/main.py` - Camera manager initialization and optimization calls<br>
+5. `core/__init__.py` - Exported new optimization modules<br>
+<br>
+## Next Steps<br>
+<br>
+1. **Camera Configuration UI**: Add settings dialog for camera configuration<br>
+2. **Video Playback**: Add viewer for recorded videos with telemetry overlay<br>
+3. **Camera Health Monitoring**: Add camera status to health dashboard<br>
+4. **WiFi Camera Support**: Test and optimize RTSP/HTTP camera streams<br>
+5. **Hardware Testing**: Test on reTerminal DM when hardware arrives<br>
+<br>
+## Testing Checklist<br>
+<br>
+- [ ] USB camera detection and capture<br>
+- [ ] Video recording with telemetry sync<br>
+- [ ] Multiple camera simultaneous recording<br>
+- [ ] reTerminal DM optimizations on actual hardware<br>
+- [ ] Error recovery mechanisms<br>
+- [ ] System diagnostics utility<br>
+- [ ] CAN interface auto-configuration<br>
+<br>
+## Notes<br>
+<br>
+- OpenCV is required for camera support (`opencv-python` in requirements.txt)<br>
+- Camera features gracefully degrade if OpenCV is not available<br>
+- Video logging requires significant storage space - monitor disk usage<br>
+- Frame-level telemetry sync adds minimal overhead but provides valuable data correlation<br>
+<br>
+
+</body>
+</html>

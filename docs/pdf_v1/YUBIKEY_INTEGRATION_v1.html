@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>YUBIKEY_INTEGRATION</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # YubiKey Integration Guide<br>
+<br>
+## Overview<br>
+<br>
+YubiKey provides hardware-based security for the AI Tuner Agent, making it nearly impossible to steal or copy the codebase without the physical YubiKey device.<br>
+<br>
+## Features<br>
+<br>
+### 1. Hardware License Validation<br>
+- Application requires physical YubiKey to start<br>
+- License stored on YubiKey (cannot be copied)<br>
+- Serial number verification<br>
+<br>
+### 2. Secure Boot Verification<br>
+- YubiKey stores boot verification key<br>
+- Ensures system hasn't been tampered with<br>
+- Hardware-based integrity check<br>
+<br>
+### 3. Encryption Key Storage<br>
+- Critical encryption keys stored on YubiKey<br>
+- Keys cannot be extracted without physical access<br>
+- PIN-protected access<br>
+<br>
+### 4. Admin Function Protection<br>
+- Sensitive operations require YubiKey touch<br>
+- Physical confirmation for admin functions<br>
+- Two-factor authentication<br>
+<br>
+### 5. Code Integrity<br>
+- YubiKey verifies code hasn't been modified<br>
+- Prevents unauthorized changes<br>
+- Hardware-based verification<br>
+<br>
+## Setup<br>
+<br>
+### 1. Install YubiKey Library<br>
+<br>
+```bash<br>
+pip install yubikit<br>
+```<br>
+<br>
+### 2. Configure YubiKey<br>
+<br>
+Run the setup tool:<br>
+<br>
+```bash<br>
+python tools/setup_yubikey.py<br>
+```<br>
+<br>
+Options:<br>
+1. **Setup License** - Store license on YubiKey<br>
+2. **Setup Encryption Key** - Store encryption keys<br>
+3. **Verify Setup** - Verify configuration<br>
+<br>
+### 3. Enable YubiKey Requirement<br>
+<br>
+Set environment variables:<br>
+<br>
+```bash<br>
+export AI_TUNER_REQUIRE_YUBIKEY=true<br>
+export AI_TUNER_YUBIKEY_SERIAL=12345678  # Optional: specific serial<br>
+```<br>
+<br>
+Or in code:<br>
+<br>
+```python<br>
+from core.code_protection import CodeProtection<br>
+<br>
+protection = CodeProtection(<br>
+    require_yubikey=True,<br>
+    yubikey_serial="12345678",  # Optional<br>
+)<br>
+```<br>
+<br>
+## Usage<br>
+<br>
+### Application Startup<br>
+<br>
+With YubiKey required, application will:<br>
+1. Detect YubiKey on startup<br>
+2. Verify license stored on YubiKey<br>
+3. Verify secure boot<br>
+4. Only start if all checks pass<br>
+<br>
+### Admin Functions<br>
+<br>
+Require YubiKey for sensitive operations:<br>
+<br>
+```python<br>
+from core.yubikey_auth import YubiKeyAuth<br>
+<br>
+auth = YubiKeyAuth(require_yubikey=True)<br>
+<br>
+# Require YubiKey touch for admin operation<br>
+if auth.require_admin_yubikey("ECU_TUNING"):<br>
+    # Perform admin operation<br>
+    pass<br>
+```<br>
+<br>
+### Encryption Key Management<br>
+<br>
+Store and retrieve encryption keys:<br>
+<br>
+```python<br>
+# Store key<br>
+auth.store_encryption_key(key_data, pin="123456")<br>
+<br>
+# Retrieve key<br>
+key = auth.retrieve_encryption_key(pin="123456")<br>
+```<br>
+<br>
+## Security Benefits<br>
+<br>
+### Without YubiKey<br>
+- Code can be copied<br>
+- License can be bypassed<br>
+- Keys can be extracted<br>
+- Code can be modified<br>
+<br>
+### With YubiKey<br>
+- ✅ Code protected (requires physical device)<br>
+- ✅ License hardware-bound<br>
+- ✅ Keys stored securely<br>
+- ✅ Code integrity verified<br>
+- ✅ Admin functions protected<br>
+<br>
+## Deployment<br>
+<br>
+### Production Setup<br>
+<br>
+1. **Configure YubiKey per device**<br>
+   - Each device gets unique YubiKey<br>
+   - License stored on YubiKey<br>
+   - Encryption keys stored on YubiKey<br>
+<br>
+2. **Enable YubiKey requirement**<br>
+   ```bash<br>
+   export AI_TUNER_REQUIRE_YUBIKEY=true<br>
+   ```<br>
+<br>
+3. **Deploy protected build**<br>
+   - Use `tools/build_protected.py` to create executable<br>
+   - Combine with read-only filesystem<br>
+   - YubiKey provides additional layer<br>
+<br>
+4. **Test setup**<br>
+   - Verify YubiKey detection<br>
+   - Test license verification<br>
+   - Verify admin functions<br>
+<br>
+## Troubleshooting<br>
+<br>
+### YubiKey Not Detected<br>
+<br>
+1. Check YubiKey is inserted<br>
+2. Check USB connection<br>
+3. Verify yubikit library installed<br>
+4. Check permissions (may need udev rules on Linux)<br>
+<br>
+### License Verification Failed<br>
+<br>
+1. Verify license stored on YubiKey<br>
+2. Check YubiKey serial matches<br>
+3. Verify PIN is correct<br>
+4. Re-run setup tool<br>
+<br>
+### Secure Boot Failed<br>
+<br>
+1. Verify secure boot key stored<br>
+2. Check system hasn't been modified<br>
+3. Re-verify with setup tool<br>
+<br>
+## Best Practices<br>
+<br>
+1. **Use unique YubiKey per device**<br>
+   - Prevents key sharing<br>
+   - Enables device tracking<br>
+<br>
+2. **Store backup keys securely**<br>
+   - YubiKey can be lost/damaged<br>
+   - Keep encrypted backups<br>
+<br>
+3. **Rotate keys periodically**<br>
+   - Update encryption keys<br>
+   - Refresh licenses<br>
+<br>
+4. **Monitor YubiKey usage**<br>
+   - Log all YubiKey operations<br>
+   - Alert on suspicious activity<br>
+<br>
+## Integration with Code Protection<br>
+<br>
+YubiKey integrates with the code protection system:<br>
+<br>
+```python<br>
+from core.code_protection import CodeProtection<br>
+<br>
+protection = CodeProtection(<br>
+    require_yubikey=True,<br>
+    yubikey_serial="12345678",<br>
+)<br>
+<br>
+# Enforces:<br>
+# - YubiKey detection<br>
+# - License verification<br>
+# - Secure boot<br>
+# - Code integrity<br>
+# - Runtime protection<br>
+```<br>
+<br>
+## Support<br>
+<br>
+For YubiKey issues:<br>
+- Check YubiKey documentation<br>
+- Verify yubikit installation<br>
+- Test with setup tool<br>
+- Check system logs<br>
+<br>
+---<br>
+<br>
+**This is a CRITICAL security feature for production deployment!**<br>
+<br>
+
+</body>
+</html>

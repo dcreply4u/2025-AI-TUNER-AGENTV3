@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>MISSING_FEATURES</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # Missing Features & Implementation Status<br>
+<br>
+## 🚨 Critical Missing Features<br>
+<br>
+### 1. **Anti-Lag Control** ✅<br>
+- **Status**: IMPLEMENTED<br>
+- **Priority**: High (racing-specific)<br>
+- **Files**: `controllers/racing_controls.py`, `ui/racing_controls_tab.py`<br>
+- **Features**: <br>
+  - ✅ CAN message handler for anti-lag activation/deactivation<br>
+  - ✅ RPM-based trigger logic (min/max RPM, boost target)<br>
+  - ✅ Safety limits and monitoring (max RPM, max EGT)<br>
+  - ✅ UI toggle/indicator with real-time status<br>
+  - ✅ Multiple modes (OFF, SOFT, AGGRESSIVE, AUTO)<br>
+<br>
+### 2. **Launch Control** ✅<br>
+- **Status**: IMPLEMENTED<br>
+- **Priority**: High (racing-specific)<br>
+- **Files**: `controllers/racing_controls.py`, `ui/racing_controls_tab.py`<br>
+- **Features**:<br>
+  - ✅ RPM limiter with launch mode<br>
+  - ✅ Clutch/transbrake detection<br>
+  - ✅ Launch RPM setting with tolerance band<br>
+  - ✅ UI controls and indicators<br>
+  - ✅ Launch timer and max launch time safety<br>
+<br>
+### 3. **Telemetry Overlay on Video** ⚠️<br>
+- **Status**: Video logger exists but no overlay<br>
+- **Priority**: High (post-race analysis)<br>
+- **What's needed**:<br>
+  - Real-time telemetry overlay rendering<br>
+  - Configurable overlay layout<br>
+  - Font/color customization<br>
+  - Export with/without overlay<br>
+<br>
+### 4. **Session Management** ⚠️<br>
+- **Status**: Basic (timestamp-based IDs only)<br>
+- **Priority**: Medium<br>
+- **What's needed**:<br>
+  - Named sessions with metadata<br>
+  - Session comparison tools<br>
+  - Session export/import<br>
+  - Session tagging (track, weather, etc.)<br>
+<br>
+### 5. **Lap Detection & Track Mapping** ⚠️<br>
+- **Status**: GPS exists but no lap detection<br>
+- **Priority**: High (racing-specific)<br>
+- **What's needed**:<br>
+  - Automatic lap detection via GPS start/finish line<br>
+  - Lap time tracking<br>
+  - Sector times<br>
+  - Track map visualization<br>
+<br>
+### 6. **Data Export & Analysis Tools** ⚠️<br>
+- **Status**: CSV logging only<br>
+- **Priority**: Medium<br>
+- **What's needed**:<br>
+  - JSON export with metadata<br>
+  - Video-telemetry sync export<br>
+  - Comparison tools (side-by-side runs)<br>
+  - Statistical analysis (best lap, avg speed, etc.)<br>
+<br>
+### 7. **Storage Management** ⚠️<br>
+- **Status**: Basic cleanup exists<br>
+- **Priority**: Medium<br>
+- **What's needed**:<br>
+  - Disk space monitoring<br>
+  - Automatic cleanup policies<br>
+  - Storage usage dashboard<br>
+  - Cloud backup integration<br>
+<br>
+### 8. **Network Diagnostics** ⚠️<br>
+- **Status**: Not implemented<br>
+- **Priority**: Medium<br>
+- **What's needed**:<br>
+  - Wi-Fi signal strength monitoring<br>
+  - LTE connection status<br>
+  - Network speed testing<br>
+  - Connection quality indicators<br>
+<br>
+### 9. **Calibration Tools** ⚠️<br>
+- **Status**: Not implemented<br>
+- **Priority**: Low-Medium<br>
+- **What's needed**:<br>
+  - Sensor calibration wizards<br>
+  - Offset/scale adjustments<br>
+  - Calibration validation<br>
+  - Save/load calibration profiles<br>
+<br>
+### 10. **User Profiles & Vehicle Presets** ⚠️<br>
+- **Status**: Not implemented<br>
+- **Priority**: Low<br>
+- **What's needed**:<br>
+  - Multiple vehicle profiles<br>
+  - Preset configurations<br>
+  - Quick-switch between vehicles<br>
+  - Profile export/import<br>
+<br>
+## 📱 Nice-to-Have Features<br>
+<br>
+### 11. **Mobile App / Remote Monitoring**<br>
+- **Status**: Mentioned but not built<br>
+- **Priority**: Low<br>
+- **What's needed**: WebSocket server, mobile app, or web dashboard<br>
+<br>
+### 12. **OTA Updates**<br>
+- **Status**: Mentioned but not implemented<br>
+- **Priority**: Low<br>
+- **What's needed**: Update server, version checking, safe update mechanism<br>
+<br>
+### 13. **Real-Time Driver Coaching**<br>
+- **Status**: Not implemented<br>
+- **Priority**: Low<br>
+- **What's needed**: AI suggestions during runs, voice coaching, shift lights<br>
+<br>
+### 14. **Weather Data Integration**<br>
+- **Status**: Not implemented<br>
+- **Priority**: Low<br>
+- **What's needed**: API integration, track condition logging<br>
+<br>
+### 15. **Tire Pressure Monitoring**<br>
+- **Status**: Not implemented<br>
+- **Priority**: Low (requires hardware)<br>
+- **What's needed**: TPMS sensor interface, pressure alerts<br>
+<br>
+### 16. **Web Dashboard**<br>
+- **Status**: FastAPI exists but not integrated<br>
+- **Priority**: Low<br>
+- **What's needed**: Web UI, real-time charts, remote access<br>
+<br>
+### 17. **API Endpoints for External Tools**<br>
+- **Status**: FastAPI server exists but needs integration<br>
+- **Priority**: Low<br>
+- **What's needed**: REST API integration with main app<br>
+<br>
+### 18. **Backup & Redundancy**<br>
+- **Status**: Not implemented<br>
+- **Priority**: Low<br>
+- **What's needed**: Automatic backups, redundant storage<br>
+<br>
+## ✅ Already Implemented<br>
+<br>
+- ✅ Camera interface (USB/WiFi/RTSP)<br>
+- ✅ Video logging with telemetry sync<br>
+- ✅ GPS tracking<br>
+- ✅ Performance metrics (0-60, 1/4 mile)<br>
+- ✅ Voice control<br>
+- ✅ Conversational AI agent<br>
+- ✅ Health scoring<br>
+- ✅ Predictive fault detection<br>
+- ✅ Cloud sync<br>
+- ✅ Data logging (CSV)<br>
+- ✅ Dragy-style UI<br>
+- ✅ Hardware platform detection (reTerminal DM)<br>
+- ✅ CAN bus support<br>
+- ✅ OBD-II interface<br>
+- ✅ RaceCapture interface<br>
+- ✅ E85/Methanol/Nitrous/Transbrake support<br>
+<br>
+## 🎯 Recommended Implementation Order<br>
+<br>
+1. **Anti-Lag Control** (High priority, racing-specific)<br>
+2. **Launch Control** (High priority, racing-specific)<br>
+3. **Telemetry Overlay on Video** (High priority, post-race analysis)<br>
+4. **Lap Detection** (High priority, racing-specific)<br>
+5. **Session Management** (Medium priority, usability)<br>
+6. **Data Export Tools** (Medium priority, analysis)<br>
+7. **Storage Management** (Medium priority, reliability)<br>
+8. **Network Diagnostics** (Medium priority, troubleshooting)<br>
+<br>
+
+</body>
+</html>

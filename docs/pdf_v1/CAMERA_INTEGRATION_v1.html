@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>CAMERA_INTEGRATION</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # Camera Integration Guide<br>
+<br>
+This guide explains how to integrate USB and WiFi cameras with the AI Tuner Agent for racing telemetry and video logging.<br>
+<br>
+## Overview<br>
+<br>
+The camera system supports:<br>
+- **USB Cameras** (UVC-compatible)<br>
+- **WiFi Cameras** (RTSP/HTTP streams)<br>
+- **CSI Cameras** (Raspberry Pi camera modules)<br>
+- **Multiple simultaneous cameras** (front/rear)<br>
+- **Telemetry synchronization** (video frames tagged with telemetry data)<br>
+- **Automatic video logging** with metadata<br>
+<br>
+## Quick Start<br>
+<br>
+### 1. Basic Camera Setup<br>
+<br>
+```python<br>
+from interfaces.camera_interface import CameraManager, CameraConfig, CameraType<br>
+<br>
+# Create camera manager<br>
+manager = CameraManager()<br>
+<br>
+# Add front USB camera<br>
+front_config = CameraConfig(<br>
+    name="front",<br>
+    camera_type=CameraType.USB,<br>
+    source="0",  # USB device index or /dev/video0<br>
+    width=1920,<br>
+    height=1080,<br>
+    fps=30,<br>
+    position="front",<br>
+)<br>
+<br>
+manager.add_camera(front_config)<br>
+<br>
+# Add rear WiFi camera (RTSP)<br>
+rear_config = CameraConfig(<br>
+    name="rear",<br>
+    camera_type=CameraType.RTSP,<br>
+    source="rtsp://192.168.1.100:554/stream",<br>
+    width=1920,<br>
+    height=1080,<br>
+    fps=30,<br>
+    position="rear",<br>
+)<br>
+<br>
+manager.add_camera(rear_config)<br>
+```<br>
+<br>
+### 2. Video Logging<br>
+<br>
+```python<br>
+from services.video_logger import VideoLogger<br>
+<br>
+# Create video logger<br>
+logger = VideoLogger(log_dir="video_logs")<br>
+<br>
+# Start recording session<br>
+session_id = logger.start_session(<br>
+    cameras=["front", "rear"],<br>
+    resolution=(1920, 1080),<br>
+    fps=30,<br>
+)<br>
+<br>
+# In your capture loop<br>
+while running:<br>
+    frames = manager.get_all_frames()<br>
+    for camera_name, frame in frames.items():<br>
+        if frame:<br>
+            logger.log_frame(frame, session_id)<br>
+<br>
+# Stop recording<br>
+logger.stop_session(session_id)<br>
+```<br>
+<br>
+### 3. Telemetry Synchronization<br>
+<br>
+```python<br>
+# Set telemetry sync function<br>
+def get_current_telemetry():<br>
+    return {<br>
+        "rpm": current_rpm,<br>
+        "speed": current_speed,<br>
+        "throttle": current_throttle,<br>
+        # ... other telemetry<br>
+    }<br>
+<br>
+manager.set_telemetry_sync(get_current_telemetry)<br>
+<br>
+# Frames will now include telemetry_sync data<br>
+```<br>
+<br>
+## Integration with Data Stream Controller<br>
+<br>
+To integrate cameras into the main data stream:<br>
+<br>
+```python<br>
+from controllers.data_stream_controller import DataStreamController<br>
+from interfaces.camera_interface import CameraManager, CameraConfig, CameraType<br>
+from services.video_logger import VideoLogger<br>
+<br>
+# In your main window initialization<br>
+camera_manager = CameraManager()<br>
+video_logger = VideoLogger()<br>
+<br>
+# Add cameras<br>
+front_camera = CameraConfig(<br>
+    name="front",<br>
+    camera_type=CameraType.USB,<br>
+    source="0",<br>
+    position="front",<br>
+)<br>
+camera_manager.add_camera(front_camera)<br>
+<br>
+# Start video session when data stream starts<br>
+def on_stream_start():<br>
+    session_id = video_logger.start_session(cameras=["front", "rear"])<br>
+    # Store session_id for later use<br>
+<br>
+# In data stream poll loop<br>
+def on_poll():<br>
+    # Get frames and log them<br>
+    frames = camera_manager.get_all_frames()<br>
+    for name, frame in frames.items():<br>
+        if frame:<br>
+            video_logger.log_frame(frame, session_id)<br>
+```<br>
+<br>
+## Camera Types<br>
+<br>
+### USB Camera<br>
+```python<br>
+CameraConfig(<br>
+    name="usb_cam",<br>
+    camera_type=CameraType.USB,<br>
+    source="0",  # or "/dev/video0"<br>
+    width=1920,<br>
+    height=1080,<br>
+    fps=30,<br>
+)<br>
+```<br>
+<br>
+### RTSP Stream (WiFi Camera)<br>
+```python<br>
+CameraConfig(<br>
+    name="wifi_cam",<br>
+    camera_type=CameraType.RTSP,<br>
+    source="rtsp://username:password@192.168.1.100:554/stream",<br>
+    width=1920,<br>
+    height=1080,<br>
+    fps=30,<br>
+)<br>
+```<br>
+<br>
+### HTTP/MJPEG Stream<br>
+```python<br>
+CameraConfig(<br>
+    name="http_cam",<br>
+    camera_type=CameraType.HTTP,<br>
+    source="http://192.168.1.100:8080/video",<br>
+    width=1280,<br>
+    height=720,<br>
+    fps=15,<br>
+)<br>
+```<br>
+<br>
+### CSI Camera (Raspberry Pi)<br>
+```python<br>
+CameraConfig(<br>
+    name="csi_cam",<br>
+    camera_type=CameraType.CSI,<br>
+    source="0",  # Sensor ID<br>
+    width=1920,<br>
+    height=1080,<br>
+    fps=30,<br>
+)<br>
+```<br>
+<br>
+## Finding Camera Devices<br>
+<br>
+### List USB Cameras<br>
+```bash<br>
+ls /dev/video*<br>
+v4l2-ctl --list-devices<br>
+```<br>
+<br>
+### Test Camera<br>
+```bash<br>
+# Test USB camera<br>
+ffplay /dev/video0<br>
+<br>
+# Test RTSP stream<br>
+ffplay rtsp://192.168.1.100:554/stream<br>
+```<br>
+<br>
+## Performance Considerations<br>
+<br>
+1. **Resolution**: Lower resolution (1280x720) uses less CPU and disk space<br>
+2. **FPS**: 30 FPS is standard, 60 FPS for high-speed racing<br>
+3. **Multiple Cameras**: Each camera uses CPU and memory. Limit to 2-3 simultaneous cameras on Raspberry Pi<br>
+4. **Disk Space**: Video files are large. Monitor disk usage with `video_logger.get_disk_usage()`<br>
+<br>
+## Troubleshooting<br>
+<br>
+### Camera Not Opening<br>
+- Check device permissions: `sudo chmod 666 /dev/video0`<br>
+- Verify camera is detected: `v4l2-ctl --list-devices`<br>
+- Try different device index: `source="1"` instead of `"0"`<br>
+<br>
+### RTSP Stream Not Working<br>
+- Verify network connectivity<br>
+- Check RTSP URL format<br>
+- Test with VLC or ffplay first<br>
+<br>
+### High CPU Usage<br>
+- Reduce resolution or FPS<br>
+- Use hardware-accelerated encoding if available<br>
+- Limit number of simultaneous cameras<br>
+<br>
+### Out of Disk Space<br>
+- Use `video_logger.cleanup_old_sessions(max_age_days=7)` to remove old recordings<br>
+- Monitor with `video_logger.get_disk_usage()`<br>
+- Consider external storage for video logs<br>
+<br>
+## Example: Complete Integration<br>
+<br>
+```python<br>
+from interfaces.camera_interface import CameraManager, CameraConfig, CameraType<br>
+from services.video_logger import VideoLogger<br>
+<br>
+class RacingSession:<br>
+    def __init__(self):<br>
+        self.camera_manager = CameraManager()<br>
+        self.video_logger = VideoLogger()<br>
+        self.session_id = None<br>
+<br>
+    def start(self):<br>
+        # Setup cameras<br>
+        front = CameraConfig(<br>
+            name="front",<br>
+            camera_type=CameraType.USB,<br>
+            source="0",<br>
+            position="front",<br>
+        )<br>
+        rear = CameraConfig(<br>
+            name="rear",<br>
+            camera_type=CameraType.RTSP,<br>
+            source="rtsp://192.168.1.100:554/stream",<br>
+            position="rear",<br>
+        )<br>
+<br>
+        self.camera_manager.add_camera(front)<br>
+        self.camera_manager.add_camera(rear)<br>
+<br>
+        # Start video session<br>
+        self.session_id = self.video_logger.start_session(<br>
+            cameras=["front", "rear"],<br>
+        )<br>
+<br>
+        # Set telemetry sync<br>
+        self.camera_manager.set_telemetry_sync(self.get_telemetry)<br>
+<br>
+    def get_telemetry(self):<br>
+        # Return current telemetry data<br>
+        return {<br>
+            "rpm": self.current_rpm,<br>
+            "speed": self.current_speed,<br>
+            # ...<br>
+        }<br>
+<br>
+    def update(self):<br>
+        # Get frames and log them<br>
+        frames = self.camera_manager.get_all_frames()<br>
+        for name, frame in frames.items():<br>
+            if frame:<br>
+                self.video_logger.log_frame(frame, self.session_id)<br>
+<br>
+    def stop(self):<br>
+        # Stop cameras<br>
+        self.camera_manager.stop_all()<br>
+        # Stop video session<br>
+        if self.session_id:<br>
+            self.video_logger.stop_session(self.session_id)<br>
+```<br>
+<br>
+## Next Steps<br>
+<br>
+- Integrate camera manager into `DataStreamController`<br>
+- Add camera preview widgets to UI<br>
+- Implement automatic camera detection<br>
+- Add camera settings to settings dialog<br>
+<br>
+
+</body>
+</html>

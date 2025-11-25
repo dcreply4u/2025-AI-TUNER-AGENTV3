@@ -1,0 +1,121 @@
+{
+  "tune_id": "subaru_wrx_2019_base_v1",
+  "name": "Subaru WRX 2019 - Base Map",
+  "description": "Safe base map for stock Subaru WRX (VA chassis). Use for initial startup, leak checks, and baseline testing. Conservative parameters for safety.",
+  "tune_type": "base_map",
+  "vehicle": {
+    "make": "Subaru",
+    "model": "WRX",
+    "year": 2019,
+    "engine_code": "FA20F",
+    "engine_displacement": 2.0,
+    "fuel_type": "gasoline",
+    "forced_induction": "turbo"
+  },
+  "ecu_type": "Subaru",
+  "maps": [
+    {
+      "category": "fuel_map",
+      "name": "Base Fuel Map",
+      "description": "IAP/TPS fuel map - conservative AFR targets for stock configuration",
+      "data": {
+        "rpm_axis": [1000, 2000, 3000, 4000, 5000, 6000, 6500],
+        "load_axis": [0, 20, 40, 60, 80, 100],
+        "afr_targets": [
+          [14.7, 14.7, 14.7, 14.7, 14.7, 14.7],
+          [14.7, 14.7, 14.6, 14.5, 14.4, 14.3],
+          [14.7, 14.6, 14.5, 14.3, 14.1, 13.8],
+          [14.7, 14.5, 14.3, 14.0, 13.7, 13.5],
+          [14.7, 14.4, 14.1, 13.8, 13.5, 13.2],
+          [14.7, 14.3, 14.0, 13.7, 13.4, 13.1],
+          [14.7, 14.3, 14.0, 13.7, 13.4, 13.1]
+        ],
+        "unit": "AFR"
+      },
+      "unit": "AFR",
+      "min_value": 13.0,
+      "max_value": 14.7,
+      "safety_level": "safe"
+    },
+    {
+      "category": "ignition_timing",
+      "name": "Ignition Timing Map",
+      "description": "Conservative ignition timing map for stock WRX",
+      "data": {
+        "rpm_axis": [1000, 2000, 3000, 4000, 5000, 6000, 6500],
+        "load_axis": [0, 20, 40, 60, 80, 100],
+        "timing_values": [
+          [15, 15, 15, 15, 15, 15],
+          [15, 18, 20, 22, 24, 26],
+          [15, 20, 24, 28, 30, 32],
+          [15, 22, 26, 30, 32, 34],
+          [15, 24, 28, 32, 34, 36],
+          [15, 24, 28, 32, 34, 36],
+          [15, 24, 28, 32, 34, 36]
+        ],
+        "unit": "degrees"
+      },
+      "unit": "degrees",
+      "min_value": 10,
+      "max_value": 40,
+      "safety_level": "safe"
+    },
+    {
+      "category": "rpm_limiter",
+      "name": "RPM Limiter",
+      "description": "Stock RPM limit",
+      "data": {
+        "rev_limit": 6700,
+        "unit": "RPM"
+      },
+      "unit": "RPM",
+      "min_value": 1000,
+      "max_value": 6700,
+      "safety_level": "safe"
+    },
+    {
+      "category": "boost_control",
+      "name": "Boost Control",
+      "description": "Stock boost pressure targets",
+      "data": {
+        "boost_target": 14.5,
+        "unit": "PSI"
+      },
+      "unit": "PSI",
+      "min_value": 0,
+      "max_value": 14.5,
+      "safety_level": "safe"
+    }
+  ],
+  "hardware_requirements": [],
+  "performance_gains": {
+    "hp_gain": 0,
+    "torque_gain": 0,
+    "notes": "Base map - no performance gains expected"
+  },
+  "created_at": 1700000000,
+  "updated_at": 1700000000,
+  "created_by": "system",
+  "version": "1.0.0",
+  "validated": true,
+  "validation_notes": "Base map validated for stock configuration",
+  "safety_warnings": [
+    "This is a base map for stock configuration only",
+    "Verify all parameters match your vehicle before use",
+    "Use at your own risk",
+    "Have a professional tuner review before use",
+    "Requires 91+ octane fuel minimum"
+  ],
+  "shared": false,
+  "share_id": null,
+  "download_count": 0,
+  "rating": null,
+  "rating_count": 0,
+  "tags": ["base", "subaru", "wrx", "stock", "turbo", "2019"],
+  "tuning_notes": "Conservative base map suitable for stock WRX. All parameters are within safe ranges for daily driving.",
+  "installation_notes": "Load this map as a starting point. Verify vehicle runs correctly before making any adjustments.",
+  "dyno_results": null
+}
+
+
+

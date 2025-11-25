@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>SENSOR_INTEGRATION</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # Sensor Integration Guide<br>
+<br>
+## Overview<br>
+<br>
+The AI Tuner Agent supports multiple sensor types and connection methods. This guide explains how to connect external sensors to your hardware platform.<br>
+<br>
+## Connection Methods<br>
+<br>
+### 1. CAN Bus (Recommended for Automotive)<br>
+<br>
+**Best for:** ECU data, most automotive sensors<br>
+<br>
+**Hardware Required:**<br>
+- **reTerminal DM**: Built-in dual CAN FD interfaces (can0, can1)<br>
+- **Raspberry Pi**: CAN HAT (e.g., PiCAN2, MCP2515-based)<br>
+- **Jetson**: CAN expansion board<br>
+<br>
+**Cables:**<br>
+- CAN-H and CAN-L wires (twisted pair recommended)<br>
+- 120Ω termination resistors (one at each end of bus)<br>
+- Power and ground connections<br>
+<br>
+**Software:**<br>
+- Uses `python-can` library<br>
+- Auto-detects CAN vendor (Holley, Haltech, AEM, etc.)<br>
+- Supports DBC file decoding<br>
+<br>
+**Example Sensors:**<br>
+- ECU telemetry (RPM, throttle, boost, etc.)<br>
+- Wideband O2 sensors (via CAN)<br>
+- Data loggers (RaceCapture, etc.)<br>
+<br>
+### 2. Analog Sensors<br>
+<br>
+**Best for:** Temperature, pressure, voltage sensors<br>
+<br>
+**Hardware Required:**<br>
+- **reTerminal DM**: GPIO pins (some support ADC)<br>
+- **Raspberry Pi**: ADC HAT (e.g., ADS1115, MCP3008)<br>
+- **Jetson**: ADC expansion board<br>
+<br>
+**Cables:**<br>
+- Sensor signal wire (0-5V or 0-3.3V typically)<br>
+- Power wire (5V or 12V depending on sensor)<br>
+- Ground wire<br>
+<br>
+**Interface:**<br>
+- I2C or SPI ADC converters<br>
+- Direct GPIO (if platform supports ADC)<br>
+<br>
+**Example Sensors:**<br>
+- Oil pressure sensors (0-5V output)<br>
+- Coolant temperature sensors<br>
+- Fuel pressure sensors<br>
+- Battery voltage monitors<br>
+<br>
+### 3. Digital I/O<br>
+<br>
+**Best for:** Switches, relays, on/off sensors<br>
+<br>
+**Hardware Required:**<br>
+- GPIO pins on any platform<br>
+- Optional: Digital I/O expansion board<br>
+<br>
+**Cables:**<br>
+- Signal wire<br>
+- Ground wire<br>
+- Optional: Pull-up/pull-down resistors<br>
+<br>
+**Example Sensors:**<br>
+- Transbrake switch<br>
+- Nitrous solenoid status<br>
+- Methanol injection pump status<br>
+- Safety switches<br>
+<br>
+### 4. Serial/UART<br>
+<br>
+**Best for:** GPS modules, some sensors with serial output<br>
+<br>
+**Hardware Required:**<br>
+- USB-to-Serial adapter OR<br>
+- Built-in UART pins (GPIO 14/15 on Pi)<br>
+<br>
+**Cables:**<br>
+- USB cable (if USB device)<br>
+- Or: TX, RX, GND wires for UART<br>
+<br>
+**Example Sensors:**<br>
+- GPS modules (USB or UART)<br>
+- Some wideband controllers<br>
+- Serial data loggers<br>
+<br>
+### 5. I2C Sensors<br>
+<br>
+**Best for:** Multiple sensors on same bus<br>
+<br>
+**Hardware Required:**<br>
+- I2C bus (available on all platforms)<br>
+- Pull-up resistors (usually on board)<br>
+<br>
+**Cables:**<br>
+- SDA (data) wire<br>
+- SCL (clock) wire<br>
+- Power and ground<br>
+<br>
+**Example Sensors:**<br>
+- Temperature sensors (DS18B20, TMP102)<br>
+- Pressure sensors with I2C output<br>
+- Accelerometers<br>
+- Gyroscopes<br>
+<br>
+### 6. SPI Sensors<br>
+<br>
+**Best for:** High-speed sensor data<br>
+<br>
+**Hardware Required:**<br>
+- SPI bus (available on all platforms)<br>
+<br>
+**Cables:**<br>
+- MOSI, MISO, SCLK, CS wires<br>
+- Power and ground<br>
+<br>
+**Example Sensors:**<br>
+- High-speed ADCs<br>
+- Some pressure sensors<br>
+- Digital sensors requiring SPI<br>
+<br>
+## Hardware Platform Comparison<br>
+<br>
+### reTerminal DM (Recommended)<br>
+<br>
+**Built-in:**<br>
+- ✅ Dual CAN FD (can0, can1) - **No additional hardware needed!**<br>
+- ✅ GPIO pins (40-pin header)<br>
+- ✅ USB ports (for USB sensors)<br>
+- ✅ Serial ports<br>
+- ✅ I2C, SPI buses<br>
+<br>
+**Additional Hardware Needed:**<br>
+- ADC board for analog sensors (if needed)<br>
+- Sensor-specific interfaces<br>
+<br>
+**Best For:**<br>
+- Multiple CAN bus sensors<br>
+- Professional racing applications<br>
+- Industrial environments<br>
+<br>
+### Raspberry Pi 5<br>
+<br>
+**Built-in:**<br>
+- ✅ GPIO pins (40-pin header)<br>
+- ✅ USB ports<br>
+- ✅ I2C, SPI buses<br>
+<br>
+**Additional Hardware Needed:**<br>
+- CAN HAT (for CAN bus)<br>
+- ADC HAT (for analog sensors)<br>
+<br>
+**Best For:**<br>
+- Budget-conscious builds<br>
+- DIY projects<br>
+- Learning/development<br>
+<br>
+### Jetson Nano<br>
+<br>
+**Built-in:**<br>
+- ✅ GPIO pins<br>
+- ✅ USB ports<br>
+- ✅ I2C, SPI buses<br>
+<br>
+**Additional Hardware Needed:**<br>
+- CAN expansion board<br>
+- ADC board<br>
+<br>
+**Best For:**<br>
+- AI/ML applications<br>
+- Computer vision integration<br>
+- Advanced processing<br>
+<br>
+## Sensor Interface Module<br>
+<br>
+The software includes a sensor interface abstraction layer that handles:<br>
+<br>
+```python<br>
+# Example: Analog sensor interface<br>
+from interfaces.analog_sensor import AnalogSensorInterface<br>
+<br>
+# Configure sensor<br>
+sensor = AnalogSensorInterface(<br>
+    channel=0,  # ADC channel<br>
+    sensor_type="pressure",<br>
+    min_voltage=0.5,  # 0 PSI<br>
+    max_voltage=4.5,   # 100 PSI<br>
+    unit="psi"<br>
+)<br>
+<br>
+# Read value<br>
+pressure = sensor.read()  # Returns PSI value<br>
+```<br>
+<br>
+## Multi-Sensor Configuration<br>
+<br>
+### Example: Racing Setup<br>
+<br>
+**Sensors:**<br>
+1. **ECU Data** → CAN Bus (can0)<br>
+2. **Wideband O2** → CAN Bus (can0) or Serial<br>
+3. **Oil Pressure** → Analog (ADC channel 0)<br>
+4. **Fuel Pressure** → Analog (ADC channel 1)<br>
+5. **Transbrake** → Digital GPIO (pin 18)<br>
+6. **Nitrous Solenoid** → Digital GPIO (pin 19)<br>
+7. **GPS** → USB Serial<br>
+8. **Front Camera** → USB<br>
+9. **Rear Camera** → USB<br>
+<br>
+**Configuration:**<br>
+```python<br>
+# sensors_config.json<br>
+{<br>
+    "can_sensors": {<br>
+        "can0": {<br>
+            "ecu": {"vendor": "holley", "dbc": "holley.dbc"},<br>
+            "wideband": {"id": 0x200, "type": "lambda"}<br>
+        }<br>
+    },<br>
+    "analog_sensors": {<br>
+        "oil_pressure": {"channel": 0, "type": "pressure", "range": [0, 100]},<br>
+        "fuel_pressure": {"channel": 1, "type": "pressure", "range": [0, 100]}<br>
+    },<br>
+    "digital_sensors": {<br>
+        "transbrake": {"pin": 18, "pull": "up"},<br>
+        "nitrous_solenoid": {"pin": 19, "pull": "up"}<br>
+    },<br>
+    "serial_sensors": {<br>
+        "gps": {"port": "/dev/ttyUSB0", "baud": 9600}<br>
+    }<br>
+}<br>
+```<br>
+<br>
+## Wiring Diagrams<br>
+<br>
+### CAN Bus Connection<br>
+<br>
+```<br>
+Sensor/ECU          reTerminal DM<br>
+CAN-H ────────────── CAN-H (can0)<br>
+CAN-L ────────────── CAN-L (can0)<br>
+GND   ────────────── GND<br>
++12V  ────────────── +12V (if sensor needs power)<br>
+```<br>
+<br>
+**Termination:**<br>
+- 120Ω resistor between CAN-H and CAN-L at each end of bus<br>
+<br>
+### Analog Sensor Connection<br>
+<br>
+```<br>
+Pressure Sensor     ADC Board      reTerminal DM<br>
+Signal ──────────── ADC Input ──── I2C/SPI<br>
++5V    ──────────── VCC<br>
+GND    ──────────── GND ─────────── GND<br>
+```<br>
+<br>
+### Digital Sensor Connection<br>
+<br>
+```<br>
+Switch              reTerminal DM<br>
+Signal ───────────── GPIO Pin (e.g., 18)<br>
+GND    ───────────── GND<br>
+(Optional pull-up resistor to 3.3V)<br>
+```<br>
+<br>
+## Software Integration<br>
+<br>
+### Adding a New Sensor Type<br>
+<br>
+1. **Create sensor interface:**<br>
+```python<br>
+# interfaces/custom_sensor.py<br>
+class CustomSensorInterface:<br>
+    def __init__(self, config):<br>
+        self.config = config<br>
+    <br>
+    def read(self):<br>
+        # Read sensor value<br>
+        return value<br>
+```<br>
+<br>
+2. **Register in data stream controller:**<br>
+```python<br>
+# The controller automatically polls all registered sensors<br>
+controller.register_sensor("custom_sensor", CustomSensorInterface(config))<br>
+```<br>
+<br>
+3. **Add to telemetry mapping:**<br>
+```python<br>
+# Maps sensor readings to canonical metric names<br>
+CANONICAL_METRICS = {<br>
+    "CustomSensor_Value": "CustomMetric",<br>
+    # ...<br>
+}<br>
+```<br>
+<br>
+## Recommended Sensor Setup<br>
+<br>
+### Basic Setup (OBD-II Only)<br>
+- OBD-II adapter → USB<br>
+- GPS module → USB<br>
+- **Total:** 2 USB devices<br>
+<br>
+### Intermediate Setup<br>
+- ECU → CAN Bus<br>
+- Wideband O2 → CAN Bus or Serial<br>
+- GPS → USB<br>
+- **Total:** CAN bus + 1 USB<br>
+<br>
+### Advanced Setup (Racing)<br>
+- ECU → CAN Bus (can0)<br>
+- Secondary ECU/Logger → CAN Bus (can1)<br>
+- Analog sensors (pressure, temp) → ADC board → I2C<br>
+- Digital sensors (switches) → GPIO<br>
+- GPS → USB Serial<br>
+- Cameras → USB<br>
+- **Total:** 2 CAN buses + I2C + GPIO + USB<br>
+<br>
+## Power Requirements<br>
+<br>
+**reTerminal DM:**<br>
+- 12V DC input<br>
+- Can power sensors via GPIO (3.3V/5V) or external power supply<br>
+<br>
+**Sensor Power:**<br>
+- Most sensors: 5V or 12V<br>
+- Use external power supply for high-current sensors<br>
+- Use voltage regulators for sensitive sensors<br>
+<br>
+## Troubleshooting<br>
+<br>
+### CAN Bus Issues<br>
+- Check termination resistors (120Ω at each end)<br>
+- Verify CAN-H and CAN-L are not swapped<br>
+- Check bitrate matches (typically 500kbps)<br>
+- Use `candump can0` to verify messages<br>
+<br>
+### Analog Sensor Issues<br>
+- Verify voltage range (0-3.3V or 0-5V)<br>
+- Check ADC reference voltage<br>
+- Calibrate sensor (min/max values)<br>
+- Check for noise (use shielded cables)<br>
+<br>
+### Digital Sensor Issues<br>
+- Verify pull-up/pull-down resistors<br>
+- Check GPIO pin configuration<br>
+- Verify voltage levels (3.3V vs 5V)<br>
+<br>
+## Next Steps<br>
+<br>
+1. Identify your sensors and their output types<br>
+2. Choose appropriate interface method<br>
+3. Configure in software<br>
+4. Test with demo mode first<br>
+5. Connect real hardware<br>
+<br>
+For specific sensor integration help, refer to the sensor manufacturer's documentation and the AI Tuner Agent configuration files.<br>
+<br>
+
+</body>
+</html>

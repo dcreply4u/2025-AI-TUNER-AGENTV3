@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>ADVANCED_TUNING_LOGIC</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # Advanced Tuning Logic<br>
+<br>
+## Overview<br>
+<br>
+The AI Tuner includes advanced tuning logic systems that go beyond simple rule-based adjustments. These systems use multi-objective optimization, predictive modeling, reinforcement learning concepts, and closed-loop control to provide intelligent, adaptive tuning recommendations.<br>
+<br>
+## Components<br>
+<br>
+### 1. Advanced Tuning Engine (`services/advanced_tuning_engine.py`)<br>
+<br>
+The Advanced Tuning Engine provides sophisticated tuning optimization with the following features:<br>
+<br>
+#### Multi-Objective Optimization<br>
+<br>
+The engine can optimize for different targets:<br>
+- **Performance**: Maximum horsepower<br>
+- **Efficiency**: Best fuel economy<br>
+- **Balanced**: Balance of performance and efficiency<br>
+- **Safety**: Conservative, safe settings<br>
+<br>
+The scoring function weights different objectives based on the selected target:<br>
+<br>
+```python<br>
+# Performance mode: 70% HP, 30% Safety<br>
+# Efficiency mode: 70% Efficiency, 30% Safety<br>
+# Balanced mode: 40% HP, 30% Efficiency, 30% Safety<br>
+# Safety mode: 100% Safety<br>
+```<br>
+<br>
+#### Predictive Modeling<br>
+<br>
+The engine uses machine learning models (Gradient Boosting, Random Forest) to predict the outcomes of tuning actions before applying them:<br>
+<br>
+- **HP Predictor**: Predicts horsepower gain/loss from tuning changes<br>
+- **Efficiency Predictor**: Predicts fuel economy changes<br>
+- **Safety Predictor**: Predicts safety score (0-1) for each action<br>
+<br>
+These models are trained on historical tuning data and continuously retrained as more data becomes available.<br>
+<br>
+#### Reinforcement Learning Concepts<br>
+<br>
+The engine uses Q-learning inspired algorithms to learn optimal actions for different engine states:<br>
+<br>
+- **Q-Table**: Stores learned values for state-action pairs<br>
+- **Reward Function**: Calculates rewards based on actual outcomes<br>
+- **Learning Rate**: Controls how quickly the system adapts to new information<br>
+<br>
+The system learns which tuning actions work best in different conditions (RPM, load, boost, temperature, etc.).<br>
+<br>
+#### Safety Validation<br>
+<br>
+All tuning actions are validated for safety before application:<br>
+<br>
+- Minimum safety score threshold (default: 0.7)<br>
+- Checks for knock, high temperatures, lean/rich conditions<br>
+- Prevents unsafe adjustments even if they would improve performance<br>
+<br>
+#### Usage Example<br>
+<br>
+```python<br>
+from services.advanced_tuning_engine import AdvancedTuningEngine, OptimizationTarget<br>
+<br>
+# Create engine with balanced optimization<br>
+engine = AdvancedTuningEngine(<br>
+    target=OptimizationTarget.BALANCED,<br>
+    learning_rate=0.1,<br>
+    safety_threshold=0.7,<br>
+)<br>
+<br>
+# Analyze and get recommendations<br>
+telemetry = {<br>
+    "RPM": 5000,<br>
+    "Load": 85,<br>
+    "Boost_Pressure": 20,<br>
+    "Lambda": 0.98,<br>
+    "Ignition_Timing": 18.0,<br>
+    "Coolant_Temp": 92,<br>
+}<br>
+<br>
+actions = engine.analyze_and_optimize(telemetry, apply_auto=False)<br>
+<br>
+for action in actions:<br>
+    print(f"{action.parameter}: {action.current_value:.2f} -> {action.new_value:.2f}")<br>
+    print(f"  Expected HP gain: {action.expected_hp_gain:.1f}")<br>
+    print(f"  Safety score: {action.safety_score:.2f}")<br>
+    print(f"  Reason: {action.reason}")<br>
+```<br>
+<br>
+### 2. Closed-Loop Tuning Controller (`services/closed_loop_tuning.py`)<br>
+<br>
+The Closed-Loop Tuning Controller provides continuous, real-time adjustment using PID control algorithms.<br>
+<br>
+#### Features<br>
+<br>
+- **PID Control**: Proportional-Integral-Derivative control for precise adjustments<br>
+- **Lambda Control**: Maintains target air-fuel ratio automatically<br>
+- **Timing Control**: Adjusts ignition timing based on knock detection<br>
+- **Safety Interlocks**: Prevents adjustments when safety conditions are violated<br>
+- **Adaptive Learning**: Adjusts control gains based on performance<br>
+<br>
+#### Control Modes<br>
+<br>
+- **Manual**: No automatic adjustments<br>
+- **Semi-Auto**: Suggests changes, requires user approval<br>
+- **Full-Auto**: Automatically applies safe changes<br>
+- **Learning**: Learns optimal settings without applying changes<br>
+<br>
+#### PID Controllers<br>
+<br>
+The system uses separate PID controllers for different parameters:<br>
+<br>
+1. **Lambda Controller**: Maintains target lambda (AFR)<br>
+   - Proportional gain: 2.0<br>
+   - Integral gain: 0.2<br>
+   - Derivative gain: 0.1<br>
+<br>
+2. **Timing Controller**: Controls ignition timing based on knock<br>
+   - Proportional gain: 0.5<br>
+   - Integral gain: 0.05<br>
+   - Derivative gain: 0.02<br>
+<br>
+#### Safety Interlocks<br>
+<br>
+The controller automatically prevents adjustments when:<br>
+- Coolant temperature > 105°C<br>
+- EGT > 1100°C<br>
+- Knock count > 5<br>
+- Lambda too lean (> 1.15) or too rich (< 0.85)<br>
+<br>
+#### Usage Example<br>
+<br>
+```python<br>
+from services.closed_loop_tuning import ClosedLoopTuningController, ControlMode<br>
+<br>
+# Create controller<br>
+controller = ClosedLoopTuningController(<br>
+    mode=ControlMode.SEMI_AUTO,<br>
+    target_lambda=1.0,<br>
+    max_adjustment_rate=0.05,<br>
+)<br>
+<br>
+# Update with telemetry (call continuously)<br>
+telemetry = {<br>
+    "RPM": 5000,<br>
+    "Lambda": 0.98,<br>
+    "Knock_Count": 0,<br>
+    "Coolant_Temp": 92,<br>
+}<br>
+<br>
+actions = controller.update(telemetry)<br>
+<br>
+for action in actions:<br>
+    print(f"{action.parameter}: {action.adjustment:+.2f}%")<br>
+    print(f"  Reason: {action.reason}")<br>
+    print(f"  Confidence: {action.confidence:.2f}")<br>
+```<br>
+<br>
+### 3. Integration with Existing Systems<br>
+<br>
+The advanced tuning logic integrates with existing systems:<br>
+<br>
+- **Auto Tuning Engine**: Can optionally use advanced engine for better recommendations<br>
+- **Adaptive Tuning Advisor**: Enhanced with ML-based confidence scoring<br>
+- **Weather Adaptive Tuning**: Uses advanced optimization for weather-based adjustments<br>
+<br>
+## Algorithm Details<br>
+<br>
+### Multi-Objective Scoring<br>
+<br>
+The scoring function combines multiple objectives:<br>
+<br>
+```python<br>
+if target == PERFORMANCE:<br>
+    score = 0.7 * hp_gain + 0.3 * safety * 10.0<br>
+elif target == EFFICIENCY:<br>
+    score = 0.7 * eff_gain + 0.3 * safety * 10.0<br>
+elif target == BALANCED:<br>
+    score = 0.4 * hp_gain + 0.3 * eff_gain + 0.3 * safety * 10.0<br>
+else:  # SAFETY<br>
+    score = safety * 20.0<br>
+```<br>
+<br>
+### Predictive Model Features<br>
+<br>
+The ML models use the following features:<br>
+- RPM (normalized)<br>
+- Load<br>
+- Boost pressure (normalized)<br>
+- Lambda value<br>
+- Ignition timing (normalized)<br>
+- Fuel map value (normalized)<br>
+- Coolant temperature (normalized)<br>
+- Intake air temperature (normalized)<br>
+- Knock count (normalized)<br>
+- EGT (normalized)<br>
+- Action type (one-hot encoded)<br>
+- Action delta<br>
+- Current parameter value (normalized)<br>
+<br>
+### Q-Learning Update<br>
+<br>
+The Q-table is updated using:<br>
+<br>
+```<br>
+Q(s,a) = Q(s,a) + α * (reward - Q(s,a))<br>
+```<br>
+<br>
+Where:<br>
+- `α` = learning rate (default: 0.1)<br>
+- `reward` = actual outcome (HP gain, efficiency gain, or penalty for unsafe actions)<br>
+<br>
+## Performance Characteristics<br>
+<br>
+### Accuracy<br>
+<br>
+- **Predictive Models**: Improve accuracy as more training data accumulates<br>
+- **Q-Learning**: Converges to optimal actions after ~100-200 tuning sessions<br>
+- **PID Control**: Provides stable control with < 1% steady-state error<br>
+<br>
+### Safety<br>
+<br>
+- **Safety Threshold**: Default 0.7 (70% confidence required)<br>
+- **Interlocks**: Prevent adjustments in unsafe conditions<br>
+- **Validation**: All actions validated before application<br>
+<br>
+### Learning Speed<br>
+<br>
+- **Initial Learning**: Uses heuristic predictions until 50+ samples collected<br>
+- **Model Retraining**: Every 50 actions<br>
+- **Q-Table Updates**: Continuous, every action<br>
+<br>
+## Best Practices<br>
+<br>
+1. **Start Conservative**: Begin with `safety_threshold=0.8` and `OptimizationTarget.SAFETY`<br>
+2. **Gradual Transition**: Move to `BALANCED` or `PERFORMANCE` as system learns<br>
+3. **Monitor Safety**: Always watch for safety interlock activations<br>
+4. **Review Actions**: In `SEMI_AUTO` mode, review all actions before applying<br>
+5. **Collect Data**: More data = better predictions and learning<br>
+<br>
+## Future Enhancements<br>
+<br>
+Planned improvements:<br>
+- Deep reinforcement learning (DQN, PPO)<br>
+- Multi-vehicle learning (transfer learning)<br>
+- Real-time model updates (online learning)<br>
+- Advanced safety models (predictive failure detection)<br>
+- Integration with dyno data for validation<br>
+<br>
+## See Also<br>
+<br>
+- [Auto Tuning Engine Documentation](AUTO_TUNING.md)<br>
+- [Adaptive Tuning Advisor](ADAPTIVE_TUNING.md)<br>
+- [AI Algorithm Optimization Plan](AI_ALGORITHM_OPTIMIZATION.md)<br>
+<br>
+<br>
+<br>
+<br>
+
+</body>
+</html>

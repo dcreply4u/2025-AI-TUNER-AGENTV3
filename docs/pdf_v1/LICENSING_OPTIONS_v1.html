@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>LICENSING_OPTIONS</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # Licensing System Options & Implementation Guide<br>
+<br>
+## Overview<br>
+<br>
+This document outlines options for implementing a licensing system that restricts software usage to demo mode unless a valid license key is provided.<br>
+<br>
+## Current State<br>
+<br>
+### Existing Infrastructure ✅<br>
+<br>
+The codebase already has some licensing infrastructure:<br>
+<br>
+1. **`core/code_protection.py`** - Basic license verification<br>
+   - License key validation<br>
+   - Device ID binding<br>
+   - YubiKey hardware support<br>
+   - Code integrity checks<br>
+<br>
+2. **`core/yubikey_auth.py`** - Hardware-based licensing<br>
+   - Physical YubiKey requirement<br>
+   - License stored on hardware<br>
+   - Serial number verification<br>
+<br>
+3. **Demo Mode** - Currently exists for simulation only<br>
+   - `demo.py` - Simulated data mode<br>
+   - `AITUNER_DEMO_MODE` environment variable<br>
+   - Not used for feature restrictions<br>
+<br>
+## Implementation Options<br>
+<br>
+### Option 1: Simple License Key System (Recommended for MVP)<br>
+<br>
+**Pros:**<br>
+- Quick to implement<br>
+- No external dependencies<br>
+- Works offline<br>
+- Easy to understand<br>
+<br>
+**Cons:**<br>
+- Less secure (can be reverse-engineered)<br>
+- No server-side validation<br>
+- Manual license management<br>
+<br>
+**Implementation:**<br>
+- License key stored in config file or environment variable<br>
+- Cryptographic validation using device ID<br>
+- Feature flags based on license status<br>
+<br>
+**Best For:** Initial release, small user base, offline operation<br>
+<br>
+---<br>
+<br>
+### Option 2: Server-Based License Validation<br>
+<br>
+**Pros:**<br>
+- More secure<br>
+- Centralized license management<br>
+- Can revoke licenses remotely<br>
+- Usage tracking and analytics<br>
+- Supports subscription models<br>
+<br>
+**Cons:**<br>
+- Requires internet connection<br>
+- Need to maintain license server<br>
+- More complex implementation<br>
+- Potential downtime issues<br>
+<br>
+**Implementation:**<br>
+- License server API (FastAPI/Flask)<br>
+- Periodic online validation<br>
+- Offline grace period<br>
+- License database<br>
+<br>
+**Best For:** Production deployment, subscription models, enterprise customers<br>
+<br>
+---<br>
+<br>
+### Option 3: Hybrid System (Recommended for Production)<br>
+<br>
+**Pros:**<br>
+- Works offline with periodic online checks<br>
+- More secure than simple system<br>
+- Flexible license management<br>
+- Supports both one-time and subscription<br>
+<br>
+**Cons:**<br>
+- More complex to implement<br>
+- Requires license server<br>
+- Need to handle offline scenarios<br>
+<br>
+**Implementation:**<br>
+- Local license cache with cryptographic validation<br>
+- Periodic server validation (daily/weekly)<br>
+- Offline grace period (30 days)<br>
+- Automatic license refresh<br>
+<br>
+**Best For:** Production deployment, best balance of security and usability<br>
+<br>
+---<br>
+<br>
+### Option 4: Hardware-Based (YubiKey)<br>
+<br>
+**Pros:**<br>
+- Maximum security<br>
+- Cannot be copied<br>
+- Physical device required<br>
+- Enterprise-grade protection<br>
+<br>
+**Cons:**<br>
+- Requires hardware purchase<br>
+- User must have YubiKey<br>
+- More expensive for users<br>
+- Less convenient<br>
+<br>
+**Implementation:**<br>
+- Already implemented in `core/yubikey_auth.py`<br>
+- License stored on YubiKey<br>
+- Serial number verification<br>
+<br>
+**Best For:** Enterprise customers, high-value software, maximum security requirements<br>
+<br>
+---<br>
+<br>
+### Option 5: Third-Party Licensing Services<br>
+<br>
+**Pros:**<br>
+- Professional implementation<br>
+- Managed service<br>
+- Payment integration<br>
+- Analytics and reporting<br>
+- Support included<br>
+<br>
+**Cons:**<br>
+- Monthly fees<br>
+- Less control<br>
+- Vendor lock-in<br>
+- Additional dependency<br>
+<br>
+**Popular Services:**<br>
+- **LicenseSpring** - Cloud-based licensing<br>
+- **Cryptolens** - License key management<br>
+- **Gumroad** - Simple licensing + payments<br>
+- **Paddle** - Full payment + licensing solution<br>
+<br>
+**Best For:** Quick launch, focus on product not infrastructure<br>
+<br>
+---<br>
+<br>
+## Recommended Implementation: Hybrid System<br>
+<br>
+### Architecture<br>
+<br>
+```<br>
+┌─────────────────┐<br>
+│  Application    │<br>
+│                 │<br>
+│  ┌───────────┐  │<br>
+│  │ License   │  │<br>
+│  │ Manager   │  │<br>
+│  └─────┬─────┘  │<br>
+│        │        │<br>
+│  ┌─────▼─────┐  │<br>
+│  │ Local     │  │<br>
+│  │ Cache     │  │<br>
+│  └─────┬─────┘  │<br>
+│        │        │<br>
+└────────┼────────┘<br>
+         │<br>
+    ┌────▼────┐<br>
+    │ License │<br>
+    │ Server  │<br>
+    └─────────┘<br>
+```<br>
+<br>
+### Features<br>
+<br>
+1. **License Key Format**<br>
+   ```<br>
+   AI-TUNER-XXXX-XXXX-XXXX-XXXX<br>
+   ```<br>
+   - 4 groups of 4 characters<br>
+   - Base32 encoded<br>
+   - Contains: product code, version, features, checksum<br>
+<br>
+2. **Device Binding**<br>
+   - License tied to device ID (MAC address)<br>
+   - Prevents license sharing<br>
+   - Optional: Allow N activations<br>
+<br>
+3. **Feature Flags**<br>
+   - Demo mode: Limited features<br>
+   - Basic license: Core features<br>
+   - Pro license: All features<br>
+   - Enterprise: Custom features<br>
+<br>
+4. **Validation Flow**<br>
+   ```<br>
+   App Start → Check Local Cache → Valid? → Yes → Full Access<br>
+                                      ↓ No<br>
+                              Check Server → Valid? → Yes → Update Cache → Full Access<br>
+                                                      ↓ No<br>
+                                              Demo Mode<br>
+   ```<br>
+<br>
+5. **Offline Support**<br>
+   - Cache valid license for 30 days<br>
+   - Grace period for expired licenses<br>
+   - Automatic refresh when online<br>
+<br>
+---<br>
+<br>
+## Demo Mode Restrictions<br>
+<br>
+### What Should Be Restricted in Demo Mode?<br>
+<br>
+#### ✅ Allowed (Demo Mode):<br>
+- View all UI components<br>
+- View telemetry displays<br>
+- View settings (read-only)<br>
+- Export data (limited: max 10 exports)<br>
+- Basic AI advisor (rule-based only)<br>
+- View-only access to all tabs<br>
+<br>
+#### ❌ Restricted (Demo Mode):<br>
+- **ECU Tuning**: View-only, no writes<br>
+- **Data Logging**: Limited to 5 minutes per session<br>
+- **Advanced AI**: ML models disabled<br>
+- **Cloud Sync**: Disabled<br>
+- **Video Recording**: Disabled or watermarked<br>
+- **Export**: Limited exports, watermarked<br>
+- **Racing Controls**: View-only<br>
+- **Auto Tuning**: Disabled<br>
+- **Advanced Features**: Disabled<br>
+<br>
+### Implementation Strategy<br>
+<br>
+1. **Feature Flags System**<br>
+   ```python<br>
+   class LicenseManager:<br>
+       def is_feature_enabled(self, feature: str) -> bool:<br>
+           if self.is_demo_mode():<br>
+               return feature in DEMO_ALLOWED_FEATURES<br>
+           return True<br>
+   ```<br>
+<br>
+2. **UI Restrictions**<br>
+   - Disable buttons/controls in demo mode<br>
+   - Show "Demo Mode" badges<br>
+   - Display upgrade prompts<br>
+   - Limit data collection<br>
+<br>
+3. **Functional Restrictions**<br>
+   - Time limits<br>
+   - Data limits<br>
+   - Feature limits<br>
+   - Export limits<br>
+<br>
+---<br>
+<br>
+## Implementation Steps<br>
+<br>
+### Phase 1: License Manager (Core)<br>
+<br>
+1. Create `core/license_manager.py`<br>
+   - License key validation<br>
+   - Device binding<br>
+   - Feature flags<br>
+   - Demo mode detection<br>
+<br>
+2. Create `core/demo_restrictions.py`<br>
+   - Feature restrictions<br>
+   - Time limits<br>
+   - Data limits<br>
+<br>
+3. Update application startup<br>
+   - Check license on startup<br>
+   - Set demo mode if no license<br>
+   - Initialize restrictions<br>
+<br>
+### Phase 2: UI Integration<br>
+<br>
+1. License entry dialog<br>
+   - Enter license key<br>
+   - Validate and activate<br>
+   - Show license status<br>
+<br>
+2. Demo mode indicators<br>
+   - Status bar badge<br>
+   - Feature disabled styling<br>
+   - Upgrade prompts<br>
+<br>
+3. Feature gating<br>
+   - Disable restricted features<br>
+   - Show upgrade messages<br>
+   - Track usage limits<br>
+<br>
+### Phase 3: Server Integration (Optional)<br>
+<br>
+1. License server API<br>
+   - Validation endpoint<br>
+   - Activation endpoint<br>
+   - Revocation endpoint<br>
+<br>
+2. Client integration<br>
+   - Periodic validation<br>
+   - Offline cache<br>
+   - Error handling<br>
+<br>
+### Phase 4: Advanced Features<br>
+<br>
+1. Subscription support<br>
+   - Expiration dates<br>
+   - Auto-renewal<br>
+   - Grace periods<br>
+<br>
+2. Analytics<br>
+   - Usage tracking<br>
+   - Feature usage stats<br>
+   - License analytics<br>
+<br>
+---<br>
+<br>
+## Code Examples<br>
+<br>
+### Basic License Manager<br>
+<br>
+```python<br>
+# core/license_manager.py<br>
+import hashlib<br>
+import json<br>
+import os<br>
+from pathlib import Path<br>
+from typing import Dict, Optional<br>
+from enum import Enum<br>
+<br>
+class LicenseType(Enum):<br>
+    DEMO = "demo"<br>
+    BASIC = "basic"<br>
+    PRO = "pro"<br>
+    ENTERPRISE = "enterprise"<br>
+<br>
+class LicenseManager:<br>
+    def __init__(self):<br>
+        self.license_file = Path("config/license.json")<br>
+        self.device_id = self._get_device_id()<br>
+        self.license_data: Optional[Dict] = None<br>
+        self.load_license()<br>
+    <br>
+    def _get_device_id(self) -> str:<br>
+        """Get unique device identifier."""<br>
+        import uuid<br>
+        return ':'.join(['{:02x}'.format((uuid.getnode() >> i) & 0xff)<br>
+                        for i in range(0, 8*6, 8)][::-1])<br>
+    <br>
+    def load_license(self) -> None:<br>
+        """Load license from file."""<br>
+        if self.license_file.exists():<br>
+            try:<br>
+                with open(self.license_file, 'r') as f:<br>
+                    self.license_data = json.load(f)<br>
+            except Exception:<br>
+                self.license_data = None<br>
+    <br>
+    def validate_license_key(self, license_key: str) -> bool:<br>
+        """Validate license key format and checksum."""<br>
+        # Format: AI-TUNER-XXXX-XXXX-XXXX-XXXX<br>
+        parts = license_key.split('-')<br>
+        if len(parts) != 5 or parts[0] != 'AI' or parts[1] != 'TUNER':<br>
+            return False<br>
+        <br>
+        # Validate checksum<br>
+        key_data = ''.join(parts[2:])<br>
+        checksum = self._calculate_checksum(key_data)<br>
+        return checksum == parts[-1][-1]  # Last char is checksum<br>
+    <br>
+    def activate_license(self, license_key: str) -> bool:<br>
+        """Activate license key."""<br>
+        if not self.validate_license_key(license_key):<br>
+            return False<br>
+        <br>
+        # Decode license information<br>
+        license_type = self._decode_license_type(license_key)<br>
+        <br>
+        # Save license<br>
+        self.license_data = {<br>
+            'key': license_key,<br>
+            'type': license_type.value,<br>
+            'device_id': self.device_id,<br>
+            'activated': True,<br>
+            'expires': None,  # Or decode expiration date<br>
+        }<br>
+        <br>
+        self.license_file.parent.mkdir(parents=True, exist_ok=True)<br>
+        with open(self.license_file, 'w') as f:<br>
+            json.dump(self.license_data, f)<br>
+        <br>
+        return True<br>
+    <br>
+    def is_licensed(self) -> bool:<br>
+        """Check if valid license is active."""<br>
+        if not self.license_data:<br>
+            return False<br>
+        <br>
+        # Check device binding<br>
+        if self.license_data.get('device_id') != self.device_id:<br>
+            return False<br>
+        <br>
+        # Check expiration<br>
+        expires = self.license_data.get('expires')<br>
+        if expires:<br>
+            from datetime import datetime<br>
+            if datetime.fromisoformat(expires) < datetime.now():<br>
+                return False<br>
+        <br>
+        return True<br>
+    <br>
+    def is_demo_mode(self) -> bool:<br>
+        """Check if running in demo mode."""<br>
+        return not self.is_licensed()<br>
+    <br>
+    def get_license_type(self) -> LicenseType:<br>
+        """Get current license type."""<br>
+        if self.is_demo_mode():<br>
+            return LicenseType.DEMO<br>
+        <br>
+        license_type_str = self.license_data.get('type', 'demo')<br>
+        return LicenseType(license_type_str)<br>
+    <br>
+    def is_feature_enabled(self, feature: str) -> bool:<br>
+        """Check if feature is enabled for current license."""<br>
+        license_type = self.get_license_type()<br>
+        <br>
+        # Feature matrix<br>
+        features = {<br>
+            'ecu_tuning_write': [LicenseType.BASIC, LicenseType.PRO, LicenseType.ENTERPRISE],<br>
+            'advanced_ai': [LicenseType.PRO, LicenseType.ENTERPRISE],<br>
+            'cloud_sync': [LicenseType.PRO, LicenseType.ENTERPRISE],<br>
+            'video_recording': [LicenseType.BASIC, LicenseType.PRO, LicenseType.ENTERPRISE],<br>
+            'auto_tuning': [LicenseType.PRO, LicenseType.ENTERPRISE],<br>
+            'racing_controls': [LicenseType.PRO, LicenseType.ENTERPRISE],<br>
+        }<br>
+        <br>
+        allowed_types = features.get(feature, [])<br>
+        return license_type in allowed_types<br>
+    <br>
+    def _calculate_checksum(self, data: str) -> str:<br>
+        """Calculate checksum for license validation."""<br>
+        hash_obj = hashlib.md5(data.encode())<br>
+        return hash_obj.hexdigest()[-1].upper()<br>
+    <br>
+    def _decode_license_type(self, license_key: str) -> LicenseType:<br>
+        """Decode license type from key."""<br>
+        # Extract type from key (simplified)<br>
+        parts = license_key.split('-')<br>
+        type_code = parts[2][0]  # First char of third segment<br>
+        <br>
+        type_map = {<br>
+            'B': LicenseType.BASIC,<br>
+            'P': LicenseType.PRO,<br>
+            'E': LicenseType.ENTERPRISE,<br>
+        }<br>
+        return type_map.get(type_code, LicenseType.DEMO)<br>
+```<br>
+<br>
+### Demo Restrictions Manager<br>
+<br>
+```python<br>
+# core/demo_restrictions.py<br>
+from dataclasses import dataclass<br>
+from typing import Dict, Optional<br>
+import time<br>
+<br>
+@dataclass<br>
+class UsageLimits:<br>
+    max_session_time: int = 300  # 5 minutes<br>
+    max_exports: int = 10<br>
+    max_data_points: int = 10000<br>
+    max_logging_time: int = 300  # 5 minutes<br>
+<br>
+class DemoRestrictions:<br>
+    def __init__(self):<br>
+        self.limits = UsageLimits()<br>
+        self.session_start = time.time()<br>
+        self.export_count = 0<br>
+        self.data_point_count = 0<br>
+        self.logging_start: Optional[float] = None<br>
+    <br>
+    def can_use_feature(self, feature: str) -> tuple[bool, str]:<br>
+        """Check if feature can be used, return (allowed, reason)."""<br>
+        if feature == 'export':<br>
+            if self.export_count >= self.limits.max_exports:<br>
+                return False, f"Demo mode: Maximum {self.limits.max_exports} exports reached"<br>
+            return True, ""<br>
+        <br>
+        if feature == 'logging':<br>
+            if self.logging_start:<br>
+                elapsed = time.time() - self.logging_start<br>
+                if elapsed >= self.limits.max_logging_time:<br>
+                    return False, f"Demo mode: Maximum {self.limits.max_logging_time}s logging time reached"<br>
+            return True, ""<br>
+        <br>
+        if feature == 'data_collection':<br>
+            if self.data_point_count >= self.limits.max_data_points:<br>
+                return False, f"Demo mode: Maximum {self.limits.max_data_points} data points reached"<br>
+            return True, ""<br>
+        <br>
+        return True, ""<br>
+    <br>
+    def record_export(self) -> None:<br>
+        """Record an export operation."""<br>
+        self.export_count += 1<br>
+    <br>
+    def record_data_point(self) -> None:<br>
+        """Record a data point collection."""<br>
+        self.data_point_count += 1<br>
+    <br>
+    def start_logging(self) -> None:<br>
+        """Start logging session."""<br>
+        self.logging_start = time.time()<br>
+    <br>
+    def stop_logging(self) -> None:<br>
+        """Stop logging session."""<br>
+        self.logging_start = None<br>
+    <br>
+    def get_session_time_remaining(self) -> int:<br>
+        """Get remaining session time in seconds."""<br>
+        elapsed = time.time() - self.session_start<br>
+        remaining = self.limits.max_session_time - int(elapsed)<br>
+        return max(0, remaining)<br>
+```<br>
+<br>
+### Integration Example<br>
+<br>
+```python<br>
+# In main application startup<br>
+from core.license_manager import LicenseManager<br>
+from core.demo_restrictions import DemoRestrictions<br>
+<br>
+license_manager = LicenseManager()<br>
+demo_restrictions = DemoRestrictions()<br>
+<br>
+# Check license status<br>
+if license_manager.is_demo_mode():<br>
+    print("Running in DEMO MODE - Limited features available")<br>
+    print("Enter license key in Settings to unlock full features")<br>
+else:<br>
+    print(f"License active: {license_manager.get_license_type().value}")<br>
+<br>
+# Feature gating example<br>
+def save_ecu_tuning():<br>
+    if not license_manager.is_feature_enabled('ecu_tuning_write'):<br>
+        show_message("ECU tuning write disabled in demo mode. Upgrade to unlock.")<br>
+        return<br>
+    <br>
+    # Proceed with save<br>
+    ...<br>
+```<br>
+<br>
+---<br>
+<br>
+## Security Considerations<br>
+<br>
+### 1. License Key Security<br>
+- Use cryptographic signatures (RSA/ECDSA)<br>
+- Encode expiration dates<br>
+- Include device binding<br>
+- Prevent key sharing<br>
+<br>
+### 2. Code Protection<br>
+- Obfuscate license validation code<br>
+- Use PyInstaller/Nuitka for compilation<br>
+- Anti-debugging measures<br>
+- Integrity checks<br>
+<br>
+### 3. Server Validation<br>
+- HTTPS only<br>
+- Rate limiting<br>
+- Request signing<br>
+- IP whitelisting (optional)<br>
+<br>
+### 4. Offline Security<br>
+- Encrypted license cache<br>
+- Time-limited offline access<br>
+- Periodic online validation<br>
+- Revocation support<br>
+<br>
+---<br>
+<br>
+## Recommended Approach<br>
+<br>
+### For MVP/Initial Release:<br>
+**Option 1: Simple License Key System**<br>
+- Quick to implement<br>
+- Works immediately<br>
+- Can upgrade later<br>
+<br>
+### For Production:<br>
+**Option 3: Hybrid System**<br>
+- Best balance of security and usability<br>
+- Supports offline operation<br>
+- Scalable to subscription model<br>
+<br>
+### For Enterprise:<br>
+**Option 4: Hardware-Based (YubiKey)**<br>
+- Maximum security<br>
+- Already implemented<br>
+- Enterprise-grade<br>
+<br>
+---<br>
+<br>
+## Next Steps<br>
+<br>
+1. **Choose implementation option** based on requirements<br>
+2. **Create license manager** with chosen approach<br>
+3. **Implement demo restrictions** for feature gating<br>
+4. **Add license UI** (entry dialog, status display)<br>
+5. **Integrate throughout app** (feature checks)<br>
+6. **Test thoroughly** (demo mode, licensed mode)<br>
+7. **Set up license server** (if using server-based option)<br>
+<br>
+---<br>
+<br>
+## License Key Generation<br>
+<br>
+### Simple Format<br>
+```<br>
+AI-TUNER-XXXX-XXXX-XXXX-XXXX<br>
+```<br>
+<br>
+### Generation Algorithm<br>
+```python<br>
+import secrets<br>
+import hashlib<br>
+<br>
+def generate_license_key(license_type: str, device_id: str) -> str:<br>
+    # Generate random segments<br>
+    segments = []<br>
+    for _ in range(3):<br>
+        segment = ''.join(secrets.choice('ABCDEFGHJKLMNPQRSTUVWXYZ23456789') <br>
+                         for _ in range(4))<br>
+        segments.append(segment)<br>
+    <br>
+    # Add type prefix<br>
+    type_code = {'basic': 'B', 'pro': 'P', 'enterprise': 'E'}[license_type]<br>
+    segments[0] = type_code + segments[0][1:]<br>
+    <br>
+    # Calculate checksum<br>
+    key_data = ''.join(segments)<br>
+    checksum = hashlib.md5(key_data.encode()).hexdigest()[-1].upper()<br>
+    <br>
+    return f"AI-TUNER-{'-'.join(segments)}-{checksum}"<br>
+```<br>
+<br>
+---<br>
+<br>
+## Testing<br>
+<br>
+### Test Cases<br>
+<br>
+1. **No License**<br>
+   - App starts in demo mode<br>
+   - Restricted features disabled<br>
+   - Upgrade prompts shown<br>
+<br>
+2. **Valid License**<br>
+   - App starts with full features<br>
+   - All features enabled<br>
+   - No restrictions<br>
+<br>
+3. **Invalid License**<br>
+   - Rejected with error message<br>
+   - App remains in demo mode<br>
+<br>
+4. **Expired License**<br>
+   - Falls back to demo mode<br>
+   - Shows expiration message<br>
+   - Upgrade prompt<br>
+<br>
+5. **Device Mismatch**<br>
+   - License rejected<br>
+   - Shows device binding error<br>
+<br>
+---<br>
+<br>
+## Migration Path<br>
+<br>
+### Phase 1: Basic Implementation (Week 1)<br>
+- License manager core<br>
+- Demo mode detection<br>
+- Basic feature gating<br>
+<br>
+### Phase 2: UI Integration (Week 2)<br>
+- License entry dialog<br>
+- Status indicators<br>
+- Upgrade prompts<br>
+<br>
+### Phase 3: Server Integration (Week 3-4)<br>
+- License server API<br>
+- Online validation<br>
+- Offline cache<br>
+<br>
+### Phase 4: Advanced Features (Week 5+)<br>
+- Subscription support<br>
+- Analytics<br>
+- Advanced security<br>
+<br>
+---<br>
+<br>
+## Cost Considerations<br>
+<br>
+### Self-Hosted (Option 1-3)<br>
+- **Development Time**: 2-4 weeks<br>
+- **Server Costs**: $10-50/month (if using server)<br>
+- **Maintenance**: Ongoing<br>
+<br>
+### Third-Party (Option 5)<br>
+- **Setup Time**: 1-2 days<br>
+- **Monthly Fees**: $50-500/month<br>
+- **Transaction Fees**: 2-5% per sale<br>
+- **Maintenance**: Minimal<br>
+<br>
+### Hardware (Option 4)<br>
+- **Development**: Already done<br>
+- **Hardware Cost**: $50-100 per YubiKey<br>
+- **User Cost**: Passed to customer<br>
+<br>
+---<br>
+<br>
+## Recommendation<br>
+<br>
+**Start with Option 1 (Simple License Key)** for MVP:<br>
+- Quick implementation (1-2 days)<br>
+- Works immediately<br>
+- No external dependencies<br>
+- Can upgrade to Option 3 later<br>
+<br>
+**Upgrade to Option 3 (Hybrid)** for production:<br>
+- Better security<br>
+- Server validation<br>
+- Subscription support<br>
+- Professional implementation<br>
+<br>
+This gives you a working system quickly while maintaining a path to a more robust solution.<br>
+<br>
+<br>
+<br>
+<br>
+
+</body>
+</html>

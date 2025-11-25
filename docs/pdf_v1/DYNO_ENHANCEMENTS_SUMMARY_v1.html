@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>DYNO_ENHANCEMENTS_SUMMARY</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # Virtual Dyno Enhancements Summary<br>
+<br>
+## Overview<br>
+Integrated all advanced enhancements from the provided Virtual Dyno Logger code into our existing Virtual Dyno system.<br>
+<br>
+## ✅ Completed Enhancements<br>
+<br>
+### 1. **Enhanced Air Density Calculation**<br>
+- **Location**: `services/virtual_dyno.py` - `EnvironmentalConditions.air_density_kg_m3()`<br>
+- **Improvement**: Upgraded from simplified formula to full barometric equation with proper humidity correction<br>
+- **Formula**:<br>
+  - Barometric pressure: `P = P0 * (1 - 2.25577e-5 * h)^5.25588`<br>
+  - Saturation pressure: `P_sat = 6.1078 * 10^((7.5*T)/(T+237.3)) * 100`<br>
+  - Vapor pressure: `P_v = humidity * P_sat`<br>
+  - Dry air pressure: `P_dry = P - P_v`<br>
+  - Air density: `ρ = P_dry/(R_dry*T) + P_v/(R_vapor*T)`<br>
+- **Benefits**: More accurate HP calculations across different altitudes, temperatures, and humidity levels<br>
+<br>
+### 2. **Torque Estimation**<br>
+- **Location**: `services/virtual_dyno.py` - `calculate_horsepower()`<br>
+- **Improvement**: Always calculates torque when RPM is available<br>
+- **Formula**: `Torque = (HP × 5252) / RPM`<br>
+- **Benefits**: Provides complete power curve data (both HP and torque) for analysis<br>
+<br>
+### 3. **Session Management**<br>
+- **Location**: `services/virtual_dyno.py`<br>
+- **New Features**:<br>
+  - `session_runs`: List of all runs in current session<br>
+  - `run_counter`: Tracks run numbers<br>
+  - `get_session_runs()`: Get all runs including current<br>
+  - `clear_session()`: Clear all session data<br>
+  - `export_session()`: Export all runs to single CSV file<br>
+- **Benefits**: Track multiple dyno runs, compare before/after, export complete session data<br>
+<br>
+### 4. **Run Metadata**<br>
+- **Location**: `services/virtual_dyno.py` - `DynoCurve` dataclass<br>
+- **New Fields**:<br>
+  - `run_name`: Optional name for each run (e.g., "Run_1", "Run_2")<br>
+  - `run_timestamp`: When the run was created<br>
+- **Benefits**: Better organization and tracking of multiple runs<br>
+<br>
+### 5. **Enhanced Export Functionality**<br>
+- **Location**: `ui/dyno_tab.py`<br>
+- **New Features**:<br>
+  - **Export Data**: Export current run to CSV<br>
+  - **Export Session**: Export all runs in session to single CSV file<br>
+  - Both exports include: time, RPM, speed, acceleration, wheel HP, engine HP, torque, confidence, method<br>
+- **Benefits**: Easy data analysis, sharing, and comparison<br>
+<br>
+### 6. **Run Summary Dialog**<br>
+- **Location**: `ui/dyno_tab.py` - `_show_run_summary()`<br>
+- **Features**:<br>
+  - Displays peak HP and RPM<br>
+  - Displays peak torque and RPM<br>
+  - Shows run name and data point count<br>
+  - Professional dialog window matching UI theme<br>
+- **Benefits**: Quick reference for run results without checking graph<br>
+<br>
+### 7. **Improved Peak Value Tracking**<br>
+- **Location**: `services/virtual_dyno.py` - `calculate_horsepower()`<br>
+- **Improvement**: Always updates peak HP wheel value and ensures torque peaks are properly tracked<br>
+- **Benefits**: More accurate peak value reporting<br>
+<br>
+## Integration Details<br>
+<br>
+### Air Density Calculation<br>
+The new air density formula is more accurate for:<br>
+- High altitude locations<br>
+- Extreme temperatures (hot/cold)<br>
+- High humidity conditions<br>
+- Different barometric pressures<br>
+<br>
+### Torque Display<br>
+- Torque curves are already displayed in `dyno_view.py` alongside HP curves<br>
+- Torque is calculated automatically when RPM data is available<br>
+- Both HP and torque curves are shown in separate plots with proper scaling<br>
+<br>
+### Session Export Format<br>
+The exported CSV includes:<br>
+- `run_name`: Name of the run<br>
+- `run_timestamp`: When the run started<br>
+- `time_s`: Relative time from run start<br>
+- `rpm`: Engine RPM<br>
+- `speed_mph`, `speed_mps`: Vehicle speed<br>
+- `acceleration_mps2`: Calculated acceleration<br>
+- `wheel_hp`: Wheel horsepower<br>
+- `engine_hp`: Crank horsepower<br>
+- `torque_ftlb`: Calculated torque<br>
+- `confidence`: Calculation confidence (0-1)<br>
+- `method`: Calculation method used<br>
+<br>
+## Usage<br>
+<br>
+### Starting a Logging Session<br>
+1. Click "Start Logging" button<br>
+2. Data is collected in real-time<br>
+3. Click "Stop Logging" when done<br>
+4. Data is automatically processed using improved batch calculation<br>
+5. Summary dialog appears with peak values<br>
+<br>
+### Exporting Data<br>
+- **Export Data**: Exports only the current run<br>
+- **Export Session**: Exports all runs in the current session to a single CSV file<br>
+<br>
+### Viewing Results<br>
+- HP and torque curves are displayed in the dyno view<br>
+- Summary dialog shows peak values after each run<br>
+- Multiple runs can be compared using the comparison feature<br>
+<br>
+## Technical Notes<br>
+<br>
+### Air Density Formula<br>
+The new formula uses:<br>
+- Separate gas constants for dry air (R_dry = 287.058 J/(kg·K)) and water vapor (R_vapor = 461.495 J/(kg·K))<br>
+- Proper barometric equation for altitude correction<br>
+- Magnus formula for saturation vapor pressure<br>
+- Combined density calculation: ρ = ρ_dry + ρ_vapor<br>
+<br>
+### Torque Calculation<br>
+Torque is calculated using the standard automotive formula:<br>
+```<br>
+Torque (ft-lb) = (Horsepower × 5252) / RPM<br>
+```<br>
+<br>
+This is the inverse of the power formula:<br>
+```<br>
+Horsepower = (Torque × RPM) / 5252<br>
+```<br>
+<br>
+### Batch Processing<br>
+The `calculate_horsepower_from_timeseries()` method uses:<br>
+- `np.gradient()` for accurate acceleration calculation (central differences)<br>
+- Savitzky-Golay filter for noise reduction<br>
+- Proper handling of time series data<br>
+<br>
+## Future Enhancements (Optional)<br>
+<br>
+1. **Live Graph Updates**: Real-time graph updates during logging (currently updates after processing)<br>
+2. **Multi-Run Overlay**: Display multiple runs on same graph with different colors<br>
+3. **Statistical Analysis**: Calculate power band, area under curve, etc.<br>
+4. **Export Formats**: Support JSON, Excel, and other formats<br>
+5. **Run Comparison**: Side-by-side comparison of multiple runs<br>
+<br>
+## Files Modified<br>
+<br>
+1. `services/virtual_dyno.py`:<br>
+   - Enhanced `air_density_kg_m3()` method<br>
+   - Added session management methods<br>
+   - Improved torque calculation<br>
+   - Added run metadata to `DynoCurve`<br>
+<br>
+2. `ui/dyno_tab.py`:<br>
+   - Added "Export Session" button<br>
+   - Implemented `_export_data()` for single run export<br>
+   - Implemented `_export_session()` for session export<br>
+   - Added `_show_run_summary()` dialog<br>
+<br>
+## Testing Recommendations<br>
+<br>
+1. Test air density calculation at different altitudes/temperatures<br>
+2. Verify torque calculation matches expected values<br>
+3. Test session export with multiple runs<br>
+4. Verify summary dialog displays correct peak values<br>
+5. Test export functionality with various data sets<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+</body>
+</html>

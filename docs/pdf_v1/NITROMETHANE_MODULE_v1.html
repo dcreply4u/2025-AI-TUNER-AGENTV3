@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>NITROMETHANE_MODULE</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # Nitro Methane Module – Advanced Features<br>
+<br>
+## Overview<br>
+The Nitro Methane tab in the ECU Tuning interface now mirrors professional nitro-burning crew chiefs tools.  It combines mixing calculators, AFR guidance, ignition/boost controls, and safety simulators so you can model nitro percentages, predict power changes, and monitor detonation risk in real time.<br>
+<br>
+## Feature Highlights<br>
+### Fuel & AFR Management<br>
+- **Fuel Mixture Calculator** – precise nitro/methanol/oil blending by weight or volume with specific gravity readout.<br>
+- **AFR & Jetting Calculator** – accounts for displacement, blower size, overdrive, atmosphere, and nitro stoich (~1.7:1) to suggest jet and pill sizes.<br>
+- **Mix Simulator (Lean/Rich)** – slider + lean/rich nudge buttons simulate AFR adjustments; outputs recommended AFR, timing offset, and projected power gains.<br>
+- **Recommended Lambda** – live readout tied to current nitro percentage and telemetry.<br>
+<br>
+### Ignition & Detonation Control<br>
+- **Ignition Timing Map** – high resolution RPM/load table tailored for nitro’s slower burn rate.<br>
+- **Detonation Predictor** – evaluates lambda, timing advance, boost, and EGT to warn about pre-ignition risk via color-coded indicator.<br>
+- **Timing Stages** – multi-stage timing tables vs boost/time to smooth the transition into heavy nitro loads.<br>
+<br>
+### Boost & Power Simulation<br>
+- **Nitro Boost Gauge** – visual simulator for oxygen-release pressure; ties into audio cues (“idle hum”, “rising howl”, “siren”).<br>
+- **Power Predictor** – estimates hp gains from nitro %, lambda delta, and timing adjustments; surfaces inside Boost & Power panel and mix simulator.<br>
+- **Nitro Boost State Label** – textual summary for crew heads-up displays.<br>
+<br>
+### Safety, Logging & Soft Limits<br>
+- **Soft Rev Limiter** – “Soft Limiting” status for nitro-specific rev control, with hard-cut detection.<br>
+- **Engine Stress Gauge** – cumulative damage model factoring detonation risk and lambda excursions.<br>
+- **Closed-loop safeguards** – configurable thresholds for EGT, CHT, fuel/oil pressure, peak cylinder pressure, knock-based retard, and emergency shutdown.<br>
+- **Detonation Warning Banner** – shows LOW / MODERATE / HIGH risk.<br>
+- **High-speed Datalogger** – 100–2000 Hz sampling with auto start/stop and analysis tools.<br>
+<br>
+### User Interface Enhancements<br>
+- **Touchscreen-Friendly Controls** – large toggles and sliders sync with desktop settings.<br>
+- **Audio/Visual cues** – nitro boost states drive textual indicators for loudspeakers or HUD integration.<br>
+- **Mix simulator guidance** – contextual tips reminding that richer mixtures cool the engine but increase stress.<br>
+<br>
+## Telemetry Integration<br>
+- `update_telemetry()` feeds: nitro %, lambda, timing, boost, fuel pressure, peak cylinder pressure, EGT/CHT, injector duty, horsepower, RPM, etc.<br>
+- Live data drives the mix simulator slider (when not manually dragged), recommended lambda, power prediction, soft rev status, detonation warnings, engine stress, and nitro boost cues.<br>
+<br>
+## Files & Entry Points<br>
+- UI logic lives in `ui/ecu_tuning_main.py` inside `class NitroMethaneTab(ModuleTab)`.<br>
+- Mix calculator helpers: `_create_nitro_calculator()`, `_create_mix_simulator()`, `_update_mix_simulator()`.<br>
+- Safety helpers: `_recommended_lambda`, `_detonation_risk`, `_update_detonation_indicator`, `_update_engine_damage`, `_update_soft_rev_status`.<br>
+<br>
+## Tips for Operators<br>
+1. Keep nitro percentage synced with physical mix using the Fuel Mixture tool.<br>
+2. Monitor the Detonation Risk widget before each pass; aim for “Low” or “Moderate”.<br>
+3. Use the Mix Simulator to preview lean-outs or rich-ups before altering mechanical jets.<br>
+4. Watch Engine Stress; sustained >80 % indicates you should richen the tune or reduce timing.<br>
+5. Enable high-speed logging for every run to correlate AFR, timing, and boost with ET changes.<br>
+<br>
+With these enhancements the Nitro Methane module now provides AFR calculators, ignition-timing guidance, boost simulation, soft rev limiting, and visual/auditory cues exactly as requested.  Use this document as the primary reference when updating nitro-specific workflows or onboarding crew members.<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+</body>
+</html>

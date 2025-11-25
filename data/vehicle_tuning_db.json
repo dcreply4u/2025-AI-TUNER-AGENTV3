@@ -1,0 +1,73 @@
+{
+  "vehicles": {
+    "Honda_Civic_2020_K20C1": {
+      "make": "Honda",
+      "model": "Civic",
+      "year": 2020,
+      "engine_code": "K20C1",
+      "displacement_liters": 2.0,
+      "cylinders": 4,
+      "forced_induction": "turbo",
+      "fuel_type": "gasoline",
+      "stock_hp": 306,
+      "stock_torque": 295,
+      "compression_ratio": 9.8,
+      "redline_rpm": 7000,
+      "ecu_type": "Bosch",
+      "notes": ""
+    },
+    "Subaru_WRX_2021_FA20": {
+      "make": "Subaru",
+      "model": "WRX",
+      "year": 2021,
+      "engine_code": "FA20",
+      "displacement_liters": 2.0,
+      "cylinders": 4,
+      "forced_induction": "turbo",
+      "fuel_type": "gasoline",
+      "stock_hp": 268,
+      "stock_torque": 258,
+      "compression_ratio": 10.6,
+      "redline_rpm": 6700,
+      "ecu_type": "Denso",
+      "notes": ""
+    }
+  },
+  "modifications": {
+    "stage1_tune": {
+      "modification_id": "stage1_tune",
+      "name": "Stage 1 ECU Tune",
+      "category": "ecu",
+      "description": "Basic ECU remap for stock vehicle",
+      "compatible_vehicles": [
+        "Honda_Civic_2020_K20C1",
+        "Subaru_WRX_2021_FA20"
+      ],
+      "specifications": {},
+      "performance_gain_hp": 30,
+      "performance_gain_torque": 40,
+      "installation_difficulty": "easy",
+      "cost_estimate": 500.0,
+      "tuning_required": true,
+      "notes": ""
+    },
+    "cold_air_intake": {
+      "modification_id": "cold_air_intake",
+      "name": "Cold Air Intake",
+      "category": "intake",
+      "description": "Aftermarket cold air intake system",
+      "compatible_vehicles": [
+        "Honda_Civic_2020_K20C1",
+        "Subaru_WRX_2021_FA20"
+      ],
+      "specifications": {},
+      "performance_gain_hp": 10,
+      "performance_gain_torque": null,
+      "installation_difficulty": "easy",
+      "cost_estimate": 300.0,
+      "tuning_required": false,
+      "notes": ""
+    }
+  },
+  "components": {}
+}

@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>INVESTOR_CODE_REVIEW_GUIDE</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # Investor/Buyer Code Review Guide - Best Practices<br>
+<br>
+## Is It Normal?<br>
+<br>
+**YES** - Code reviews are standard practice in:<br>
+- **Due Diligence**: Buyers/investors need to verify what they're buying<br>
+- **Technical Assessment**: Investors want to understand the technology<br>
+- **Valuation**: Code quality affects company value<br>
+- **Risk Assessment**: Identify technical debt, security issues<br>
+<br>
+## When NDAs Come Into Play<br>
+<br>
+### Standard Process<br>
+<br>
+1. **Initial Discussion** (No NDA needed)<br>
+   - High-level pitch<br>
+   - Business model<br>
+   - Market opportunity<br>
+   - General features (no technical details)<br>
+<br>
+2. **Serious Interest** (NDA REQUIRED)<br>
+   - Detailed technical discussions<br>
+   - Architecture overview<br>
+   - Feature deep-dives<br>
+   - Competitive advantages<br>
+<br>
+3. **Due Diligence** (NDA + Additional Agreements)<br>
+   - Code repository access<br>
+   - Technical documentation<br>
+   - Customer data (if applicable)<br>
+   - Financial information<br>
+<br>
+## NDA Best Practices<br>
+<br>
+### When to Require NDA<br>
+<br>
+**ALWAYS require NDA before:**<br>
+- ✅ Sharing code repository access<br>
+- ✅ Revealing proprietary algorithms<br>
+- ✅ Discussing technical architecture details<br>
+- ✅ Sharing customer data or metrics<br>
+- ✅ Revealing trade secrets<br>
+- ✅ Showing competitive advantages<br>
+<br>
+**NDA may not be needed for:**<br>
+- ❌ General pitch deck<br>
+- ❌ Public marketing materials<br>
+- ❌ High-level business model<br>
+- ❌ Public financial information<br>
+<br>
+### NDA Requirements<br>
+<br>
+**Essential Clauses:**<br>
+1. **Definition of Confidential Information**<br>
+   - Code, algorithms, architecture<br>
+   - Customer data, metrics<br>
+   - Business plans, financials<br>
+   - Trade secrets<br>
+<br>
+2. **Purpose Limitation**<br>
+   - "Solely for evaluation purposes"<br>
+   - "Not for competitive use"<br>
+   - "Not to reverse engineer"<br>
+<br>
+3. **Duration**<br>
+   - Typically 2-5 years<br>
+   - Some NDAs are perpetual for trade secrets<br>
+<br>
+4. **Return/Destruction**<br>
+   - Return all materials<br>
+   - Delete copies<br>
+   - Certify destruction<br>
+<br>
+5. **Exclusions**<br>
+   - Publicly available information<br>
+   - Independently developed<br>
+   - Rightfully received from third party<br>
+<br>
+6. **Remedies**<br>
+   - Injunctive relief<br>
+   - Monetary damages<br>
+   - Attorney fees<br>
+<br>
+## Code Review Process<br>
+<br>
+### Stage 1: Initial Interest (No Code Access)<br>
+**What to Share:**<br>
+- Pitch deck<br>
+- High-level architecture diagram<br>
+- Feature list<br>
+- Market opportunity<br>
+- Business model<br>
+<br>
+**What NOT to Share:**<br>
+- Source code<br>
+- Algorithms<br>
+- Technical implementation details<br>
+- Customer data<br>
+<br>
+### Stage 2: Serious Interest (NDA Required)<br>
+**What to Share (with NDA):**<br>
+- Architecture overview<br>
+- Technology stack<br>
+- Key features (high-level)<br>
+- Demo or screenshots<br>
+- Business metrics (if relevant)<br>
+<br>
+**What NOT to Share Yet:**<br>
+- Full code repository<br>
+- Proprietary algorithms<br>
+- Complete technical documentation<br>
+<br>
+### Stage 3: Due Diligence (NDA + Additional Agreements)<br>
+**What to Share:**<br>
+- Code repository access (read-only)<br>
+- Technical documentation<br>
+- Test results, benchmarks<br>
+- Security documentation<br>
+- Customer testimonials (with permission)<br>
+<br>
+**Protections:**<br>
+- Read-only access<br>
+- Time-limited access<br>
+- Specific repository (not all code)<br>
+- Watermarked materials<br>
+<br>
+## Protecting Your Code<br>
+<br>
+### Before Sharing Code<br>
+<br>
+1. **Clean Up Code**<br>
+   - Remove sensitive credentials<br>
+   - Remove customer-specific data<br>
+   - Remove proprietary algorithms (if possible)<br>
+   - Add watermarks/comments<br>
+<br>
+2. **Create Review Package**<br>
+   - Specific repository/branch<br>
+   - Documentation only<br>
+   - Screenshots/videos instead of code<br>
+   - Redacted version<br>
+<br>
+3. **Use Read-Only Access**<br>
+   - GitHub: Read-only collaborator<br>
+   - Git: Specific branch only<br>
+   - Time-limited access<br>
+   - Monitor access logs<br>
+<br>
+4. **Watermark Materials**<br>
+   - Add investor name to code<br>
+   - Timestamp documents<br>
+   - Track who accessed what<br>
+<br>
+### Code Review Checklist<br>
+<br>
+**Before Granting Access:**<br>
+- [ ] NDA signed and executed<br>
+- [ ] Purpose clearly defined<br>
+- [ ] Access scope limited<br>
+- [ ] Time limit set<br>
+- [ ] Read-only access configured<br>
+- [ ] Sensitive data removed<br>
+- [ ] Watermarks added<br>
+- [ ] Access logging enabled<br>
+<br>
+## Additional Agreements<br>
+<br>
+### Beyond NDA<br>
+<br>
+1. **Term Sheet** (Investment)<br>
+   - Valuation<br>
+   - Investment amount<br>
+   - Terms and conditions<br>
+   - Exclusivity period<br>
+<br>
+2. **Letter of Intent (LOI)** (Acquisition)<br>
+   - Purchase price range<br>
+   - Due diligence scope<br>
+   - Exclusivity period<br>
+   - Timeline<br>
+<br>
+3. **Due Diligence Checklist**<br>
+   - What they can review<br>
+   - What's off-limits<br>
+   - Timeline<br>
+   - Access procedures<br>
+<br>
+## Red Flags to Watch For<br>
+<br>
+### Warning Signs<br>
+<br>
+**🚩 Investor/Buyer:**<br>
+- Refuses to sign NDA<br>
+- Wants code before serious discussion<br>
+- Asks for full repository immediately<br>
+- Wants to "test" the code themselves<br>
+- Vague about purpose<br>
+- Competitor or potential competitor<br>
+- No track record or references<br>
+<br>
+**🚩 NDA Issues:**<br>
+- Vague confidentiality definition<br>
+- Short duration (<1 year)<br>
+- No return/destruction clause<br>
+- Allows reverse engineering<br>
+- One-sided (only protects them)<br>
+<br>
+## Best Practices<br>
+<br>
+### Do's ✅<br>
+<br>
+1. **Require NDA Early**<br>
+   - Before any technical details<br>
+   - Before code access<br>
+   - Standard practice, not offensive<br>
+<br>
+2. **Use Standard NDA Template**<br>
+   - Mutual NDA (protects both parties)<br>
+   - Industry-standard terms<br>
+   - Reviewed by attorney<br>
+<br>
+3. **Limit Access**<br>
+   - Only what's necessary<br>
+   - Read-only when possible<br>
+   - Time-limited<br>
+   - Specific scope<br>
+<br>
+4. **Document Everything**<br>
+   - What was shared<br>
+   - When it was shared<br>
+   - Who had access<br>
+   - When access was revoked<br>
+<br>
+5. **Have Attorney Review**<br>
+   - NDA terms<br>
+   - Due diligence agreements<br>
+   - Term sheets<br>
+   - LOIs<br>
+<br>
+### Don'ts ❌<br>
+<br>
+1. **Don't Share Without NDA**<br>
+   - Even if they're "serious"<br>
+   - Even if they're "trusted"<br>
+   - Always get it in writing<br>
+<br>
+2. **Don't Share Everything**<br>
+   - Only what's necessary<br>
+   - Not proprietary algorithms<br>
+   - Not customer data (without permission)<br>
+<br>
+3. **Don't Rush**<br>
+   - Take time to review NDA<br>
+   - Get legal counsel<br>
+   - Don't feel pressured<br>
+<br>
+4. **Don't Ignore Red Flags**<br>
+   - Trust your instincts<br>
+   - Ask for references<br>
+   - Verify legitimacy<br>
+<br>
+## Sample NDA Template (Basic)<br>
+<br>
+**⚠️ IMPORTANT: Have attorney review and customize**<br>
+<br>
+```<br>
+CONFIDENTIALITY AGREEMENT<br>
+<br>
+This Confidentiality Agreement ("Agreement") is entered into between:<br>
+[Your Company] ("Disclosing Party")<br>
+[Investor/Buyer] ("Receiving Party")<br>
+<br>
+1. CONFIDENTIAL INFORMATION<br>
+   Includes: Source code, algorithms, architecture, customer data, <br>
+   business plans, financial information, trade secrets.<br>
+<br>
+2. PURPOSE<br>
+   Solely for evaluation of potential investment/acquisition.<br>
+   Not for competitive use or reverse engineering.<br>
+<br>
+3. OBLIGATIONS<br>
+   Receiving Party agrees to:<br>
+   - Maintain confidentiality<br>
+   - Use only for stated purpose<br>
+   - Not disclose to third parties<br>
+   - Return/destroy upon request<br>
+<br>
+4. DURATION<br>
+   [2-5 years] from date of disclosure.<br>
+<br>
+5. EXCEPTIONS<br>
+   - Publicly available information<br>
+   - Independently developed<br>
+   - Rightfully received from third party<br>
+<br>
+6. REMEDIES<br>
+   Injunctive relief, monetary damages, attorney fees.<br>
+<br>
+[Signatures]<br>
+```<br>
+<br>
+## For TelemetryIQ Specifically<br>
+<br>
+### What to Protect<br>
+<br>
+**Highly Confidential:**<br>
+- AI algorithms and models<br>
+- Virtual dyno calculations<br>
+- Predictive maintenance algorithms<br>
+- Auto-tuning engine<br>
+- Security implementations (YubiKey, encryption)<br>
+<br>
+**Confidential:**<br>
+- Architecture and design<br>
+- Integration methods<br>
+- Performance optimizations<br>
+- Customer data<br>
+<br>
+**Can Share (with NDA):**<br>
+- Feature list<br>
+- High-level architecture<br>
+- Technology stack<br>
+- Market opportunity<br>
+- Business model<br>
+<br>
+### Recommended Approach<br>
+<br>
+1. **Initial Pitch**: No code, general features<br>
+2. **Serious Interest**: NDA → Architecture overview, demo<br>
+3. **Due Diligence**: NDA + LOI → Limited code access, documentation<br>
+4. **Final Negotiation**: Term sheet → Full access (if deal is close)<br>
+<br>
+## Legal Resources<br>
+<br>
+### When to Consult Attorney<br>
+<br>
+**Immediately:**<br>
+- Drafting NDA<br>
+- Reviewing investor NDA<br>
+- Term sheet negotiation<br>
+- LOI negotiation<br>
+- Due diligence agreements<br>
+<br>
+**Recommended:**<br>
+- Startup attorney<br>
+- IP attorney (for code protection)<br>
+- Corporate attorney (for deals)<br>
+<br>
+### Cost Estimates<br>
+<br>
+- **NDA Review**: $200-500<br>
+- **NDA Drafting**: $500-1000<br>
+- **Term Sheet Review**: $1000-2000<br>
+- **Due Diligence Support**: $2000-5000<br>
+<br>
+**Worth It**: Protects your IP and company value<br>
+<br>
+## Common Scenarios<br>
+<br>
+### Scenario 1: Angel Investor<br>
+**Process:**<br>
+1. Pitch (no NDA)<br>
+2. Interest → NDA<br>
+3. Demo + architecture overview<br>
+4. Term sheet<br>
+5. Limited code review (if needed)<br>
+<br>
+### Scenario 2: VC Firm<br>
+**Process:**<br>
+1. Pitch deck (no NDA)<br>
+2. Partner meeting → NDA<br>
+3. Technical deep-dive<br>
+4. Term sheet<br>
+5. Due diligence (code review)<br>
+<br>
+### Scenario 3: Strategic Buyer<br>
+**Process:**<br>
+1. Initial discussion (no NDA)<br>
+2. LOI → NDA + exclusivity<br>
+3. Due diligence (full code review)<br>
+4. Purchase agreement<br>
+<br>
+### Scenario 4: Competitor (Be Careful!)<br>
+**Process:**<br>
+1. Require strong NDA<br>
+2. Limit to high-level only<br>
+3. Consider if worth it<br>
+4. May want to avoid entirely<br>
+<br>
+## Key Takeaways<br>
+<br>
+1. ✅ **Code reviews are normal** - Standard in due diligence<br>
+2. ✅ **NDA is standard** - Not offensive, expected<br>
+3. ✅ **Require NDA early** - Before technical details<br>
+4. ✅ **Limit access** - Only what's necessary<br>
+5. ✅ **Get legal help** - Worth the investment<br>
+6. ✅ **Trust but verify** - Check references, legitimacy<br>
+7. ✅ **Document everything** - Track what was shared<br>
+<br>
+## Action Items<br>
+<br>
+**Before Any Investor Meeting:**<br>
+- [ ] Prepare NDA template<br>
+- [ ] Have attorney review NDA<br>
+- [ ] Prepare "safe" pitch materials<br>
+- [ ] Prepare technical overview (for after NDA)<br>
+- [ ] Set up code repository access controls<br>
+- [ ] Create due diligence package<br>
+<br>
+**When Investor Shows Interest:**<br>
+- [ ] Send NDA immediately<br>
+- [ ] Don't share code until signed<br>
+- [ ] Verify investor legitimacy<br>
+- [ ] Check references<br>
+- [ ] Consult attorney if needed<br>
+<br>
+---<br>
+<br>
+**Remember**: Protecting your IP is protecting your company value. Don't be afraid to require proper protections - serious investors expect it!<br>
+<br>
+
+</body>
+</html>

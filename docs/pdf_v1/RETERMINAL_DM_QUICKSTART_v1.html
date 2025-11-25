@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>RETERMINAL_DM_QUICKSTART</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    # reTerminal DM Quick Start<br>
+<br>
+## Hardware Detection<br>
+<br>
+The AI Tuner Agent automatically detects the reTerminal DM platform and configures:<br>
+- **Dual CAN FD buses** (can0 and can1)<br>
+- **10.1" touchscreen** (1280x800)<br>
+- **Physical buttons** (Home, Back, Function)<br>
+- **Wide voltage power** (9-36V DC)<br>
+<br>
+## Quick Setup<br>
+<br>
+1. **Flash CM4** with Raspberry Pi OS (64-bit recommended)<br>
+<br>
+2. **Enable CAN interfaces**:<br>
+   ```bash<br>
+   sudo python3 tools/setup_can_reterminal.py<br>
+   # Choose option 1 to bring up interfaces<br>
+   ```<br>
+<br>
+3. **Install dependencies**:<br>
+   ```bash<br>
+   sudo apt update<br>
+   sudo apt install -y python3 python3-pip can-utils<br>
+   pip3 install -r requirements.txt<br>
+   ```<br>
+<br>
+4. **Verify hardware detection**:<br>
+   ```bash<br>
+   python3 -c "from core import get_hardware_config; print(get_hardware_config())"<br>
+   ```<br>
+<br>
+5. **Launch UI**:<br>
+   ```bash<br>
+   python3 -m ui.main<br>
+   ```<br>
+<br>
+## CAN Interface Usage<br>
+<br>
+The reTerminal DM has **two CAN buses** available:<br>
+<br>
+- **can0** - Primary CAN bus (default)<br>
+- **can1** - Secondary CAN bus<br>
+<br>
+Both are automatically detected and can be used simultaneously. Configure in `config.py`:<br>
+<br>
+```python<br>
+CAN_CHANNEL = "can0"  # Primary<br>
+CAN_CHANNEL_SECONDARY = "can1"  # Secondary (auto-detected)<br>
+```<br>
+<br>
+## Display<br>
+<br>
+The 10.1" touchscreen is automatically configured. The UI will use the full screen resolution (1280x800).<br>
+<br>
+## Physical Buttons<br>
+<br>
+Button mappings (can be customized):<br>
+- **Home** (GPIO5) - Return to main screen<br>
+- **Back** (GPIO6) - Navigation back<br>
+- **Function** (GPIO13) - Quick action<br>
+<br>
+## Troubleshooting<br>
+<br>
+**CAN interfaces not showing?**<br>
+```bash<br>
+# Check if interfaces exist<br>
+ip link show<br>
+<br>
+# Check kernel messages<br>
+dmesg | grep -i can<br>
+<br>
+# Manually bring up<br>
+sudo ip link set can0 up type can bitrate 500000<br>
+sudo ip link set can1 up type can bitrate 500000<br>
+```<br>
+<br>
+**Display issues?**<br>
+```bash<br>
+# Check display<br>
+xrandr<br>
+<br>
+# Check touchscreen<br>
+xinput list<br>
+```<br>
+<br>
+## Auto-start on Boot<br>
+<br>
+See `docs/RETERMINAL_DM_SETUP.md` for systemd service configuration.<br>
+<br>
+## More Information<br>
+<br>
+- Full setup guide: `docs/RETERMINAL_DM_SETUP.md`<br>
+- Seeed documentation: https://wiki.seeedstudio.com/reTerminal-DM/<br>
+<br>
+
+</body>
+</html>

@@ -1,0 +1,146 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'AI Tuner Agent - IoT Core Stack for MQTT Telemetry'
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: 'ai-tuner'
+    Description: 'Project name for resource naming'
+  
+  Environment:
+    Type: String
+    Default: 'production'
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: 'Deployment environment'
+  
+  LambdaExecutionRoleArn:
+    Type: String
+    Description: 'ARN of Lambda execution role (from main stack)'
+
+Resources:
+  # IoT Core Policy
+  IoTDevicePolicy:
+    Type: AWS::IoT::Policy
+    Properties:
+      PolicyName: !Sub '${ProjectName}-device-policy-${Environment}'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - iot:Connect
+            Resource: !Sub 'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:client/${ProjectName}-*'
+          - Effect: Allow
+            Action:
+              - iot:Publish
+            Resource: !Sub 'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topic/${ProjectName}/telemetry/*'
+          - Effect: Allow
+            Action:
+              - iot:Subscribe
+            Resource: !Sub 'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topicfilter/${ProjectName}/telemetry/*'
+          - Effect: Allow
+            Action:
+              - iot:Receive
+            Resource: !Sub 'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topic/${ProjectName}/telemetry/*'
+
+  # IoT Topic Rule - Store telemetry in DynamoDB
+  TelemetryTopicRule:
+    Type: AWS::IoT::TopicRule
+    Properties:
+      RuleName: !Sub '${ProjectName}-telemetry-rule-${Environment}'
+      TopicPattern: !Sub '${ProjectName}/telemetry/+'
+      RuleDisabled: false
+      AwsIotSqlVersion: '2016-03-23'
+      Sql: !Sub |
+        SELECT * FROM '${ProjectName}/telemetry/+'
+      Actions:
+        - DynamoDBv2:
+            RoleArn: !GetAtt IoTDynamoDBRole.Arn
+            PutItem:
+              TableName: !ImportValue
+                Fn::Sub: '${ProjectName}-telemetry-table-${Environment}'
+
+  # IoT Topic Rule - Store GPS data
+  GPSTopicRule:
+    Type: AWS::IoT::TopicRule
+    Properties:
+      RuleName: !Sub '${ProjectName}-gps-rule-${Environment}'
+      TopicPattern: !Sub '${ProjectName}/telemetry/+/gps_fix'
+      RuleDisabled: false
+      AwsIotSqlVersion: '2016-03-23'
+      Sql: !Sub |
+        SELECT device_id, lat, lon, speed_mps, heading, timestamp FROM '${ProjectName}/telemetry/+/gps_fix'
+      Actions:
+        - DynamoDBv2:
+            RoleArn: !GetAtt IoTDynamoDBRole.Arn
+            PutItem:
+              TableName: !ImportValue
+                Fn::Sub: '${ProjectName}-gps-table-${Environment}'
+
+  # IAM Role for IoT to write to DynamoDB
+  IoTDynamoDBRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${ProjectName}-iot-dynamodb-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: iot.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: DynamoDBWrite
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                Resource:
+                  - !ImportValue
+                      Fn::Sub: '${ProjectName}-telemetry-table-${Environment}'
+                  - !ImportValue
+                      Fn::Sub: '${ProjectName}-gps-table-${Environment}'
+
+  # IoT Thing Type
+  VehicleThingType:
+    Type: AWS::IoT::ThingType
+    Properties:
+      ThingTypeName: !Sub '${ProjectName}-vehicle-${Environment}'
+      ThingTypeProperties:
+        Description: 'AI Tuner Agent vehicle device type'
+        SearchableAttributes:
+          - device_id
+          - vehicle_type
+
+  # IoT Thing Group
+  VehicleThingGroup:
+    Type: AWS::IoT::ThingGroup
+    Properties:
+      ThingGroupName: !Sub '${ProjectName}-vehicles-${Environment}'
+      ThingGroupProperties:
+        ThingGroupDescription: 'All AI Tuner Agent vehicles'
+
+Outputs:
+  IoTEndpoint:
+    Description: 'IoT Core endpoint for MQTT connections'
+    Value: !Sub '${AWS::AccountId}.iot.${AWS::Region}.amazonaws.com'
+    Export:
+      Name: !Sub '${ProjectName}-iot-endpoint-${Environment}'
+
+  IoTDevicePolicyName:
+    Description: 'IoT device policy name'
+    Value: !Ref IoTDevicePolicy
+    Export:
+      Name: !Sub '${ProjectName}-iot-policy-${Environment}'
+
+  ThingTypeName:
+    Description: 'IoT Thing Type name'
+    Value: !Ref VehicleThingType
+    Export:
+      Name: !Sub '${ProjectName}-thing-type-${Environment}'
+
