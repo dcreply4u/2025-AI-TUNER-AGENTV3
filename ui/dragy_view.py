@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 class MetricTile(QWidget):
     """Simple metric tile for drag racing performance data."""
     
-    TILE_HEIGHT = 85
+    TILE_HEIGHT = 65  # Smaller to fit all tiles
     
     def __init__(self, title: str, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -35,21 +35,21 @@ class MetricTile(QWidget):
         self.setPalette(palette)
         
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(8, 6, 8, 6)
-        layout.setSpacing(2)
+        layout.setContentsMargins(6, 4, 6, 4)
+        layout.setSpacing(1)
         
         self.title_label = QLabel(f"🏎️ {title}")
-        self.title_label.setFont(QFont("Arial", 10, QFont.Weight.Bold))
-        self.title_label.setStyleSheet("color: #2c3e50; background-color: #e8f4f8; padding: 3px 6px; border-radius: 3px;")
+        self.title_label.setFont(QFont("Arial", 9, QFont.Weight.Bold))
+        self.title_label.setStyleSheet("color: #2c3e50; background-color: #e8f4f8; padding: 2px 4px; border-radius: 2px;")
         layout.addWidget(self.title_label)
         
         self.value_label = QLabel("--")
-        self.value_label.setFont(QFont("Consolas", 18, QFont.Weight.Bold))
+        self.value_label.setFont(QFont("Consolas", 14, QFont.Weight.Bold))
         self.value_label.setStyleSheet("color: #34495e;")
         layout.addWidget(self.value_label)
         
         self.best_label = QLabel("🏆 Best: --")
-        self.best_label.setFont(QFont("Arial", 8))
+        self.best_label.setFont(QFont("Arial", 7))
         self.best_label.setStyleSheet("color: #27ae60;")
         layout.addWidget(self.best_label)
 
@@ -115,7 +115,7 @@ class DragTimesPanel(QWidget):
 
         # Tiles container
         tiles_container = QWidget()
-        tiles_container.setFixedHeight(MetricTile.TILE_HEIGHT * 2 + 8)
+        tiles_container.setFixedHeight(MetricTile.TILE_HEIGHT * 2 + 10)
         
         tile_grid = QGridLayout(tiles_container)
         tile_grid.setContentsMargins(0, 0, 0, 0)
