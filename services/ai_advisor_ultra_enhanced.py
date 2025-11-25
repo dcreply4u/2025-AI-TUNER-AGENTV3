@@ -166,7 +166,7 @@ class UltraEnhancedAIAdvisor:
         conv_context = self.conversation_memory.get_relevant_context(question)
         
         # Classify intent
-        intent, intent_confidence = self.base_advisor._classify_intent(question), 0.8
+        intent, intent_confidence = self.base_advisor.classify_intent(question)
         
         # Search knowledge bases
         # 1. Vector KB (semantic search)

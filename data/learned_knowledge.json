@@ -1,0 +1,36 @@
+{
+  "tuning_sessions": [],
+  "interactions": [
+    {
+      "question": "What is boost?",
+      "answer": "Boost Control Tuning:\n\nBoost Targets:\n- Street: 10-15 psi (0.7-1.0 bar)\n- Track: 15-25 psi (1.0-1.7 bar)\n- Race: 25+ psi (1.7+ bar) - requires built engine\n\nControl Methods:\n- Open Loop: Fixed duty cycle table\n- Closed Loop: PID control with target table\n- Gear-based: Different boost per gear\n- RPM-based: Ramp boost with RPM\n\nWastegate Control:\n- Solenoid duty cycle controls boost\n- Higher duty = more boost (up to limit)\n- Adjust duty cycle table (Load vs RPM)\n- Use compensation tables for temperature/altitude\n\nSafety:\n- Set overboost protection (fuel cut or wastegate dump)\n- Monitor boost spikes (can damage engine)\n- Use boost ramp-in for smooth power delivery\n- Check for boost leaks (inconsistent boost)\n\nTuning Process:\n1. Start with low boost target\n2. Gradually increase while monitoring AFR and timing\n3. Adjust fuel and timing for higher boost\n4. Test at various RPM points\n5. Use boost compensation for conditions\n\n\nRelated Information:\n\nTurbo Tuning Fundamentals:\n\nTurbo Tuning Fundamentals:\n\nHow Turbos Work:\n- Exhaust spins turbine\n- Turbine spins compressor\n- Compressor forces air into engine\n- More exhaust = more boost\n\nSpool Characteristics:\n- Small turbo: ...\n\nMethanol Injection:\n\nMethanol Injection Tuning:\n\nSystem Purpose:\n- Charge cooling (reduces intake air temperature)\n- Octane boost (allows more timing/boost)\n- Power increase (typically 50-150hp)\n\nInjection Control:\n- Dut...\n\n[Expert System] Low oil pressure - check oil level and pump immediately\n\n\n[\u26a0\ufe0f Moderate Confidence]\n\nPlease verify this information.\n\n\nSources: Boost Control, Turbo Tuning Fundamentals, Methanol Injection",
+      "timestamp": 1764104271.1605132,
+      "helpful": null,
+      "vehicle_id": null,
+      "context": {
+        "entities": {},
+        "important_facts": {},
+        "preferences": {},
+        "current_vehicle_id": null,
+        "current_tab": null,
+        "active_topics": [
+          "boost"
+        ],
+        "recent_messages": [
+          {
+            "role": "user",
+            "content": "What is boost?",
+            "intent": null
+          }
+        ]
+      }
+    }
+  ],
+  "learned_patterns": {},
+  "vehicle_patterns": {},
+  "statistics": {
+    "successful_tunings": 0,
+    "total_interactions": 1,
+    "positive_feedback": 0
+  }
+}
