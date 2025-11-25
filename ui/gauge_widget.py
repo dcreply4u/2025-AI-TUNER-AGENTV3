@@ -96,9 +96,8 @@ class RacingGauge(QWidget):
         self.end_angle = -45    # Bottom-right
         self.arc_span = self.start_angle - self.end_angle  # 270 degrees
         
-        # Size
-        self.setMinimumSize(140, 155)
-        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        # Fixed size to prevent jitter
+        self.setFixedSize(145, 160)
         
         # Animation
         self._animation = QPropertyAnimation(self, b"animatedValue")
@@ -471,31 +470,31 @@ class GaugePanel(QWidget):
             }
         """)
         
-        self.setMinimumSize(290, 480)
-        self.setMaximumSize(320, 550)
-        self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
+        # Fixed size to prevent jitter
+        self.setFixedSize(310, 540)
         
         layout = QVBoxLayout(self)
         layout.setContentsMargins(10, 10, 10, 10)
-        layout.setSpacing(8)
+        layout.setSpacing(6)
         
         # Title
-        title = QLabel("🏎️ RACING GAUGES")
+        title = QLabel("🏎️ LIVE GAUGES")
         title.setStyleSheet("""
-            font-size: 13px; 
+            font-size: 14px; 
             font-weight: bold; 
             color: #00e0ff; 
-            padding: 5px;
+            padding: 4px;
             background: transparent;
             border: none;
         """)
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title.setFixedHeight(28)
         layout.addWidget(title)
         
-        # Grid for gauges
+        # Grid for gauges - centered
         grid = QGridLayout()
-        grid.setSpacing(8)
-        grid.setContentsMargins(0, 0, 0, 0)
+        grid.setSpacing(6)
+        grid.setContentsMargins(5, 0, 5, 0)
         
         # Create gauges
         self.gauges: Dict[str, RacingGauge] = {}
