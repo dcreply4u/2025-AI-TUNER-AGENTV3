@@ -90,6 +90,7 @@ class ResponseContext:
     current_tab: Optional[str] = None
     recent_changes: List[Dict] = field(default_factory=list)
     vehicle_info: Optional[Dict[str, Any]] = None
+    expert_insights: List[Any] = field(default_factory=list)  # Expert telemetry insights
 
 
 @dataclass
@@ -155,6 +156,16 @@ class EnhancedAIAdvisorQ:
         self.predictive_diagnostics = predictive_diagnostics
         self.data_log_manager = data_log_manager
         self.tune_database = tune_database
+        
+        # Initialize expert telemetry analyzer
+        try:
+            from services.expert_telemetry_analyzer import ExpertTelemetryAnalyzer
+            self.expert_analyzer = ExpertTelemetryAnalyzer()
+            LOGGER.info("Expert telemetry analyzer initialized")
+        except ImportError:
+            self.expert_analyzer = None
+            LOGGER.warning("Expert telemetry analyzer not available")
+        
         self.conversation_history: List[ChatMessage] = []
         self.knowledge_base: List[KnowledgeEntry] = []
         self.response_context = ResponseContext()
@@ -1191,6 +1202,17 @@ Tips:
         if self.telemetry_provider:
             try:
                 self.response_context.telemetry = self.telemetry_provider()
+                
+                # Run expert analysis if analyzer available
+                if self.expert_analyzer and self.response_context.telemetry:
+                    try:
+                        expert_insights = self.expert_analyzer.analyze(self.response_context.telemetry)
+                        # Store insights in context for use in response
+                        if not hasattr(self.response_context, 'expert_insights'):
+                            self.response_context.expert_insights = []
+                        self.response_context.expert_insights = expert_insights
+                    except Exception as e:
+                        LOGGER.debug("Expert analysis failed: %s", e)
             except (AttributeError, TypeError, ValueError) as e:
                 LOGGER.debug("Telemetry provider unavailable: %s", e)
         
