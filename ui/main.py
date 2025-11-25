@@ -140,8 +140,31 @@ class MainWindow(QWidget):
         content_layout = QHBoxLayout()
         content_layout.setSpacing(8)
 
-        left_column = QVBoxLayout()
-        left_column.setSpacing(6)
+        # Left column with scroll area (like right side)
+        left_scroll = QScrollArea()
+        left_scroll.setWidgetResizable(True)
+        left_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        left_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        left_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        left_scroll.setStyleSheet("""
+            QScrollArea { background-color: transparent; border: none; }
+            QScrollBar:vertical {
+                background-color: #e0e0e0;
+                width: 10px;
+                border-radius: 5px;
+            }
+            QScrollBar::handle:vertical {
+                background-color: #3498db;
+                border-radius: 5px;
+                min-height: 30px;
+            }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0px; }
+        """)
+        
+        left_container = QWidget()
+        left_column = QVBoxLayout(left_container)
+        left_column.setSpacing(8)
+        left_column.setContentsMargins(0, 0, 0, 0)
 
         # Right column with scroll area for many controls
         right_scroll = QScrollArea()
@@ -510,7 +533,10 @@ class MainWindow(QWidget):
         right_column.addWidget(self.session_controls, 2)
 
         # Finally, assemble columns into content layout
-        content_layout.addLayout(left_column, 3)   # main panels
+        # Add stretch at bottom of left column and set up scroll
+        left_column.addStretch()
+        left_scroll.setWidget(left_container)
+        content_layout.addWidget(left_scroll, 3)  # main panels with scroll
 
         # Add stretch at bottom of right column and set up scroll
         right_column.addStretch()

@@ -57,8 +57,8 @@ class TelemetryPanel(QWidget):
             scaled_spacing(8), scaled_spacing(8)
         )
         
-        # Set minimum height to prevent collapse/overlap
-        self.setMinimumHeight(280)
+        # Allow panel to expand for 3 stacked graphs
+        self.setMinimumHeight(480)  # 3 graphs x 140px + header + spacing
         
         header = QLabel("Live Telemetry Overview", alignment=Qt.AlignLeft)
         header_font_size = scaled_font_size(18)
@@ -80,44 +80,45 @@ class TelemetryPanel(QWidget):
         if pg:
             # Use light theme for graphs to match main UI
             pg.setConfigOptions(antialias=True, background="#ffffff", foreground="#2c3e50")
-            plots_container = QHBoxLayout()
-            layout.addLayout(plots_container)
-
+            
+            # 3 graphs stacked VERTICALLY - full width like Drag Mode
+            GRAPH_HEIGHT = 140  # Fixed height per graph
+            
+            # Powertrain graph (Row 1)
             self.plots["primary"] = pg.PlotWidget(title="Powertrain")
-            self.plots["primary"].setBackground("w")  # White background
-            # Enable auto-sizing and proper resizing
-            self.plots["primary"].setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+            self.plots["primary"].setBackground("w")
+            self.plots["primary"].setFixedHeight(GRAPH_HEIGHT)
+            self.plots["primary"].setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
             self.plots["primary"].getAxis("left").setPen(pg.mkPen(color="#2c3e50"))
             self.plots["primary"].getAxis("bottom").setPen(pg.mkPen(color="#2c3e50"))
             self._configure_plot(self.plots["primary"], "Time", "Value")
-            # Apply responsive configuration
             if RESPONSIVE_AVAILABLE:
                 get_responsive_manager().configure_graph_responsive(self.plots["primary"])
-            plots_container.addWidget(self.plots["primary"], stretch=1)
+            layout.addWidget(self.plots["primary"])
 
+            # Thermals graph (Row 2)
             self.plots["secondary"] = pg.PlotWidget(title="Thermals & Systems")
-            self.plots["secondary"].setBackground("w")  # White background
-            # Enable auto-sizing and proper resizing
-            self.plots["secondary"].setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+            self.plots["secondary"].setBackground("w")
+            self.plots["secondary"].setFixedHeight(GRAPH_HEIGHT)
+            self.plots["secondary"].setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
             self.plots["secondary"].getAxis("left").setPen(pg.mkPen(color="#2c3e50"))
             self.plots["secondary"].getAxis("bottom").setPen(pg.mkPen(color="#2c3e50"))
             self._configure_plot(self.plots["secondary"], "Time", "Value")
-            # Apply responsive configuration
             if RESPONSIVE_AVAILABLE:
                 get_responsive_manager().configure_graph_responsive(self.plots["secondary"])
-            plots_container.addWidget(self.plots["secondary"], stretch=1)
+            layout.addWidget(self.plots["secondary"])
 
+            # G-Forces graph (Row 3)
             self.plots["gforce"] = pg.PlotWidget(title="G-Forces")
-            self.plots["gforce"].setBackground("w")  # White background
-            # Enable auto-sizing and proper resizing
-            self.plots["gforce"].setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+            self.plots["gforce"].setBackground("w")
+            self.plots["gforce"].setFixedHeight(GRAPH_HEIGHT)
+            self.plots["gforce"].setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
             self.plots["gforce"].getAxis("left").setPen(pg.mkPen(color="#2c3e50"))
             self.plots["gforce"].getAxis("bottom").setPen(pg.mkPen(color="#2c3e50"))
             self._configure_plot(self.plots["gforce"], "Time", "g")
-            # Apply responsive configuration
             if RESPONSIVE_AVAILABLE:
                 get_responsive_manager().configure_graph_responsive(self.plots["gforce"])
-            layout.addWidget(self.plots["gforce"], stretch=1)
+            layout.addWidget(self.plots["gforce"])
 
             for channel in self.PRIMARY_CHANNELS:
                 self.curves[channel] = self.plots["primary"].plot(
