@@ -96,16 +96,45 @@ class ExpertTelemetryAnalyzer:
         """
         insights = []
         
-        # Add to history
-        self.telemetry_history.append(current_telemetry.copy())
-        if len(self.telemetry_history) > self.history_window:
-            self.telemetry_history.pop(0)
-        
-        # Run various analyses
-        insights.extend(self._detect_anomalies(current_telemetry))
-        insights.extend(self._analyze_trends())
-        insights.extend(self._analyze_correlations(current_telemetry))
-        insights.extend(self._predictive_warnings(current_telemetry))
+        try:
+            # Validate input
+            if not current_telemetry or not isinstance(current_telemetry, dict):
+                LOGGER.warning("Invalid telemetry data provided to analyzer")
+                return insights
+            
+            # Add to history with error handling
+            try:
+                self.telemetry_history.append(current_telemetry.copy())
+                if len(self.telemetry_history) > self.history_window:
+                    self.telemetry_history.pop(0)
+            except Exception as e:
+                LOGGER.error("Error adding telemetry to history: %s", e)
+            
+            # Run various analyses with error handling
+            try:
+                insights.extend(self._detect_anomalies(current_telemetry))
+            except Exception as e:
+                LOGGER.error("Error in anomaly detection: %s", e, exc_info=True)
+            
+            try:
+                insights.extend(self._analyze_trends())
+            except Exception as e:
+                LOGGER.error("Error in trend analysis: %s", e, exc_info=True)
+            
+            try:
+                insights.extend(self._analyze_correlations(current_telemetry))
+            except Exception as e:
+                LOGGER.error("Error in correlation analysis: %s", e, exc_info=True)
+            
+            try:
+                insights.extend(self._predictive_warnings(current_telemetry))
+            except Exception as e:
+                LOGGER.error("Error in predictive warnings: %s", e, exc_info=True)
+            
+            LOGGER.debug("Generated %d insights from telemetry analysis", len(insights))
+            
+        except Exception as e:
+            LOGGER.error("Critical error in telemetry analysis: %s", e, exc_info=True)
         
         return insights
     
@@ -113,31 +142,50 @@ class ExpertTelemetryAnalyzer:
         """Detect anomalies in current telemetry."""
         insights = []
         
-        for param, (min_val, max_val) in self.normal_ranges.items():
-            value = telemetry.get(param)
-            if value is None:
-                continue
+        if not telemetry:
+            return insights
+        
+        try:
+            for param, (min_val, max_val) in self.normal_ranges.items():
+                value = telemetry.get(param)
+                if value is None:
+                    continue
+                
+                # Validate value is numeric
+                try:
+                    value = float(value)
+                except (ValueError, TypeError):
+                    LOGGER.debug("Non-numeric value for %s: %s", param, value)
+                    continue
             
             # Check if out of normal range
-            if value < min_val or value > max_val:
-                severity = "critical" if abs(value - (min_val + max_val) / 2) > (max_val - min_val) * 0.5 else "warning"
-                
-                if value < min_val:
-                    description = f"{param} is {value:.1f}, which is below normal range ({min_val}-{max_val})"
-                    recommended = self._get_recommendation_for_low_value(param, value, min_val)
-                else:
-                    description = f"{param} is {value:.1f}, which is above normal range ({min_val}-{max_val})"
-                    recommended = self._get_recommendation_for_high_value(param, value, max_val)
-                
-                insights.append(TelemetryInsight(
-                    insight_type=AnalysisType.ANOMALY_DETECTION,
-                    title=f"Anomalous {param}",
-                    description=description,
-                    severity=severity,
-                    confidence=0.9,
-                    affected_parameters=[param],
-                    recommended_action=recommended,
-                ))
+                if value < min_val or value > max_val:
+                    severity = "critical" if abs(value - (min_val + max_val) / 2) > (max_val - min_val) * 0.5 else "warning"
+                    
+                    try:
+                        if value < min_val:
+                            description = f"{param} is {value:.1f}, which is below normal range ({min_val}-{max_val})"
+                            recommended = self._get_recommendation_for_low_value(param, value, min_val)
+                        else:
+                            description = f"{param} is {value:.1f}, which is above normal range ({min_val}-{max_val})"
+                            recommended = self._get_recommendation_for_high_value(param, value, max_val)
+                        
+                        insights.append(TelemetryInsight(
+                            insight_type=AnalysisType.ANOMALY_DETECTION,
+                            title=f"Anomalous {param}",
+                            description=description,
+                            severity=severity,
+                            confidence=0.9,
+                            affected_parameters=[param],
+                            recommended_action=recommended,
+                        ))
+                    except Exception as e:
+                        LOGGER.error("Error creating anomaly insight for %s: %s", param, e)
+                        continue
+        except Exception as e:
+            LOGGER.error("Error in anomaly detection: %s", e, exc_info=True)
+        
+        return insights
         
         # Check for rapid changes (spikes)
         if len(self.telemetry_history) >= 3:

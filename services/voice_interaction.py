@@ -108,11 +108,20 @@ class VoiceInteraction:
         """Main listening loop."""
         wake_word_detected = False
         
+        if not self.recognizer or not self.microphone:
+            LOGGER.error("Speech recognition not initialized, cannot start listening")
+            return
+        
         while self.is_listening:
             try:
                 with self.microphone as source:
-                    # Listen for audio
-                    audio = self.recognizer.listen(source, timeout=1, phrase_time_limit=5)
+                    # Listen for audio with error handling
+                    try:
+                        audio = self.recognizer.listen(source, timeout=1, phrase_time_limit=5)
+                    except Exception as e:
+                        LOGGER.debug("Error listening for audio: %s", e)
+                        time.sleep(0.5)
+                        continue
                 
                 try:
                     # Recognize speech

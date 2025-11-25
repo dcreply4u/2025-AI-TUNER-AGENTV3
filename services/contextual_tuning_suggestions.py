@@ -64,15 +64,45 @@ class ContextualTuningSuggestions:
         """
         suggestions = []
         
-        # Analyze telemetry and generate suggestions
-        suggestions.extend(self._analyze_boost_suggestions(telemetry, current_setup, goal))
-        suggestions.extend(self._analyze_timing_suggestions(telemetry, current_setup, goal))
-        suggestions.extend(self._analyze_fuel_suggestions(telemetry, current_setup, goal))
-        suggestions.extend(self._analyze_handling_suggestions(telemetry, current_setup, goal, context))
-        
-        # Sort by priority
-        priority_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
-        suggestions.sort(key=lambda x: (priority_order.get(x.priority, 3), -x.confidence))
+        try:
+            # Validate inputs
+            if not telemetry or not isinstance(telemetry, dict):
+                LOGGER.warning("Invalid telemetry data provided to suggestion engine")
+                return suggestions
+            
+            if current_setup is not None and not isinstance(current_setup, dict):
+                LOGGER.warning("Invalid current_setup provided, using None")
+                current_setup = None
+            
+            # Analyze telemetry and generate suggestions with error handling
+            try:
+                suggestions.extend(self._analyze_boost_suggestions(telemetry, current_setup, goal))
+            except Exception as e:
+                LOGGER.error("Error generating boost suggestions: %s", e, exc_info=True)
+            
+            try:
+                suggestions.extend(self._analyze_timing_suggestions(telemetry, current_setup, goal))
+            except Exception as e:
+                LOGGER.error("Error generating timing suggestions: %s", e, exc_info=True)
+            
+            try:
+                suggestions.extend(self._analyze_fuel_suggestions(telemetry, current_setup, goal))
+            except Exception as e:
+                LOGGER.error("Error generating fuel suggestions: %s", e, exc_info=True)
+            
+            try:
+                suggestions.extend(self._analyze_handling_suggestions(telemetry, current_setup, goal, context))
+            except Exception as e:
+                LOGGER.error("Error generating handling suggestions: %s", e, exc_info=True)
+            
+            # Sort by priority
+            priority_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+            suggestions.sort(key=lambda x: (priority_order.get(x.priority, 3), -x.confidence))
+            
+            LOGGER.debug("Generated %d tuning suggestions for goal: %s", len(suggestions), goal)
+            
+        except Exception as e:
+            LOGGER.error("Critical error generating suggestions: %s", e, exc_info=True)
         
         return suggestions
     
@@ -85,14 +115,16 @@ class ContextualTuningSuggestions:
         """Generate boost-related suggestions."""
         suggestions = []
         
-        boost = telemetry.get("Boost_Pressure", 0)
-        afr = telemetry.get("AFR", 14.7)
-        timing = telemetry.get("Timing_Advance", 20)
-        egt = telemetry.get("EGT", 700)
-        fuel_pressure = telemetry.get("Fuel_Pressure", 50)
-        knock_count = telemetry.get("Knock_Count", 0)
-        
-        current_boost_target = current_setup.get("boost_target", boost) if current_setup else boost
+        try:
+            # Safely extract values with defaults
+            boost = float(telemetry.get("Boost_Pressure", 0) or 0)
+            afr = float(telemetry.get("AFR", 14.7) or 14.7)
+            timing = float(telemetry.get("Timing_Advance", 20) or 20)
+            egt = float(telemetry.get("EGT", 700) or 700)
+            fuel_pressure = float(telemetry.get("Fuel_Pressure", 50) or 50)
+            knock_count = int(telemetry.get("Knock_Count", 0) or 0)
+            
+            current_boost_target = float(current_setup.get("boost_target", boost) or boost) if current_setup else boost
         
         # Safety checks first
         if fuel_pressure < 40 and boost > 15:
@@ -141,6 +173,11 @@ class ContextualTuningSuggestions:
                     priority="medium",
                     prerequisites=["Monitor AFR and EGT", "Ensure fuel pressure stays >45 PSI"]
                 ))
+        
+        except (ValueError, TypeError, KeyError) as e:
+            LOGGER.error("Error extracting boost analysis values: %s", e)
+        except Exception as e:
+            LOGGER.error("Unexpected error in boost suggestions: %s", e, exc_info=True)
         
         return suggestions
     

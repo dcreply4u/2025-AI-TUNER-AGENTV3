@@ -93,9 +93,18 @@ class PersonalizedCoaching:
         success: Optional[bool] = None
     ) -> None:
         """Record a user interaction."""
-        progress = self.get_user_progress(user_id)
-        progress.total_questions += 1
-        progress.updated_at = time.time()
+        try:
+            if not user_id or not isinstance(user_id, str):
+                LOGGER.warning("Invalid user_id provided to record_interaction")
+                return
+            
+            if not question or not isinstance(question, str):
+                LOGGER.warning("Invalid question provided to record_interaction")
+                return
+            
+            progress = self.get_user_progress(user_id)
+            progress.total_questions += 1
+            progress.updated_at = time.time()
         
         if topic:
             if topic not in progress.topics_covered:
@@ -115,10 +124,12 @@ class PersonalizedCoaching:
             if keyword in question_lower:
                 progress.recurring_issues[issue_name] = progress.recurring_issues.get(issue_name, 0) + 1
         
-        # Update skill level based on interactions
-        self._update_skill_level(progress)
-        
-        self._save_progress(user_id)
+            # Update skill level based on interactions
+            self._update_skill_level(progress)
+            
+            self._save_progress(user_id)
+        except Exception as e:
+            LOGGER.error("Error recording interaction: %s", e, exc_info=True)
     
     def record_tune_result(self, user_id: str, successful: bool) -> None:
         """Record a tuning session result."""

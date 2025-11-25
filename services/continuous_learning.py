@@ -81,22 +81,41 @@ class ContinuousLearning:
             outcome: Event outcome
             user_feedback: User feedback if available
         """
-        event = LearningEvent(
-            event_id=f"event_{int(time.time() * 1000)}",
-            event_type=event_type,
-            timestamp=time.time(),
-            context=context,
-            outcome=outcome,
-            user_feedback=user_feedback
-        )
+        try:
+            # Validate inputs
+            if not event_type or not isinstance(event_type, str):
+                LOGGER.warning("Invalid event_type provided to record_event")
+                return
+            
+            if not context or not isinstance(context, dict):
+                LOGGER.warning("Invalid context provided to record_event")
+                context = {}
+            
+            event = LearningEvent(
+                event_id=f"event_{int(time.time() * 1000)}",
+                event_type=event_type,
+                timestamp=time.time(),
+                context=context,
+                outcome=outcome,
+                user_feedback=user_feedback
+            )
+            
+            self.learning_events.append(event)
+            
+            # Process event for patterns
+            try:
+                self._process_event_for_patterns(event)
+            except Exception as e:
+                LOGGER.error("Error processing event for patterns: %s", e, exc_info=True)
+            
+            # Save learning data
+            try:
+                self._save_learning_data()
+            except Exception as e:
+                LOGGER.error("Error saving learning data: %s", e, exc_info=True)
         
-        self.learning_events.append(event)
-        
-        # Process event for patterns
-        self._process_event_for_patterns(event)
-        
-        # Save learning data
-        self._save_learning_data()
+        except Exception as e:
+            LOGGER.error("Critical error recording event: %s", e, exc_info=True)
     
     def _process_event_for_patterns(self, event: LearningEvent) -> None:
         """Process event to identify patterns."""
