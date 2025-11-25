@@ -66,6 +66,70 @@ from ui.theme_manager import ThemeManager
 from ui.wheel_slip_widget import WheelSlipPanel
 from ui.youtube_stream_widget import YouTubeStreamWidget
 
+# Virtual Dyno imports
+try:
+    from ui.dyno_tab import DynoTab
+    DYNO_AVAILABLE = True
+except ImportError:
+    DynoTab = None
+    DYNO_AVAILABLE = False
+
+# ECU Tuning imports
+try:
+    from ui.ecu_tuning_main import ECUTuningMain
+    ECU_TUNING_AVAILABLE = True
+except ImportError:
+    ECUTuningMain = None
+    ECU_TUNING_AVAILABLE = False
+
+# Drag Racing imports
+try:
+    from ui.drag_racing_tab import DragRacingTab
+    DRAG_RACING_AVAILABLE = True
+except ImportError:
+    DragRacingTab = None
+    DRAG_RACING_AVAILABLE = False
+
+# Track Learning imports
+try:
+    from ui.track_learning_tab import TrackLearningTab
+    TRACK_LEARNING_AVAILABLE = True
+except ImportError:
+    TrackLearningTab = None
+    TRACK_LEARNING_AVAILABLE = False
+
+# Sensors Tab imports
+try:
+    from ui.sensors_tab import SensorsTab
+    SENSORS_AVAILABLE = True
+except ImportError:
+    SensorsTab = None
+    SENSORS_AVAILABLE = False
+
+# Auto Tuning imports
+try:
+    from ui.auto_tuning_tab import AutoTuningTab
+    AUTO_TUNING_AVAILABLE = True
+except ImportError:
+    AutoTuningTab = None
+    AUTO_TUNING_AVAILABLE = False
+
+# Diesel Tuning imports
+try:
+    from ui.diesel_tuning_tab import DieselTuningTab
+    DIESEL_TUNING_AVAILABLE = True
+except ImportError:
+    DieselTuningTab = None
+    DIESEL_TUNING_AVAILABLE = False
+
+# Safety Alerts imports
+try:
+    from ui.safety_alerts_system import SafetyAlertsPanel
+    SAFETY_ALERTS_AVAILABLE = True
+except ImportError:
+    SafetyAlertsPanel = None
+    SAFETY_ALERTS_AVAILABLE = False
+
 
 class MainWindow(QWidget):
     """
@@ -202,7 +266,7 @@ class MainWindow(QWidget):
         
         self.ai_panel = AIInsightPanel()
         self.ai_panel.setFixedHeight(120)  # Compact fixed height
-        
+
         from ui.advice_panel import AdvicePanel
         self.advice_panel = AdvicePanel()
         self.advice_panel.setFixedHeight(120)  # Compact fixed height
@@ -693,6 +757,11 @@ class MainWindow(QWidget):
         self.diagnostics_btn.clicked.connect(self.open_diagnostics)
         tools_layout.addWidget(self.diagnostics_btn)
         
+        wizard_btn = QPushButton("🧙 Setup Wizard")
+        wizard_btn.setStyleSheet("background-color: #9b59b6;")
+        wizard_btn.clicked.connect(self._open_onboarding_wizard)
+        tools_layout.addWidget(wizard_btn)
+        
         tools_layout.addStretch()
         self.bottom_tabs.addTab(tools_tab, "🔧 Tools & Settings")
 
@@ -702,13 +771,25 @@ class MainWindow(QWidget):
         data_layout.setContentsMargins(12, 8, 12, 8)
         data_layout.setSpacing(10)
         
-        self.email_btn = QPushButton("📧  Email Logs")
+        log_viewer_btn = QPushButton("📜 Log Viewer")
+        log_viewer_btn.setStyleSheet("background-color: #8e44ad;")
+        log_viewer_btn.clicked.connect(self._open_log_viewer)
+        data_layout.addWidget(log_viewer_btn)
+        
+        self.email_btn = QPushButton("📧 Email Logs")
+        self.email_btn.setStyleSheet("background-color: #3498db;")
         self.email_btn.clicked.connect(self.email_logs)
         data_layout.addWidget(self.email_btn)
         
-        self.export_btn = QPushButton("💾  Export Data")
+        self.export_btn = QPushButton("💾 Export Data")
+        self.export_btn.setStyleSheet("background-color: #27ae60;")
         self.export_btn.clicked.connect(self.export_data)
         data_layout.addWidget(self.export_btn)
+        
+        tune_db_btn = QPushButton("🗄️ Tune Database")
+        tune_db_btn.setStyleSheet("background-color: #e67e22;")
+        tune_db_btn.clicked.connect(self._open_tune_database)
+        data_layout.addWidget(tune_db_btn)
         
         data_layout.addStretch()
         self.bottom_tabs.addTab(data_tab, "📊 Data")
@@ -721,17 +802,17 @@ class MainWindow(QWidget):
         
         e85_btn = QPushButton("🌽 E85")
         e85_btn.setStyleSheet("background-color: #f39c12;")
-        e85_btn.clicked.connect(lambda: self._show_module_placeholder("E85 Flex Fuel"))
+        e85_btn.clicked.connect(self._open_fuel_management)
         fuel_layout.addWidget(e85_btn)
         
         meth_btn = QPushButton("💧 Methanol")
         meth_btn.setStyleSheet("background-color: #3498db;")
-        meth_btn.clicked.connect(lambda: self._show_module_placeholder("Methanol Injection"))
+        meth_btn.clicked.connect(self._open_fuel_management)
         fuel_layout.addWidget(meth_btn)
         
         nitrometh_btn = QPushButton("🔥 Nitromethane")
         nitrometh_btn.setStyleSheet("background-color: #e74c3c;")
-        nitrometh_btn.clicked.connect(lambda: self._show_module_placeholder("Nitromethane"))
+        nitrometh_btn.clicked.connect(self._open_fuel_management)
         fuel_layout.addWidget(nitrometh_btn)
         
         fuel_layout.addStretch()
@@ -745,17 +826,17 @@ class MainWindow(QWidget):
         
         nitrous_btn = QPushButton("💨 Nitrous")
         nitrous_btn.setStyleSheet("background-color: #9b59b6;")
-        nitrous_btn.clicked.connect(lambda: self._show_module_placeholder("Nitrous Oxide"))
+        nitrous_btn.clicked.connect(self._open_nitrous)
         power_layout.addWidget(nitrous_btn)
         
         boost_btn = QPushButton("🌀 Turbo/Boost")
         boost_btn.setStyleSheet("background-color: #1abc9c;")
-        boost_btn.clicked.connect(lambda: self._show_module_placeholder("Turbo/Boost Control"))
+        boost_btn.clicked.connect(self._open_boost_control)
         power_layout.addWidget(boost_btn)
         
         supercharger_btn = QPushButton("⚡ Supercharger")
         supercharger_btn.setStyleSheet("background-color: #e67e22;")
-        supercharger_btn.clicked.connect(lambda: self._show_module_placeholder("Supercharger"))
+        supercharger_btn.clicked.connect(self._open_boost_control)  # Supercharger uses boost control
         power_layout.addWidget(supercharger_btn)
         
         power_layout.addStretch()
@@ -769,17 +850,17 @@ class MainWindow(QWidget):
         
         ecu_btn = QPushButton("🔧 ECU Tuning")
         ecu_btn.setStyleSheet("background-color: #2c3e50;")
-        ecu_btn.clicked.connect(lambda: self._show_module_placeholder("ECU Tuning"))
+        ecu_btn.clicked.connect(self._open_ecu_tuning)
         tuning_layout.addWidget(ecu_btn)
         
         auto_tune_btn = QPushButton("🤖 Auto Tune")
         auto_tune_btn.setStyleSheet("background-color: #27ae60;")
-        auto_tune_btn.clicked.connect(lambda: self._show_module_placeholder("Auto Tuning AI"))
+        auto_tune_btn.clicked.connect(self._open_auto_tuning)
         tuning_layout.addWidget(auto_tune_btn)
         
         diesel_btn = QPushButton("🛢️ Diesel")
         diesel_btn.setStyleSheet("background-color: #34495e;")
-        diesel_btn.clicked.connect(lambda: self._show_module_placeholder("Diesel Tuning"))
+        diesel_btn.clicked.connect(self._open_diesel_tuning)
         tuning_layout.addWidget(diesel_btn)
         
         tuning_layout.addStretch()
@@ -793,17 +874,17 @@ class MainWindow(QWidget):
         
         drag_btn = QPushButton("🏁 Drag Racing")
         drag_btn.setStyleSheet("background-color: #e74c3c;")
-        drag_btn.clicked.connect(lambda: self._show_module_placeholder("Drag Racing"))
+        drag_btn.clicked.connect(self._open_drag_racing)
         racing_layout.addWidget(drag_btn)
         
         track_btn = QPushButton("🛤️ Track Learning")
         track_btn.setStyleSheet("background-color: #3498db;")
-        track_btn.clicked.connect(lambda: self._show_module_placeholder("Track Learning AI"))
+        track_btn.clicked.connect(self._open_track_learning)
         racing_layout.addWidget(track_btn)
         
         dyno_btn = QPushButton("📈 Virtual Dyno")
         dyno_btn.setStyleSheet("background-color: #9b59b6;")
-        dyno_btn.clicked.connect(lambda: self._show_module_placeholder("Virtual Dyno"))
+        dyno_btn.clicked.connect(self._open_virtual_dyno)
         racing_layout.addWidget(dyno_btn)
         
         racing_layout.addStretch()
@@ -817,17 +898,17 @@ class MainWindow(QWidget):
         
         sensors_btn = QPushButton("📡 Sensors")
         sensors_btn.setStyleSheet("background-color: #16a085;")
-        sensors_btn.clicked.connect(lambda: self._show_module_placeholder("Sensors Config"))
+        sensors_btn.clicked.connect(self._open_sensors)
         sensors_layout.addWidget(sensors_btn)
         
         wideband_btn = QPushButton("🎯 Wideband AFR")
         wideband_btn.setStyleSheet("background-color: #2980b9;")
-        wideband_btn.clicked.connect(lambda: self._show_module_placeholder("Wideband AFR"))
+        wideband_btn.clicked.connect(self._open_sensors)  # Opens sensors tab with AFR focus
         sensors_layout.addWidget(wideband_btn)
         
         egt_btn = QPushButton("🌡️ EGT Monitor")
         egt_btn.setStyleSheet("background-color: #c0392b;")
-        egt_btn.clicked.connect(lambda: self._show_module_placeholder("EGT Monitoring"))
+        egt_btn.clicked.connect(self._open_sensors)  # Opens sensors tab with EGT focus
         sensors_layout.addWidget(egt_btn)
         
         sensors_layout.addStretch()
@@ -841,17 +922,17 @@ class MainWindow(QWidget):
         
         rev_limit_btn = QPushButton("🚫 Rev Limiter")
         rev_limit_btn.setStyleSheet("background-color: #e74c3c;")
-        rev_limit_btn.clicked.connect(lambda: self._show_module_placeholder("Rev Limiter"))
+        rev_limit_btn.clicked.connect(self._open_safety_alerts)
         safety_layout.addWidget(rev_limit_btn)
         
         boost_limit_btn = QPushButton("⚠️ Boost Cut")
         boost_limit_btn.setStyleSheet("background-color: #f39c12;")
-        boost_limit_btn.clicked.connect(lambda: self._show_module_placeholder("Boost Cut"))
+        boost_limit_btn.clicked.connect(self._open_safety_alerts)
         safety_layout.addWidget(boost_limit_btn)
         
         failsafe_btn = QPushButton("🛡️ Failsafes")
         failsafe_btn.setStyleSheet("background-color: #27ae60;")
-        failsafe_btn.clicked.connect(lambda: self._show_module_placeholder("Safety Failsafes"))
+        failsafe_btn.clicked.connect(self._open_safety_alerts)
         safety_layout.addWidget(failsafe_btn)
         
         safety_layout.addStretch()
@@ -1102,6 +1183,432 @@ class MainWindow(QWidget):
             f"📦 {module_name} module selected. Full implementation coming soon!",
             level="info",
         )
+
+    def _open_virtual_dyno(self) -> None:
+        """Open Virtual Dyno in a dialog window."""
+        from PySide6.QtWidgets import QDialog, QVBoxLayout
+        
+        if not DYNO_AVAILABLE or DynoTab is None:
+            self.ai_panel.update_insight(
+                "⚠️ Virtual Dyno module not available. Check dependencies.",
+                level="warning",
+            )
+            return
+        
+        try:
+            # Create dialog window for dyno
+            dialog = QDialog(self)
+            dialog.setWindowTitle("📈 Virtual Dyno - Horsepower Estimation")
+            dialog.setMinimumSize(900, 700)
+            dialog.resize(1100, 800)
+            
+            layout = QVBoxLayout(dialog)
+            layout.setContentsMargins(0, 0, 0, 0)
+            
+            # Add the dyno tab
+            dyno_widget = DynoTab()
+            layout.addWidget(dyno_widget)
+            
+            self.ai_panel.update_insight(
+                "📈 Virtual Dyno opened! Configure vehicle specs and start a run.",
+                level="info",
+            )
+            
+            dialog.exec()
+            
+        except Exception as e:
+            self.ai_panel.update_insight(
+                f"❌ Failed to open Virtual Dyno: {e}",
+                level="error",
+            )
+
+    def _open_ecu_tuning(self) -> None:
+        """Open ECU Tuning in a dialog window."""
+        from PySide6.QtWidgets import QDialog, QVBoxLayout
+        
+        if not ECU_TUNING_AVAILABLE or ECUTuningMain is None:
+            self.ai_panel.update_insight(
+                "⚠️ ECU Tuning module not available.",
+                level="warning",
+            )
+            return
+        
+        try:
+            dialog = QDialog(self)
+            dialog.setWindowTitle("🔧 ECU Tuning - Professional Engine Tuning")
+            dialog.setMinimumSize(1200, 800)
+            dialog.resize(1400, 900)
+            
+            layout = QVBoxLayout(dialog)
+            layout.setContentsMargins(0, 0, 0, 0)
+            
+            ecu_widget = ECUTuningMain()
+            layout.addWidget(ecu_widget)
+            
+            self.ai_panel.update_insight(
+                "🔧 ECU Tuning opened! Configure fuel maps, timing, and more.",
+                level="info",
+            )
+            dialog.exec()
+        except Exception as e:
+            self.ai_panel.update_insight(f"❌ Failed to open ECU Tuning: {e}", level="error")
+
+    def _open_drag_racing(self) -> None:
+        """Open Drag Racing tab in a dialog window."""
+        from PySide6.QtWidgets import QDialog, QVBoxLayout
+        
+        if not DRAG_RACING_AVAILABLE or DragRacingTab is None:
+            self.ai_panel.update_insight(
+                "⚠️ Drag Racing module not available.",
+                level="warning",
+            )
+            return
+        
+        try:
+            dialog = QDialog(self)
+            dialog.setWindowTitle("🏁 Drag Racing Analyzer")
+            dialog.setMinimumSize(900, 700)
+            dialog.resize(1100, 800)
+            
+            layout = QVBoxLayout(dialog)
+            layout.setContentsMargins(0, 0, 0, 0)
+            
+            drag_widget = DragRacingTab()
+            layout.addWidget(drag_widget)
+            
+            self.ai_panel.update_insight(
+                "🏁 Drag Racing opened! Analyze runs, get coaching advice.",
+                level="info",
+            )
+            dialog.exec()
+        except Exception as e:
+            self.ai_panel.update_insight(f"❌ Failed to open Drag Racing: {e}", level="error")
+
+    def _open_track_learning(self) -> None:
+        """Open Track Learning AI in a dialog window."""
+        from PySide6.QtWidgets import QDialog, QVBoxLayout
+        
+        if not TRACK_LEARNING_AVAILABLE or TrackLearningTab is None:
+            self.ai_panel.update_insight(
+                "⚠️ Track Learning module not available.",
+                level="warning",
+            )
+            return
+        
+        try:
+            dialog = QDialog(self)
+            dialog.setWindowTitle("🛤️ Track Learning AI")
+            dialog.setMinimumSize(900, 700)
+            dialog.resize(1100, 800)
+            
+            layout = QVBoxLayout(dialog)
+            layout.setContentsMargins(0, 0, 0, 0)
+            
+            track_widget = TrackLearningTab()
+            layout.addWidget(track_widget)
+            
+            self.ai_panel.update_insight(
+                "🛤️ Track Learning AI opened! Learn optimal racing lines.",
+                level="info",
+            )
+            dialog.exec()
+        except Exception as e:
+            self.ai_panel.update_insight(f"❌ Failed to open Track Learning: {e}", level="error")
+
+    def _open_sensors(self) -> None:
+        """Open Sensors configuration in a dialog window."""
+        from PySide6.QtWidgets import QDialog, QVBoxLayout
+        
+        if not SENSORS_AVAILABLE or SensorsTab is None:
+            self.ai_panel.update_insight(
+                "⚠️ Sensors module not available.",
+                level="warning",
+            )
+            return
+        
+        try:
+            dialog = QDialog(self)
+            dialog.setWindowTitle("📡 Sensors Configuration")
+            dialog.setMinimumSize(900, 700)
+            dialog.resize(1100, 800)
+            
+            layout = QVBoxLayout(dialog)
+            layout.setContentsMargins(0, 0, 0, 0)
+            
+            sensors_widget = SensorsTab()
+            layout.addWidget(sensors_widget)
+            
+            self.ai_panel.update_insight(
+                "📡 Sensors opened! Configure wideband, EGT, and more.",
+                level="info",
+            )
+            dialog.exec()
+        except Exception as e:
+            self.ai_panel.update_insight(f"❌ Failed to open Sensors: {e}", level="error")
+
+    def _open_auto_tuning(self) -> None:
+        """Open Auto Tuning AI in a dialog window."""
+        from PySide6.QtWidgets import QDialog, QVBoxLayout
+        
+        if not AUTO_TUNING_AVAILABLE or AutoTuningTab is None:
+            self.ai_panel.update_insight(
+                "⚠️ Auto Tuning module not available.",
+                level="warning",
+            )
+            return
+        
+        try:
+            dialog = QDialog(self)
+            dialog.setWindowTitle("🤖 Auto Tuning AI")
+            dialog.setMinimumSize(900, 700)
+            dialog.resize(1100, 800)
+            
+            layout = QVBoxLayout(dialog)
+            layout.setContentsMargins(0, 0, 0, 0)
+            
+            auto_tune_widget = AutoTuningTab()
+            layout.addWidget(auto_tune_widget)
+            
+            self.ai_panel.update_insight(
+                "🤖 Auto Tuning AI opened! Let AI optimize your tune.",
+                level="info",
+            )
+            dialog.exec()
+        except Exception as e:
+            self.ai_panel.update_insight(f"❌ Failed to open Auto Tuning: {e}", level="error")
+
+    def _open_diesel_tuning(self) -> None:
+        """Open Diesel Tuning in a dialog window."""
+        from PySide6.QtWidgets import QDialog, QVBoxLayout
+        
+        if not DIESEL_TUNING_AVAILABLE or DieselTuningTab is None:
+            self.ai_panel.update_insight(
+                "⚠️ Diesel Tuning module not available.",
+                level="warning",
+            )
+            return
+        
+        try:
+            dialog = QDialog(self)
+            dialog.setWindowTitle("🛢️ Diesel Tuning")
+            dialog.setMinimumSize(900, 700)
+            dialog.resize(1100, 800)
+            
+            layout = QVBoxLayout(dialog)
+            layout.setContentsMargins(0, 0, 0, 0)
+            
+            diesel_widget = DieselTuningTab()
+            layout.addWidget(diesel_widget)
+            
+            self.ai_panel.update_insight(
+                "🛢️ Diesel Tuning opened! Optimize diesel-specific parameters.",
+                level="info",
+            )
+            dialog.exec()
+        except Exception as e:
+            self.ai_panel.update_insight(f"❌ Failed to open Diesel Tuning: {e}", level="error")
+
+    def _open_safety_alerts(self) -> None:
+        """Open Safety Alerts configuration in a dialog window."""
+        from PySide6.QtWidgets import QDialog, QVBoxLayout
+        
+        if not SAFETY_ALERTS_AVAILABLE or SafetyAlertsPanel is None:
+            self.ai_panel.update_insight(
+                "⚠️ Safety Alerts module not available.",
+                level="warning",
+            )
+            return
+        
+        try:
+            dialog = QDialog(self)
+            dialog.setWindowTitle("🛡️ Safety Alerts & Failsafes")
+            dialog.setMinimumSize(700, 500)
+            dialog.resize(900, 600)
+            
+            layout = QVBoxLayout(dialog)
+            layout.setContentsMargins(0, 0, 0, 0)
+            
+            safety_widget = SafetyAlertsPanel()
+            layout.addWidget(safety_widget)
+            
+            self.ai_panel.update_insight(
+                "🛡️ Safety Alerts opened! Configure rev limiters, boost cut, failsafes.",
+                level="info",
+            )
+            dialog.exec()
+        except Exception as e:
+            self.ai_panel.update_insight(f"❌ Failed to open Safety Alerts: {e}", level="error")
+
+    def _open_nitrous(self) -> None:
+        """Open Nitrous control in a dialog window."""
+        from PySide6.QtWidgets import QDialog, QVBoxLayout
+        
+        try:
+            from ui.ecu_tuning_main import NitrousTab
+            
+            dialog = QDialog(self)
+            dialog.setWindowTitle("💨 Nitrous Oxide Control")
+            dialog.setMinimumSize(900, 700)
+            dialog.resize(1100, 800)
+            
+            layout = QVBoxLayout(dialog)
+            layout.setContentsMargins(0, 0, 0, 0)
+            
+            nitrous_widget = NitrousTab()
+            layout.addWidget(nitrous_widget)
+            
+            self.ai_panel.update_insight(
+                "💨 Nitrous Control opened! Configure stages, timing, and safety.",
+                level="info",
+            )
+            dialog.exec()
+        except Exception as e:
+            self.ai_panel.update_insight(f"❌ Failed to open Nitrous: {e}", level="error")
+
+    def _open_boost_control(self) -> None:
+        """Open Boost Control in a dialog window."""
+        from PySide6.QtWidgets import QDialog, QVBoxLayout
+        
+        try:
+            from ui.ecu_sub_tabs import BoostControlTab
+            
+            dialog = QDialog(self)
+            dialog.setWindowTitle("🌀 Turbo/Boost Control")
+            dialog.setMinimumSize(900, 700)
+            dialog.resize(1100, 800)
+            
+            layout = QVBoxLayout(dialog)
+            layout.setContentsMargins(0, 0, 0, 0)
+            
+            boost_widget = BoostControlTab()
+            layout.addWidget(boost_widget)
+            
+            self.ai_panel.update_insight(
+                "🌀 Boost Control opened! Configure wastegate, boost targets, and duty cycles.",
+                level="info",
+            )
+            dialog.exec()
+        except Exception as e:
+            self.ai_panel.update_insight(f"❌ Failed to open Boost Control: {e}", level="error")
+
+    def _open_fuel_management(self) -> None:
+        """Open Fuel Management (E85/Methanol) in a dialog window."""
+        from PySide6.QtWidgets import QDialog, QVBoxLayout, QLabel
+        
+        try:
+            # Check if fuel additive manager is available
+            from services.fuel_additive_manager import FuelAdditiveManager
+            
+            dialog = QDialog(self)
+            dialog.setWindowTitle("⛽ Fuel Management - E85/Methanol/Flex Fuel")
+            dialog.setMinimumSize(800, 600)
+            dialog.resize(1000, 700)
+            
+            layout = QVBoxLayout(dialog)
+            layout.setContentsMargins(10, 10, 10, 10)
+            
+            # Create a simple fuel management interface
+            title = QLabel("⛽ Fuel Management System")
+            title.setStyleSheet("font-size: 18px; font-weight: bold; color: white; padding: 10px;")
+            layout.addWidget(title)
+            
+            info = QLabel("""
+            <div style='color: white; font-size: 14px; padding: 10px;'>
+            <h3>Supported Fuel Types:</h3>
+            <ul>
+                <li><b>🌽 E85 Flex Fuel</b> - Ethanol content detection & compensation</li>
+                <li><b>💧 Methanol Injection</b> - Water/Methanol injection control</li>
+                <li><b>🔥 Nitromethane</b> - Racing fuel management</li>
+                <li><b>⛽ Gasoline Blends</b> - 91/93/100+ octane tuning</li>
+            </ul>
+            <h3>Features:</h3>
+            <ul>
+                <li>Real-time fuel composition analysis</li>
+                <li>Automatic AFR compensation</li>
+                <li>Timing adjustments based on fuel type</li>
+                <li>Injection timing optimization</li>
+            </ul>
+            </div>
+            """)
+            info.setWordWrap(True)
+            layout.addWidget(info)
+            
+            layout.addStretch()
+            
+            self.ai_panel.update_insight(
+                "⛽ Fuel Management opened! Configure E85, methanol, and flex fuel settings.",
+                level="info",
+            )
+            dialog.exec()
+        except Exception as e:
+            self.ai_panel.update_insight(f"❌ Failed to open Fuel Management: {e}", level="error")
+
+    def _open_log_viewer(self) -> None:
+        """Open Log Viewer in a dialog window."""
+        from PySide6.QtWidgets import QDialog, QVBoxLayout
+        
+        try:
+            from ui.log_viewer import LogViewer
+            
+            dialog = QDialog(self)
+            dialog.setWindowTitle("📜 Log Viewer")
+            dialog.setMinimumSize(900, 600)
+            dialog.resize(1100, 700)
+            
+            layout = QVBoxLayout(dialog)
+            layout.setContentsMargins(0, 0, 0, 0)
+            
+            log_widget = LogViewer()
+            layout.addWidget(log_widget)
+            
+            self.ai_panel.update_insight(
+                "📜 Log Viewer opened! View and analyze system logs.",
+                level="info",
+            )
+            dialog.exec()
+        except Exception as e:
+            self.ai_panel.update_insight(f"❌ Failed to open Log Viewer: {e}", level="error")
+
+    def _open_tune_database(self) -> None:
+        """Open Tune Database in a dialog window."""
+        from PySide6.QtWidgets import QDialog, QVBoxLayout
+        
+        try:
+            from ui.tune_database_tab import TuneDatabaseTab
+            
+            dialog = QDialog(self)
+            dialog.setWindowTitle("🗄️ Tune Map Database")
+            dialog.setMinimumSize(900, 700)
+            dialog.resize(1100, 800)
+            
+            layout = QVBoxLayout(dialog)
+            layout.setContentsMargins(0, 0, 0, 0)
+            
+            tune_widget = TuneDatabaseTab()
+            layout.addWidget(tune_widget)
+            
+            self.ai_panel.update_insight(
+                "🗄️ Tune Database opened! Browse and load tune maps.",
+                level="info",
+            )
+            dialog.exec()
+        except Exception as e:
+            self.ai_panel.update_insight(f"❌ Failed to open Tune Database: {e}", level="error")
+
+    def _open_onboarding_wizard(self) -> None:
+        """Open Onboarding Wizard for first-time setup."""
+        try:
+            from ui.onboarding_wizard import OnboardingWizard
+            
+            wizard = OnboardingWizard(self)
+            wizard.exec()
+            
+            self.ai_panel.update_insight(
+                "🎉 Welcome! Setup wizard completed.",
+                level="info",
+            )
+        except Exception as e:
+            self.ai_panel.update_insight(f"❌ Failed to open wizard: {e}", level="error")
 
     def configure_display(self) -> None:
         """Open display configuration dialog."""

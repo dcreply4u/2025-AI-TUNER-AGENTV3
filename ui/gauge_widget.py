@@ -61,7 +61,7 @@ class RacingGauge(QWidget):
     - Dark racing theme with metallic bezel
     - Digital value display
     """
-    
+
     def __init__(
         self,
         title: str = "Gauge",
@@ -119,7 +119,7 @@ class RacingGauge(QWidget):
     def set_animated_value(self, value: float) -> None:
         self._animated_value = value
         self.update()
-    
+
     animatedValue = Property(float, get_animated_value, set_animated_value)
     
     def set_value(self, value: float) -> None:
@@ -137,7 +137,7 @@ class RacingGauge(QWidget):
         self._value = max(self.min_value, min(self.max_value, value))
         self._animated_value = self._value
         self.update()
-    
+
     def _value_to_angle(self, value: float) -> float:
         """Convert value to angle in degrees."""
         value_range = self.max_value - self.min_value
@@ -153,10 +153,10 @@ class RacingGauge(QWidget):
             painter = QPainter(self)
             if not painter.isActive():
                 return
-            
+                
             painter.setRenderHint(QPainter.RenderHint.Antialiasing)
             painter.setRenderHint(QPainter.RenderHint.TextAntialiasing)
-            
+
             # Calculate dimensions
             width = self.width()
             height = self.height()
@@ -164,7 +164,7 @@ class RacingGauge(QWidget):
             
             if size < 50:
                 return
-            
+                
             center_x = width // 2
             center_y = (height - 20) // 2 + 5
             radius = (size - 20) // 2
@@ -289,7 +289,7 @@ class RacingGauge(QWidget):
             tick_color = self._get_zone_color(value)
             painter.setPen(QPen(QColor(tick_color), 2, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
             painter.drawLine(QPointF(x1, y1), QPointF(x2, y2))
-            
+
             # Label
             label_radius = radius - 28
             label_x = cx + label_radius * math.cos(angle_rad)
@@ -485,7 +485,7 @@ class GaugePanel(QWidget):
         "AFR": {"title": "AFR", "min": 10, "max": 18, "unit": ":1", "warn": 11, "danger": 15, "ticks": 8, "color": "#9b59b6"},
         "EGT": {"title": "EGT", "min": 0, "max": 2000, "unit": "°F", "warn": 1500, "danger": 1800, "ticks": 10, "color": "#e74c3c"},
     }
-    
+
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         
@@ -517,7 +517,7 @@ class GaugePanel(QWidget):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(8, 8, 8, 8)
         layout.setSpacing(4)
-        
+
         # Title
         title = QLabel("🏎️ LIVE GAUGES")
         title.setStyleSheet("""
@@ -531,7 +531,7 @@ class GaugePanel(QWidget):
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title.setFixedHeight(22)
         layout.addWidget(title)
-        
+
         # Current gauge selections (user can change these)
         self.selected_gauges = ["RPM", "Speed", "Boost", "CoolantTemp", "OilPressure", "Throttle"]
         
@@ -539,7 +539,7 @@ class GaugePanel(QWidget):
         self.grid = QGridLayout()
         self.grid.setSpacing(4)
         self.grid.setContentsMargins(2, 0, 2, 0)
-        
+
         # Create gauge widgets dict
         self.gauges: Dict[str, RacingGauge] = {}
         self.gauge_widgets: List[Tuple[RacingGauge, QComboBox]] = []
@@ -560,7 +560,7 @@ class GaugePanel(QWidget):
             gauge = self._create_gauge(gauge_key)
             self.gauges[gauge_key] = gauge
             container_layout.addWidget(gauge)
-            
+
             # Create selector dropdown
             selector = QComboBox()
             selector.setFixedHeight(16)
@@ -572,9 +572,9 @@ class GaugePanel(QWidget):
             
             self.gauge_widgets.append((gauge, selector))
             self.grid.addWidget(container, row, col)
-        
+
         layout.addLayout(self.grid)
-        
+
         # Demo timer
         self.demo_timer = QTimer(self)
         self.demo_timer.timeout.connect(self._update_demo_data)
@@ -583,7 +583,7 @@ class GaugePanel(QWidget):
         
         # Initialize with demo values
         self._update_demo_data()
-    
+        
     def _create_gauge(self, gauge_key: str) -> RacingGauge:
         """Create a gauge from configuration."""
         cfg = self.GAUGE_CONFIGS.get(gauge_key, self.GAUGE_CONFIGS["RPM"])
@@ -628,7 +628,7 @@ class GaugePanel(QWidget):
         
         # Insert at position 0 (before selector)
         container_layout.insertWidget(0, new_gauge_widget)
-    
+
     def update_data(self, data: Dict[str, float]) -> None:
         """Update gauges with real telemetry data."""
         key_mapping = {
@@ -645,11 +645,11 @@ class GaugePanel(QWidget):
             "AFR": "AFR", "Air_Fuel_Ratio": "AFR",
             "EGT": "EGT", "Exhaust_Gas_Temp": "EGT",
         }
-        
+
         for data_key, gauge_key in key_mapping.items():
             if data_key in data and gauge_key in self.gauges:
                 self.gauges[gauge_key].set_value(data[data_key])
-    
+
     def _update_demo_data(self) -> None:
         """Generate demo data for gauges."""
         if self._timer_started:
@@ -658,7 +658,7 @@ class GaugePanel(QWidget):
             self.demo_time = 1.0
         
         t = self.demo_time
-        
+
         # Simulate driving patterns
         # Acceleration phase
         phase = (t % 20)
@@ -704,12 +704,12 @@ class GaugePanel(QWidget):
         }
         
         self.update_data(demo_data)
-    
+        
     def start_demo(self) -> None:
         """Start demo mode."""
         self._timer_started = True
         self.demo_timer.start(100)
-    
+
     def stop_demo(self) -> None:
         """Stop demo mode."""
         self._timer_started = False

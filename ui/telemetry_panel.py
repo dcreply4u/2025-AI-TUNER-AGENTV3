@@ -84,7 +84,7 @@ class TelemetryPanel(QWidget):
             
             # 3 graphs stacked VERTICALLY - full width like Drag Mode
             GRAPH_HEIGHT = 60  # Fixed height per graph (very compact)
-            
+
             # Powertrain graph (Row 1)
             self.plots["primary"] = pg.PlotWidget(title="Powertrain")
             self.plots["primary"].setBackground("w")

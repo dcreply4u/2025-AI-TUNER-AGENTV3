@@ -181,8 +181,8 @@ class MultiRowTabWidget(QWidget):
         for row_layout in self.row_layouts:
             while row_layout.count():
                 item = row_layout.takeAt(0)
-                if item.widget():
-                    item.widget().setParent(None)
+            if item.widget():
+                item.widget().setParent(None)
         
         # Clear row layouts from main layout
         while self.tab_bar_layout.count():
