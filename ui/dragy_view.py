@@ -46,16 +46,17 @@ class MetricTile(QFrame):
         
         layout = QVBoxLayout(self)
         layout.setContentsMargins(12, 10, 12, 10)
-        layout.setSpacing(4)
+        layout.setSpacing(6)
         
-        # Title
-        self.title_label = QLabel(title.upper())
+        # Title - prominent header
+        self.title_label = QLabel(f"🏎️ {title}")
         self.title_label.setStyleSheet("""
-            font-size: 10px; 
+            font-size: 12px; 
             font-weight: bold;
-            color: #7f8c8d; 
-            letter-spacing: 1px;
-            background: transparent;
+            color: #2c3e50; 
+            background: #f8f9fa;
+            padding: 4px 8px;
+            border-radius: 4px;
         """)
         layout.addWidget(self.title_label)
         
