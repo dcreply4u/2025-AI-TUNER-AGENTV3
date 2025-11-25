@@ -473,9 +473,8 @@ class MainWindow(QWidget):
         # ------------------------------------------------------------------
         # Left: primary telemetry stack - use stretch=0 for fixed-size widgets
         left_column.setSpacing(8)
-        left_column.addWidget(make_expanding(self.telemetry_panel), 3)  # Graphs get most space
+        left_column.addWidget(self.telemetry_panel, 0)  # Telemetry graphs - fixed height
         left_column.addWidget(self.drag_mode_panel, 0)  # Dodge Charger Drag Mode
-        left_column.addSpacing(96)  # Extra gap before Engine Health
         left_column.addWidget(self.health_widget, 0)  # Engine Health
         left_column.addWidget(self.ai_panel, 0)  # AI Insights
         left_column.addWidget(self.gps_track_panel, 0)  # GPS/Map at bottom
