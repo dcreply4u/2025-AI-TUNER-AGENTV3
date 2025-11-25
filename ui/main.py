@@ -13,14 +13,16 @@ import sys
 IS_WINDOWS = platform.system().lower().startswith("win")
 from pathlib import Path
 
-from PySide6.QtCore import QTimer
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QScreen
 from PySide6.QtWidgets import (
     QApplication,
     QFileDialog,
+    QFrame,
     QGroupBox,
     QHBoxLayout,
     QPushButton,
+    QScrollArea,
     QSizePolicy,
     QVBoxLayout,
     QWidget,
@@ -135,8 +137,32 @@ class MainWindow(QWidget):
 
         left_column = QVBoxLayout()
         left_column.setSpacing(6)
-        right_column = QVBoxLayout()
+
+        # Right column with scroll area for many controls
+        right_scroll = QScrollArea()
+        right_scroll.setWidgetResizable(True)
+        right_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        right_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        right_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        right_scroll.setStyleSheet("""
+            QScrollArea { background-color: transparent; border: none; }
+            QScrollBar:vertical {
+                background-color: #1a1a1a;
+                width: 10px;
+                border-radius: 5px;
+            }
+            QScrollBar::handle:vertical {
+                background-color: #00e0ff;
+                border-radius: 5px;
+                min-height: 30px;
+            }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0px; }
+        """)
+
+        right_container = QWidget()
+        right_column = QVBoxLayout(right_container)
         right_column.setSpacing(6)
+        right_column.setContentsMargins(0, 0, 0, 0)
 
         # ------------------------------------------------------------------
         # Left column: telemetry, health, AI insights, advice, performance
@@ -447,7 +473,11 @@ class MainWindow(QWidget):
 
         # Finally, assemble columns into content layout
         content_layout.addLayout(left_column, 3)   # main panels
-        content_layout.addLayout(right_column, 1)  # status + controls
+
+        # Add stretch at bottom of right column and set up scroll
+        right_column.addStretch()
+        right_scroll.setWidget(right_container)
+        content_layout.addWidget(right_scroll, 1)  # status + controls with scroll
 
         root_layout.addLayout(content_layout)
         root_layout.addWidget(make_hgrow(self.status_bar))
