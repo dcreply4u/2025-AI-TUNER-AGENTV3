@@ -51,11 +51,14 @@ class TelemetryPanel(QWidget):
         self.max_len = max_len
 
         layout = QVBoxLayout(self)
-        layout.setSpacing(scaled_spacing(8))
+        layout.setSpacing(scaled_spacing(4))
         layout.setContentsMargins(
-            scaled_spacing(10), scaled_spacing(10),
-            scaled_spacing(10), scaled_spacing(10)
+            scaled_spacing(8), scaled_spacing(8),
+            scaled_spacing(8), scaled_spacing(8)
         )
+        
+        # Set minimum height to prevent collapse/overlap
+        self.setMinimumHeight(280)
         
         header = QLabel("Live Telemetry Overview", alignment=Qt.AlignLeft)
         header_font_size = scaled_font_size(18)

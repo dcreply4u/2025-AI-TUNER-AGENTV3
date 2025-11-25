@@ -173,14 +173,22 @@ class MainWindow(QWidget):
         # ------------------------------------------------------------------
         self.telemetry_panel = TelemetryPanel()
         self.health_widget = HealthScoreWidget()
+        self.health_widget.setFixedHeight(100)  # Compact fixed height
+        
         self.ai_panel = AIInsightPanel()
+        self.ai_panel.setFixedHeight(120)  # Compact fixed height
+        
         from ui.advice_panel import AdvicePanel
-
         self.advice_panel = AdvicePanel()
+        self.advice_panel.setFixedHeight(120)  # Compact fixed height
+        
         self.dragy_view = DragyPerformanceView()
         # Separate panels for flexible layout
         self.drag_times_panel = DragTimesPanel()
+        self.drag_times_panel.setFixedHeight(180)  # Fixed for 2 rows of tiles
+        
         self.gps_track_panel = GPSTrackPanel()
+        self.gps_track_panel.setFixedHeight(180)  # Fixed for map
 
         # OBD & faults
         self.obd_interface = OBDInterface()
@@ -438,13 +446,14 @@ class MainWindow(QWidget):
         # ------------------------------------------------------------------
         # Column composition
         # ------------------------------------------------------------------
-        # Left: primary telemetry stack
-        left_column.addWidget(make_expanding(self.telemetry_panel), 3)
-        left_column.addWidget(make_expanding(self.drag_times_panel), 1)  # Just the 6 drag tiles
-        left_column.addWidget(make_expanding(self.health_widget), 1)  # Engine Health
-        left_column.addWidget(make_expanding(self.ai_panel), 1)
-        left_column.addWidget(make_expanding(self.advice_panel), 1)
-        left_column.addWidget(make_expanding(self.gps_track_panel), 1)  # GPS/Map at bottom
+        # Left: primary telemetry stack - use stretch=0 for fixed-size widgets
+        left_column.setSpacing(6)  # Reduce spacing between widgets
+        left_column.addWidget(make_expanding(self.telemetry_panel), 4)  # Graphs get most space
+        left_column.addWidget(self.drag_times_panel, 0)  # Fixed height tiles
+        left_column.addWidget(self.health_widget, 0)  # Compact
+        left_column.addWidget(self.ai_panel, 0)  # Compact
+        left_column.addWidget(self.advice_panel, 0)  # Compact
+        left_column.addWidget(self.gps_track_panel, 0)  # Fixed height
 
         # Right: gauges + faults + utilities + controls
         # 0) Live Gauges group (at top)
