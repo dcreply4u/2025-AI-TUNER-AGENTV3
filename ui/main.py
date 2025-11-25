@@ -24,6 +24,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QScrollArea,
     QSizePolicy,
+    QTabWidget,
     QVBoxLayout,
     QWidget,
 )
@@ -56,7 +57,6 @@ from ui.health_score_widget import HealthScoreWidget
 from ui.notification_widget import NotificationLevel, NotificationWidget
 from ui.settings_dialog import SettingsDialog
 from ui.status_bar import StatusBar
-from ui.session_controls_panel import SessionControlsPanel
 from ui.streaming_control_panel import StreamingControlPanel
 from ui.system_status_panel import SystemStatusPanel, SubsystemStatus
 from ui.telemetry_panel import TelemetryPanel
@@ -511,27 +511,6 @@ class MainWindow(QWidget):
         )
         right_column.addWidget(self.streaming_panel, 2)
 
-        # 3) Session Controls Panel (modern styled)
-        self.session_controls = SessionControlsPanel()
-        
-        # Connect signals to existing handlers
-        self.session_controls.start_session_clicked.connect(self.start_session)
-        self.session_controls.voice_control_clicked.connect(self.start_voice_control)
-        self.session_controls.replay_log_clicked.connect(self.start_replay_mode)
-        self.session_controls.settings_clicked.connect(self.open_settings)
-        self.session_controls.theme_clicked.connect(self.open_theme_dialog)
-        self.session_controls.diagnostics_clicked.connect(self.open_diagnostics)
-        self.session_controls.email_logs_clicked.connect(self.email_logs)
-        self.session_controls.export_data_clicked.connect(self.export_data)
-        self.session_controls.configure_cameras_clicked.connect(self.configure_cameras)
-        self.session_controls.video_overlay_clicked.connect(self.toggle_video_overlay)
-        self.session_controls.external_display_clicked.connect(self.toggle_external_display)
-        
-        # Enable camera buttons if manager available
-        self.session_controls.enable_camera_buttons(self.camera_manager is not None)
-        
-        right_column.addWidget(self.session_controls, 2)
-
         # Finally, assemble columns into content layout
         # Add stretch at bottom of left column and set up scroll
         left_column.addStretch()
@@ -544,6 +523,145 @@ class MainWindow(QWidget):
         content_layout.addWidget(right_scroll, 1)  # status + controls with scroll
 
         root_layout.addLayout(content_layout)
+
+        # ============================================================
+        # BOTTOM TAB BAR - Session, Camera, Tools, Data tabs
+        # ============================================================
+        self.bottom_tabs = QTabWidget()
+        self.bottom_tabs.setFixedHeight(100)
+        self.bottom_tabs.setStyleSheet("""
+            QTabWidget::pane {
+                border: 1px solid #bdc3c7;
+                border-radius: 6px;
+                background: #ffffff;
+                margin-top: -1px;
+            }
+            QTabBar::tab {
+                background: #ecf0f1;
+                border: 1px solid #bdc3c7;
+                border-bottom: none;
+                border-top-left-radius: 6px;
+                border-top-right-radius: 6px;
+                padding: 8px 20px;
+                margin-right: 2px;
+                font-weight: bold;
+                font-size: 11px;
+                color: #2c3e50;
+            }
+            QTabBar::tab:selected {
+                background: #ffffff;
+                border-bottom: 2px solid #3498db;
+                color: #3498db;
+            }
+            QTabBar::tab:hover {
+                background: #d5dbdb;
+            }
+            QPushButton {
+                background-color: #3498db;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 8px 16px;
+                font-size: 11px;
+                font-weight: bold;
+                min-height: 32px;
+            }
+            QPushButton:hover { background-color: #2980b9; }
+            QPushButton:pressed { background-color: #2471a3; }
+            QPushButton:disabled { background-color: #bdc3c7; color: #7f8c8d; }
+        """)
+
+        # Tab 1: Session Control
+        session_tab = QWidget()
+        session_layout = QHBoxLayout(session_tab)
+        session_layout.setContentsMargins(12, 8, 12, 8)
+        session_layout.setSpacing(10)
+        
+        self.start_btn = QPushButton("▶️  Start Session")
+        self.start_btn.setStyleSheet("background-color: #27ae60;")
+        self.start_btn.clicked.connect(self.start_session)
+        session_layout.addWidget(self.start_btn)
+        
+        self.voice_btn = QPushButton("🎤  Voice Control")
+        self.voice_btn.setStyleSheet("background-color: #00bcd4;")
+        self.voice_btn.clicked.connect(self.start_voice_control)
+        session_layout.addWidget(self.voice_btn)
+        
+        self.replay_btn = QPushButton("⏪  Replay Log")
+        self.replay_btn.clicked.connect(self.start_replay_mode)
+        session_layout.addWidget(self.replay_btn)
+        
+        session_layout.addStretch()
+        self.bottom_tabs.addTab(session_tab, "🏁 Session")
+
+        # Tab 2: Camera & Display
+        camera_tab = QWidget()
+        camera_layout = QHBoxLayout(camera_tab)
+        camera_layout.setContentsMargins(12, 8, 12, 8)
+        camera_layout.setSpacing(10)
+        
+        self.camera_btn = QPushButton("📷  Configure Cameras")
+        self.camera_btn.setStyleSheet("background-color: #34495e;")
+        self.camera_btn.clicked.connect(self.configure_cameras)
+        self.camera_btn.setEnabled(self.camera_manager is not None)
+        camera_layout.addWidget(self.camera_btn)
+        
+        self.overlay_btn = QPushButton("🎬  Video Overlay")
+        self.overlay_btn.setStyleSheet("background-color: #34495e;")
+        self.overlay_btn.clicked.connect(self.toggle_video_overlay)
+        self.overlay_btn.setEnabled(self.camera_manager is not None)
+        camera_layout.addWidget(self.overlay_btn)
+        
+        self.display_btn = QPushButton("🖥️  External Display")
+        self.display_btn.setStyleSheet("background-color: #9b59b6;")
+        self.display_btn.clicked.connect(self.toggle_external_display)
+        camera_layout.addWidget(self.display_btn)
+        
+        camera_layout.addStretch()
+        self.bottom_tabs.addTab(camera_tab, "📹 Camera & Display")
+
+        # Tab 3: Tools & Settings
+        tools_tab = QWidget()
+        tools_layout = QHBoxLayout(tools_tab)
+        tools_layout.setContentsMargins(12, 8, 12, 8)
+        tools_layout.setSpacing(10)
+        
+        self.settings_btn = QPushButton("⚙️  Settings")
+        self.settings_btn.setStyleSheet("background-color: #ecf0f1; color: #2c3e50;")
+        self.settings_btn.clicked.connect(self.open_settings)
+        tools_layout.addWidget(self.settings_btn)
+        
+        self.theme_btn = QPushButton("🎨  Theme")
+        self.theme_btn.setStyleSheet("background-color: #ecf0f1; color: #2c3e50;")
+        self.theme_btn.clicked.connect(self.open_theme_dialog)
+        tools_layout.addWidget(self.theme_btn)
+        
+        self.diagnostics_btn = QPushButton("🔍  Diagnostics")
+        self.diagnostics_btn.setStyleSheet("background-color: #f39c12;")
+        self.diagnostics_btn.clicked.connect(self.open_diagnostics)
+        tools_layout.addWidget(self.diagnostics_btn)
+        
+        tools_layout.addStretch()
+        self.bottom_tabs.addTab(tools_tab, "🔧 Tools & Settings")
+
+        # Tab 4: Data & Export
+        data_tab = QWidget()
+        data_layout = QHBoxLayout(data_tab)
+        data_layout.setContentsMargins(12, 8, 12, 8)
+        data_layout.setSpacing(10)
+        
+        self.email_btn = QPushButton("📧  Email Logs")
+        self.email_btn.clicked.connect(self.email_logs)
+        data_layout.addWidget(self.email_btn)
+        
+        self.export_btn = QPushButton("💾  Export Data")
+        self.export_btn.clicked.connect(self.export_data)
+        data_layout.addWidget(self.export_btn)
+        
+        data_layout.addStretch()
+        self.bottom_tabs.addTab(data_tab, "📊 Data & Export")
+
+        root_layout.addWidget(self.bottom_tabs)
         root_layout.addWidget(make_hgrow(self.status_bar))
 
         # ------------------------------------------------------------------
