@@ -38,7 +38,16 @@ from PySide6.QtGui import (
     QPolygonF,
     QRadialGradient,
 )
-from PySide6.QtWidgets import QGridLayout, QLabel, QSizePolicy, QVBoxLayout, QWidget
+from PySide6.QtWidgets import (
+    QComboBox,
+    QGridLayout,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QSizePolicy,
+    QVBoxLayout,
+    QWidget,
+)
 
 
 class RacingGauge(QWidget):
@@ -453,10 +462,29 @@ class RacingGauge(QWidget):
 
 class GaugePanel(QWidget):
     """
-    Panel containing multiple racing gauges for telemetry display.
+    Panel containing selectable racing gauges for telemetry display.
     
-    Maintains the same API as the previous implementation for compatibility.
+    Features:
+    - 6 customizable gauge slots
+    - 12 available gauge types to choose from
+    - Dropdown selectors to swap gauges
     """
+    
+    # All available gauge configurations
+    GAUGE_CONFIGS = {
+        "RPM": {"title": "RPM", "min": 0, "max": 8000, "unit": "x1000", "warn": 6000, "danger": 7000, "ticks": 8, "color": "#ff4444"},
+        "Speed": {"title": "SPEED", "min": 0, "max": 200, "unit": "MPH", "ticks": 10, "color": "#3498db"},
+        "Boost": {"title": "BOOST", "min": -10, "max": 30, "unit": "PSI", "warn": 20, "danger": 25, "ticks": 8, "color": "#f39c12"},
+        "CoolantTemp": {"title": "COOLANT", "min": 100, "max": 260, "unit": "°F", "warn": 220, "danger": 240, "ticks": 8, "color": "#27ae60"},
+        "OilPressure": {"title": "OIL PSI", "min": 0, "max": 100, "unit": "PSI", "warn": 20, "ticks": 10, "color": "#9b59b6"},
+        "OilTemp": {"title": "OIL °F", "min": 100, "max": 300, "unit": "°F", "warn": 250, "danger": 280, "ticks": 10, "color": "#e67e22"},
+        "Throttle": {"title": "THROTTLE", "min": 0, "max": 100, "unit": "%", "ticks": 10, "color": "#1abc9c"},
+        "Voltage": {"title": "VOLTS", "min": 10, "max": 16, "unit": "V", "warn": 12, "ticks": 6, "color": "#3498db"},
+        "FuelPressure": {"title": "FUEL PSI", "min": 0, "max": 80, "unit": "PSI", "warn": 30, "ticks": 8, "color": "#e74c3c"},
+        "IAT": {"title": "IAT", "min": 0, "max": 200, "unit": "°F", "warn": 140, "danger": 160, "ticks": 10, "color": "#1abc9c"},
+        "AFR": {"title": "AFR", "min": 10, "max": 18, "unit": ":1", "warn": 11, "danger": 15, "ticks": 8, "color": "#9b59b6"},
+        "EGT": {"title": "EGT", "min": 0, "max": 2000, "unit": "°F", "warn": 1500, "danger": 1800, "ticks": 10, "color": "#e74c3c"},
+    }
     
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
@@ -468,14 +496,27 @@ class GaugePanel(QWidget):
                 border: 2px solid #2a3040;
                 border-radius: 8px;
             }
+            QComboBox {
+                background: #2a3040;
+                color: #00e0ff;
+                border: 1px solid #3a4050;
+                border-radius: 3px;
+                padding: 1px 2px;
+                font-size: 8px;
+                font-weight: bold;
+            }
+            QComboBox:hover { border: 1px solid #00e0ff; }
+            QComboBox::drop-down { border: none; width: 12px; }
+            QComboBox::down-arrow { border-left: 3px solid transparent; border-right: 3px solid transparent; border-top: 4px solid #00e0ff; }
+            QComboBox QAbstractItemView { background: #1a1f2e; color: #fff; selection-background-color: #00e0ff; font-size: 9px; }
         """)
         
         # Fixed size to prevent jitter
         self.setFixedSize(310, 540)
         
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(10, 10, 10, 10)
-        layout.setSpacing(6)
+        layout.setContentsMargins(8, 8, 8, 8)
+        layout.setSpacing(4)
         
         # Title
         title = QLabel("🏎️ LIVE GAUGES")
@@ -483,102 +524,56 @@ class GaugePanel(QWidget):
             font-size: 14px; 
             font-weight: bold; 
             color: #00e0ff; 
-            padding: 4px;
+            padding: 2px;
             background: transparent;
             border: none;
         """)
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setFixedHeight(28)
+        title.setFixedHeight(22)
         layout.addWidget(title)
         
-        # Grid for gauges - centered
-        grid = QGridLayout()
-        grid.setSpacing(6)
-        grid.setContentsMargins(5, 0, 5, 0)
+        # Current gauge selections (user can change these)
+        self.selected_gauges = ["RPM", "Speed", "Boost", "CoolantTemp", "OilPressure", "Throttle"]
         
-        # Create gauges
+        # Grid for gauges
+        self.grid = QGridLayout()
+        self.grid.setSpacing(4)
+        self.grid.setContentsMargins(2, 0, 2, 0)
+        
+        # Create gauge widgets dict
         self.gauges: Dict[str, RacingGauge] = {}
+        self.gauge_widgets: List[Tuple[RacingGauge, QComboBox]] = []
         
-        # RPM Gauge (red zone at high RPM)
-        self.gauges["RPM"] = RacingGauge(
-            title="RPM",
-            min_value=0,
-            max_value=8000,
-            unit="x1000",
-            warning_value=6000,
-            danger_value=7000,
-            major_ticks=8,
-            needle_color="#ff4444",
-            accent_color="#ff6666",
-        )
-        grid.addWidget(self.gauges["RPM"], 0, 0)
+        # Create 6 gauge slots with selectors
+        for i in range(6):
+            row, col = divmod(i, 2)
+            gauge_key = self.selected_gauges[i]
+            
+            # Create container for gauge + selector
+            container = QWidget()
+            container.setStyleSheet("background: transparent; border: none;")
+            container_layout = QVBoxLayout(container)
+            container_layout.setContentsMargins(0, 0, 0, 0)
+            container_layout.setSpacing(1)
+            
+            # Create gauge
+            gauge = self._create_gauge(gauge_key)
+            self.gauges[gauge_key] = gauge
+            container_layout.addWidget(gauge)
+            
+            # Create selector dropdown
+            selector = QComboBox()
+            selector.setFixedHeight(16)
+            for name in self.GAUGE_CONFIGS.keys():
+                selector.addItem(name)
+            selector.setCurrentText(gauge_key)
+            selector.currentTextChanged.connect(lambda text, idx=i: self._on_gauge_changed(idx, text))
+            container_layout.addWidget(selector)
+            
+            self.gauge_widgets.append((gauge, selector))
+            self.grid.addWidget(container, row, col)
         
-        # Speed Gauge
-        self.gauges["Speed"] = RacingGauge(
-            title="SPEED",
-            min_value=0,
-            max_value=200,
-            unit="MPH",
-            major_ticks=10,
-            needle_color="#3498db",
-            accent_color="#5dade2",
-        )
-        grid.addWidget(self.gauges["Speed"], 0, 1)
-        
-        # Boost Gauge (turbo)
-        self.gauges["Boost"] = RacingGauge(
-            title="BOOST",
-            min_value=-10,
-            max_value=30,
-            unit="PSI",
-            warning_value=20,
-            danger_value=25,
-            major_ticks=8,
-            needle_color="#f39c12",
-            accent_color="#f5b041",
-        )
-        grid.addWidget(self.gauges["Boost"], 1, 0)
-        
-        # Coolant Temperature
-        self.gauges["CoolantTemp"] = RacingGauge(
-            title="COOLANT",
-            min_value=100,
-            max_value=260,
-            unit="°F",
-            warning_value=220,
-            danger_value=240,
-            major_ticks=8,
-            needle_color="#27ae60",
-            accent_color="#58d68d",
-        )
-        grid.addWidget(self.gauges["CoolantTemp"], 1, 1)
-        
-        # Oil Pressure
-        self.gauges["OilPressure"] = RacingGauge(
-            title="OIL PRESS",
-            min_value=0,
-            max_value=100,
-            unit="PSI",
-            warning_value=20,  # Low oil pressure warning
-            major_ticks=10,
-            needle_color="#9b59b6",
-            accent_color="#bb8fce",
-        )
-        grid.addWidget(self.gauges["OilPressure"], 2, 0)
-        
-        # Throttle Position
-        self.gauges["Throttle"] = RacingGauge(
-            title="THROTTLE",
-            min_value=0,
-            max_value=100,
-            unit="%",
-            major_ticks=10,
-            needle_color="#1abc9c",
-            accent_color="#48c9b0",
-        )
-        grid.addWidget(self.gauges["Throttle"], 2, 1)
-        
-        layout.addLayout(grid)
+        layout.addLayout(self.grid)
         
         # Demo timer
         self.demo_timer = QTimer(self)
@@ -589,21 +584,66 @@ class GaugePanel(QWidget):
         # Initialize with demo values
         self._update_demo_data()
     
+    def _create_gauge(self, gauge_key: str) -> RacingGauge:
+        """Create a gauge from configuration."""
+        cfg = self.GAUGE_CONFIGS.get(gauge_key, self.GAUGE_CONFIGS["RPM"])
+        return RacingGauge(
+            title=cfg["title"],
+            min_value=cfg["min"],
+            max_value=cfg["max"],
+            unit=cfg["unit"],
+            warning_value=cfg.get("warn"),
+            danger_value=cfg.get("danger"),
+            major_ticks=cfg.get("ticks", 10),
+            needle_color=cfg["color"],
+            accent_color=cfg["color"],
+        )
+    
+    def _on_gauge_changed(self, slot_idx: int, new_gauge: str) -> None:
+        """Handle gauge selection change."""
+        if slot_idx >= len(self.gauge_widgets):
+            return
+        
+        old_gauge, selector = self.gauge_widgets[slot_idx]
+        old_key = self.selected_gauges[slot_idx]
+        
+        # Remove old gauge from dict
+        if old_key in self.gauges:
+            del self.gauges[old_key]
+        
+        # Get container
+        row, col = divmod(slot_idx, 2)
+        container = self.grid.itemAtPosition(row, col).widget()
+        container_layout = container.layout()
+        
+        # Remove old gauge widget
+        container_layout.removeWidget(old_gauge)
+        old_gauge.deleteLater()
+        
+        # Create new gauge
+        new_gauge_widget = self._create_gauge(new_gauge)
+        self.gauges[new_gauge] = new_gauge_widget
+        self.gauge_widgets[slot_idx] = (new_gauge_widget, selector)
+        self.selected_gauges[slot_idx] = new_gauge
+        
+        # Insert at position 0 (before selector)
+        container_layout.insertWidget(0, new_gauge_widget)
+    
     def update_data(self, data: Dict[str, float]) -> None:
         """Update gauges with real telemetry data."""
         key_mapping = {
-            "RPM": "RPM",
-            "Engine_RPM": "RPM",
-            "Speed": "Speed",
-            "Vehicle_Speed": "Speed",
-            "Boost": "Boost",
-            "Boost_Pressure": "Boost",
-            "CoolantTemp": "CoolantTemp",
-            "Coolant_Temp": "CoolantTemp",
-            "OilPressure": "OilPressure",
-            "Oil_Pressure": "OilPressure",
-            "Throttle": "Throttle",
-            "Throttle_Position": "Throttle",
+            "RPM": "RPM", "Engine_RPM": "RPM",
+            "Speed": "Speed", "Vehicle_Speed": "Speed",
+            "Boost": "Boost", "Boost_Pressure": "Boost",
+            "CoolantTemp": "CoolantTemp", "Coolant_Temp": "CoolantTemp",
+            "OilPressure": "OilPressure", "Oil_Pressure": "OilPressure",
+            "OilTemp": "OilTemp", "Oil_Temp": "OilTemp",
+            "Throttle": "Throttle", "Throttle_Position": "Throttle",
+            "Voltage": "Voltage", "Battery_Voltage": "Voltage",
+            "FuelPressure": "FuelPressure", "Fuel_Pressure": "FuelPressure",
+            "IAT": "IAT", "Intake_Air_Temp": "IAT",
+            "AFR": "AFR", "Air_Fuel_Ratio": "AFR",
+            "EGT": "EGT", "Exhaust_Gas_Temp": "EGT",
         }
         
         for data_key, gauge_key in key_mapping.items():
@@ -654,7 +694,13 @@ class GaugePanel(QWidget):
             "Boost": max(-10, min(30, boost)),
             "CoolantTemp": 180 + math.sin(t * 0.1) * 15 + random.uniform(-2, 2),
             "OilPressure": 45 + math.sin(t * 0.15) * 10 + random.uniform(-2, 2),
+            "OilTemp": 200 + math.sin(t * 0.08) * 20 + random.uniform(-3, 3),
             "Throttle": max(0, min(100, throttle)),
+            "Voltage": 13.8 + math.sin(t * 0.2) * 0.5 + random.uniform(-0.1, 0.1),
+            "FuelPressure": 45 + math.sin(t * 0.12) * 5 + random.uniform(-1, 1),
+            "IAT": 90 + math.sin(t * 0.05) * 20 + random.uniform(-2, 2),
+            "AFR": 14.7 + math.sin(t * 0.3) * 1.5 + random.uniform(-0.2, 0.2),
+            "EGT": 1200 + math.sin(t * 0.07) * 200 + random.uniform(-20, 20),
         }
         
         self.update_data(demo_data)
