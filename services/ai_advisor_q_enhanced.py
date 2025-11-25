@@ -1200,11 +1200,18 @@ Tips:
         # Sort by score and return top matches
         scored_entries.sort(key=lambda x: x[1], reverse=True)
         
-        # Filter out low-scoring matches (higher threshold for "what is" questions)
-        threshold = 5.0 if is_what_is_question else 3.0  # Stricter threshold for "what is" questions
+        # Filter out low-scoring matches (but be more lenient - return something if available)
+        threshold = 3.0 if is_what_is_question else 2.0  # Lower threshold to return more results
         filtered_entries = [(entry, score) for entry, score in scored_entries if score >= threshold]
         
-        return filtered_entries[:5] if filtered_entries else (scored_entries[:2] if scored_entries else [])  # Top matches, or top 2 if all below threshold
+        # Always return at least top 3 matches if available, even if below threshold
+        if filtered_entries:
+            return filtered_entries[:5]
+        elif scored_entries:
+            # Return top matches even if below threshold (better than nothing)
+            return scored_entries[:3]
+        else:
+            return []
     
     def _integrate_telemetry_context(self, response: str, knowledge: List[KnowledgeEntry], question: str = "") -> Tuple[str, bool]:
         """Integrate live telemetry data into response if relevant."""
@@ -1347,11 +1354,11 @@ Tips:
         knowledge_matches = self._find_relevant_knowledge_enhanced(question, intent)
         knowledge = [entry for entry, _ in knowledge_matches]
         
-        # Determine if we have good local knowledge matches
+        # Determine if we have good local knowledge matches (lower threshold)
         has_good_knowledge = (
             knowledge_matches and 
             len(knowledge_matches) > 0 and 
-            knowledge_matches[0][1] >= 5.0  # Good match threshold
+            knowledge_matches[0][1] >= 3.0  # Lower threshold - was 5.0, now 3.0
         )
         
         # Check if we need web search (ALWAYS search if no good local matches)
@@ -1381,13 +1388,15 @@ Tips:
             # 4. Question asks about specific products/components/vehicles
             # 5. Troubleshooting questions
             # 6. Spec/technical questions
+            # 7. ANY question that doesn't have strong knowledge match (be more aggressive)
             should_search = (
                 not has_good_knowledge or  # ALWAYS search if no good local matches (prevents erroneous info)
                 has_vehicle or  # ALWAYS search for vehicle-specific questions
                 is_technical_spec_question or  # ALWAYS search for "what is [technical spec]" questions
                 has_spec or  # Search for technical specs
-                intent in [IntentType.TROUBLESHOOTING, IntentType.WHAT_IS, IntentType.TELEMETRY_QUERY] or
-                any(word in question_lower for word in ["spec", "specification", "details", "information about", "look up", "research", "what is", "what are"])
+                intent in [IntentType.TROUBLESHOOTING, IntentType.WHAT_IS, IntentType.TELEMETRY_QUERY, IntentType.TUNING_ADVICE] or
+                any(word in question_lower for word in ["spec", "specification", "details", "information about", "look up", "research", "what is", "what are", "how do", "how to"]) or
+                (knowledge_matches and len(knowledge_matches) > 0 and knowledge_matches[0][1] < 4.0)  # Search if knowledge match is weak
             )
             
             if should_search:
@@ -1636,14 +1645,14 @@ What would you like to know?"""
             response_parts.append("💡 Note: These are general specifications. Actual values may vary by year, model, and modifications.")
             return "\n".join(response_parts)
         
-        # If we have relevant knowledge, use it (but only if it's a good match)
-        has_good_knowledge = knowledge_match_quality >= 5.0
+        # If we have relevant knowledge, use it (lower threshold to use more knowledge)
+        has_good_knowledge = knowledge_match_quality >= 2.0  # Lower threshold - was 5.0
         if knowledge and has_good_knowledge:
             response_parts = []
             
             # Check knowledge relevance - if score is low and we have web search, prioritize web
             knowledge_score = knowledge_match_quality
-            if knowledge_score < 5.0 and web_search_results and web_search_results.results:
+            if knowledge_score < 3.0 and web_search_results and web_search_results.results:
                 # Low relevance knowledge - prioritize web search to avoid erroneous info
                 response_parts = ["🌐 I found this information online:\n"]
                 for result in web_search_results.results[:3]:
@@ -1699,6 +1708,7 @@ What would you like to know?"""
         # If no knowledge AND no web search results, try web search one more time
         if not has_good_knowledge and not web_search_results and self.web_search and self.web_search.is_available():
             try:
+                LOGGER.info("Retrying web search for question: %s", question)
                 web_search_results = self._perform_web_search(question, intent)
                 if web_search_results and web_search_results.results:
                     response_parts = ["🌐 I searched online and found:\n"]
@@ -1711,6 +1721,20 @@ What would you like to know?"""
                     return "\n".join(response_parts)
             except Exception as e:
                 LOGGER.warning("Retry web search failed: %s", e)
+        
+        # If we have knowledge (even if not perfect), use it instead of generic response
+        if knowledge and len(knowledge) > 0:
+            response_parts = []
+            primary = knowledge[0]
+            response_parts.append(primary.content.strip())
+            
+            # Add related topics if available
+            if len(knowledge) > 1:
+                response_parts.append("\n\nRelated Information:")
+                for entry in knowledge[1:3]:
+                    response_parts.append(f"\n{entry.topic}:\n{entry.content[:200]}...")
+            
+            return "\n".join(response_parts)
         
         # Default response based on intent (only if we have no other options)
         if intent == IntentType.TUNING_ADVICE:
