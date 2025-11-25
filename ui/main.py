@@ -549,10 +549,11 @@ class MainWindow(QWidget):
         root_layout.addLayout(content_layout)
 
         # ============================================================
-        # BOTTOM TAB BAR - Session, Camera, Tools, Data tabs
+        # BOTTOM TAB BAR - Multi-row comprehensive control tabs
         # ============================================================
         self.bottom_tabs = QTabWidget()
         self.bottom_tabs.setFixedHeight(100)
+        self.bottom_tabs.setTabPosition(QTabWidget.TabPosition.North)
         self.bottom_tabs.setStyleSheet("""
             QTabWidget::pane {
                 border: 1px solid #bdc3c7;
@@ -564,13 +565,14 @@ class MainWindow(QWidget):
                 background: #ecf0f1;
                 border: 1px solid #bdc3c7;
                 border-bottom: none;
-                border-top-left-radius: 6px;
-                border-top-right-radius: 6px;
-                padding: 8px 20px;
-                margin-right: 2px;
+                border-top-left-radius: 4px;
+                border-top-right-radius: 4px;
+                padding: 6px 12px;
+                margin-right: 1px;
                 font-weight: bold;
-                font-size: 11px;
+                font-size: 10px;
                 color: #2c3e50;
+                min-width: 60px;
             }
             QTabBar::tab:selected {
                 background: #ffffff;
@@ -580,15 +582,23 @@ class MainWindow(QWidget):
             QTabBar::tab:hover {
                 background: #d5dbdb;
             }
+            QTabBar::scroller {
+                width: 20px;
+            }
+            QTabBar QToolButton {
+                background: #3498db;
+                border: none;
+                color: white;
+            }
             QPushButton {
                 background-color: #3498db;
                 color: white;
                 border: none;
-                border-radius: 6px;
-                padding: 8px 16px;
-                font-size: 11px;
+                border-radius: 4px;
+                padding: 6px 10px;
+                font-size: 10px;
                 font-weight: bold;
-                min-height: 32px;
+                min-height: 28px;
             }
             QPushButton:hover { background-color: #2980b9; }
             QPushButton:pressed { background-color: #2471a3; }
@@ -683,7 +693,151 @@ class MainWindow(QWidget):
         data_layout.addWidget(self.export_btn)
         
         data_layout.addStretch()
-        self.bottom_tabs.addTab(data_tab, "📊 Data & Export")
+        self.bottom_tabs.addTab(data_tab, "📊 Data")
+
+        # Tab 5: Fuel Systems (E85, Methanol, Nitromethane)
+        fuel_tab = QWidget()
+        fuel_layout = QHBoxLayout(fuel_tab)
+        fuel_layout.setContentsMargins(12, 8, 12, 8)
+        fuel_layout.setSpacing(8)
+        
+        e85_btn = QPushButton("🌽 E85")
+        e85_btn.setStyleSheet("background-color: #f39c12;")
+        e85_btn.clicked.connect(lambda: self._show_module_placeholder("E85 Flex Fuel"))
+        fuel_layout.addWidget(e85_btn)
+        
+        meth_btn = QPushButton("💧 Methanol")
+        meth_btn.setStyleSheet("background-color: #3498db;")
+        meth_btn.clicked.connect(lambda: self._show_module_placeholder("Methanol Injection"))
+        fuel_layout.addWidget(meth_btn)
+        
+        nitrometh_btn = QPushButton("🔥 Nitromethane")
+        nitrometh_btn.setStyleSheet("background-color: #e74c3c;")
+        nitrometh_btn.clicked.connect(lambda: self._show_module_placeholder("Nitromethane"))
+        fuel_layout.addWidget(nitrometh_btn)
+        
+        fuel_layout.addStretch()
+        self.bottom_tabs.addTab(fuel_tab, "⛽ Fuel")
+
+        # Tab 6: Power Adders (Nitrous, Turbo/Boost)
+        power_tab = QWidget()
+        power_layout = QHBoxLayout(power_tab)
+        power_layout.setContentsMargins(12, 8, 12, 8)
+        power_layout.setSpacing(8)
+        
+        nitrous_btn = QPushButton("💨 Nitrous")
+        nitrous_btn.setStyleSheet("background-color: #9b59b6;")
+        nitrous_btn.clicked.connect(lambda: self._show_module_placeholder("Nitrous Oxide"))
+        power_layout.addWidget(nitrous_btn)
+        
+        boost_btn = QPushButton("🌀 Turbo/Boost")
+        boost_btn.setStyleSheet("background-color: #1abc9c;")
+        boost_btn.clicked.connect(lambda: self._show_module_placeholder("Turbo/Boost Control"))
+        power_layout.addWidget(boost_btn)
+        
+        supercharger_btn = QPushButton("⚡ Supercharger")
+        supercharger_btn.setStyleSheet("background-color: #e67e22;")
+        supercharger_btn.clicked.connect(lambda: self._show_module_placeholder("Supercharger"))
+        power_layout.addWidget(supercharger_btn)
+        
+        power_layout.addStretch()
+        self.bottom_tabs.addTab(power_tab, "💪 Power")
+
+        # Tab 7: ECU Tuning
+        tuning_tab = QWidget()
+        tuning_layout = QHBoxLayout(tuning_tab)
+        tuning_layout.setContentsMargins(12, 8, 12, 8)
+        tuning_layout.setSpacing(8)
+        
+        ecu_btn = QPushButton("🔧 ECU Tuning")
+        ecu_btn.setStyleSheet("background-color: #2c3e50;")
+        ecu_btn.clicked.connect(lambda: self._show_module_placeholder("ECU Tuning"))
+        tuning_layout.addWidget(ecu_btn)
+        
+        auto_tune_btn = QPushButton("🤖 Auto Tune")
+        auto_tune_btn.setStyleSheet("background-color: #27ae60;")
+        auto_tune_btn.clicked.connect(lambda: self._show_module_placeholder("Auto Tuning AI"))
+        tuning_layout.addWidget(auto_tune_btn)
+        
+        diesel_btn = QPushButton("🛢️ Diesel")
+        diesel_btn.setStyleSheet("background-color: #34495e;")
+        diesel_btn.clicked.connect(lambda: self._show_module_placeholder("Diesel Tuning"))
+        tuning_layout.addWidget(diesel_btn)
+        
+        tuning_layout.addStretch()
+        self.bottom_tabs.addTab(tuning_tab, "⚙️ Tuning")
+
+        # Tab 8: Racing
+        racing_tab = QWidget()
+        racing_layout = QHBoxLayout(racing_tab)
+        racing_layout.setContentsMargins(12, 8, 12, 8)
+        racing_layout.setSpacing(8)
+        
+        drag_btn = QPushButton("🏁 Drag Racing")
+        drag_btn.setStyleSheet("background-color: #e74c3c;")
+        drag_btn.clicked.connect(lambda: self._show_module_placeholder("Drag Racing"))
+        racing_layout.addWidget(drag_btn)
+        
+        track_btn = QPushButton("🛤️ Track Learning")
+        track_btn.setStyleSheet("background-color: #3498db;")
+        track_btn.clicked.connect(lambda: self._show_module_placeholder("Track Learning AI"))
+        racing_layout.addWidget(track_btn)
+        
+        dyno_btn = QPushButton("📈 Virtual Dyno")
+        dyno_btn.setStyleSheet("background-color: #9b59b6;")
+        dyno_btn.clicked.connect(lambda: self._show_module_placeholder("Virtual Dyno"))
+        racing_layout.addWidget(dyno_btn)
+        
+        racing_layout.addStretch()
+        self.bottom_tabs.addTab(racing_tab, "🏎️ Racing")
+
+        # Tab 9: Sensors & Monitoring
+        sensors_tab = QWidget()
+        sensors_layout = QHBoxLayout(sensors_tab)
+        sensors_layout.setContentsMargins(12, 8, 12, 8)
+        sensors_layout.setSpacing(8)
+        
+        sensors_btn = QPushButton("📡 Sensors")
+        sensors_btn.setStyleSheet("background-color: #16a085;")
+        sensors_btn.clicked.connect(lambda: self._show_module_placeholder("Sensors Config"))
+        sensors_layout.addWidget(sensors_btn)
+        
+        wideband_btn = QPushButton("🎯 Wideband AFR")
+        wideband_btn.setStyleSheet("background-color: #2980b9;")
+        wideband_btn.clicked.connect(lambda: self._show_module_placeholder("Wideband AFR"))
+        sensors_layout.addWidget(wideband_btn)
+        
+        egt_btn = QPushButton("🌡️ EGT Monitor")
+        egt_btn.setStyleSheet("background-color: #c0392b;")
+        egt_btn.clicked.connect(lambda: self._show_module_placeholder("EGT Monitoring"))
+        sensors_layout.addWidget(egt_btn)
+        
+        sensors_layout.addStretch()
+        self.bottom_tabs.addTab(sensors_tab, "📡 Sensors")
+
+        # Tab 10: Safety & Limits
+        safety_tab = QWidget()
+        safety_layout = QHBoxLayout(safety_tab)
+        safety_layout.setContentsMargins(12, 8, 12, 8)
+        safety_layout.setSpacing(8)
+        
+        rev_limit_btn = QPushButton("🚫 Rev Limiter")
+        rev_limit_btn.setStyleSheet("background-color: #e74c3c;")
+        rev_limit_btn.clicked.connect(lambda: self._show_module_placeholder("Rev Limiter"))
+        safety_layout.addWidget(rev_limit_btn)
+        
+        boost_limit_btn = QPushButton("⚠️ Boost Cut")
+        boost_limit_btn.setStyleSheet("background-color: #f39c12;")
+        boost_limit_btn.clicked.connect(lambda: self._show_module_placeholder("Boost Cut"))
+        safety_layout.addWidget(boost_limit_btn)
+        
+        failsafe_btn = QPushButton("🛡️ Failsafes")
+        failsafe_btn.setStyleSheet("background-color: #27ae60;")
+        failsafe_btn.clicked.connect(lambda: self._show_module_placeholder("Safety Failsafes"))
+        safety_layout.addWidget(failsafe_btn)
+        
+        safety_layout.addStretch()
+        self.bottom_tabs.addTab(safety_tab, "🛡️ Safety")
 
         root_layout.addWidget(self.bottom_tabs)
         root_layout.addWidget(make_hgrow(self.status_bar))
@@ -923,6 +1077,13 @@ class MainWindow(QWidget):
         )
         if dialog.exec():
             self.ai_panel.update_insight("Log files emailed successfully.")
+
+    def _show_module_placeholder(self, module_name: str) -> None:
+        """Show placeholder message for module tabs."""
+        self.ai_panel.update_insight(
+            f"📦 {module_name} module selected. Full implementation coming soon!",
+            level="info",
+        )
 
     def configure_display(self) -> None:
         """Open display configuration dialog."""
