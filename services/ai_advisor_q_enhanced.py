@@ -166,6 +166,82 @@ class EnhancedAIAdvisorQ:
             self.expert_analyzer = None
             LOGGER.warning("Expert telemetry analyzer not available")
         
+        # Initialize Phase 1-3 services
+        self.contextual_tuning = None
+        self.personalized_coaching = None
+        self.session_reviewer = None
+        self.voice_interaction = None
+        self.race_strategy = None
+        self.decision_maker = None
+        self.multi_modal = None
+        self.continuous_learning = None
+        
+        # Phase 1: Contextual tuning suggestions
+        try:
+            from services.contextual_tuning_suggestions import ContextualTuningSuggestions
+            self.contextual_tuning = ContextualTuningSuggestions()
+            LOGGER.info("Contextual tuning suggestions initialized")
+        except ImportError as e:
+            LOGGER.warning("Contextual tuning not available: %s", e)
+        
+        # Phase 2: Personalized coaching
+        try:
+            from services.personalized_coaching import PersonalizedCoaching
+            self.personalized_coaching = PersonalizedCoaching()
+            LOGGER.info("Personalized coaching initialized")
+        except ImportError as e:
+            LOGGER.warning("Personalized coaching not available: %s", e)
+        
+        # Phase 2: Session review
+        try:
+            from services.session_review_analyzer import SessionReviewAnalyzer
+            self.session_reviewer = SessionReviewAnalyzer()
+            LOGGER.info("Session review analyzer initialized")
+        except ImportError as e:
+            LOGGER.warning("Session review not available: %s", e)
+        
+        # Phase 2: Voice interaction (optional, user can enable)
+        try:
+            from services.voice_interaction import VoiceInteraction
+            # Don't initialize by default - user must enable
+            self.voice_interaction_class = VoiceInteraction
+            LOGGER.info("Voice interaction available (not initialized)")
+        except ImportError as e:
+            LOGGER.warning("Voice interaction not available: %s", e)
+            self.voice_interaction_class = None
+        
+        # Phase 3: Predictive race strategy
+        try:
+            from services.predictive_race_strategy import PredictiveRaceStrategy
+            self.race_strategy = PredictiveRaceStrategy()
+            LOGGER.info("Predictive race strategy initialized")
+        except ImportError as e:
+            LOGGER.warning("Race strategy not available: %s", e)
+        
+        # Phase 3: Multi-step decision making
+        try:
+            from services.multi_step_decision_maker import MultiStepDecisionMaker
+            self.decision_maker = MultiStepDecisionMaker()
+            LOGGER.info("Multi-step decision maker initialized")
+        except ImportError as e:
+            LOGGER.warning("Decision maker not available: %s", e)
+        
+        # Phase 3: Multi-modal understanding
+        try:
+            from services.multi_modal_understanding import MultiModalUnderstanding
+            self.multi_modal = MultiModalUnderstanding()
+            LOGGER.info("Multi-modal understanding initialized")
+        except ImportError as e:
+            LOGGER.warning("Multi-modal not available: %s", e)
+        
+        # Phase 3: Continuous learning
+        try:
+            from services.continuous_learning import ContinuousLearning
+            self.continuous_learning = ContinuousLearning()
+            LOGGER.info("Continuous learning initialized")
+        except ImportError as e:
+            LOGGER.warning("Continuous learning not available: %s", e)
+        
         self.conversation_history: List[ChatMessage] = []
         self.knowledge_base: List[KnowledgeEntry] = []
         self.response_context = ResponseContext()
