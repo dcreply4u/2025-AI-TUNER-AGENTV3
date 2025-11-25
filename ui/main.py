@@ -56,6 +56,7 @@ from ui.health_score_widget import HealthScoreWidget
 from ui.notification_widget import NotificationLevel, NotificationWidget
 from ui.settings_dialog import SettingsDialog
 from ui.status_bar import StatusBar
+from ui.system_status_panel import SystemStatusPanel, SubsystemStatus
 from ui.telemetry_panel import TelemetryPanel
 from ui.theme_dialog import ThemeDialog
 from ui.theme_manager import ThemeManager
@@ -180,6 +181,13 @@ class MainWindow(QWidget):
         # OBD & faults
         self.obd_interface = OBDInterface()
         self.fault_panel = FaultPanel(self.obd_interface)
+        
+        # Modern System Status Panel (enhanced visual monitoring)
+        self.system_status_panel = SystemStatusPanel(self.obd_interface)
+        self.system_status_panel.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Expanding,
+        )
 
         # Gauge panel for right column
         self.gauge_panel = GaugePanel()
@@ -457,17 +465,8 @@ class MainWindow(QWidget):
         slip_layout.addWidget(self.wheel_slip_panel)
         right_column.addWidget(slip_group, 2)
 
-        # 1) Faults / status group
-        fault_group = QGroupBox("System Status")
-        fault_layout = QVBoxLayout(fault_group)
-        fault_layout.setContentsMargins(8, 8, 8, 8)
-        fault_layout.setSpacing(6)
-        fault_layout.addWidget(make_expanding(self.fault_panel), 3)
-        fault_layout.addWidget(self.notification_widget, 0)
-        if self.usb_monitor:
-            fault_layout.addWidget(self.usb_monitor, 0)
-
-        right_column.addWidget(fault_group, 2)
+        # 1) System Status Panel (modern visual monitoring)
+        right_column.addWidget(self.system_status_panel, 3)
 
         # 2) Camera & streaming group
         camera_group = QGroupBox("Camera & Streaming")
@@ -813,6 +812,11 @@ class MainWindow(QWidget):
         self.ai_panel.update_insight(f"ECU Detected: {vendor_name}", level="success")
         if self.status_bar:
             self.status_bar.update_status(f"ECU: {vendor_name}")
+        
+        # Update system status panel
+        if hasattr(self, "system_status_panel"):
+            self.system_status_panel.set_subsystem_status("ECU", SubsystemStatus.ONLINE, 100)
+            self.system_status_panel.show_notification(f"ECU detected: {vendor_name}", "success")
 
     def _on_ecu_configured(self, config: dict) -> None:
         """Handle ECU configuration completion."""
@@ -833,11 +837,26 @@ class MainWindow(QWidget):
             f"ECU detection failed: {error}\nUsing default settings",
             level="warning",
         )
+        
+        # Update system status panel
+        if hasattr(self, "system_status_panel"):
+            self.system_status_panel.set_subsystem_status("ECU", SubsystemStatus.DEGRADED, 50)
+            self.system_status_panel.show_notification("ECU detection failed - using defaults", "warning")
 
     def _on_connectivity_change(self, status) -> None:
         self.latest_connectivity = status
         if self.status_bar:
             self.status_bar.update_connectivity(status.summary())
+        
+        # Update system status panel
+        if hasattr(self, "system_status_panel"):
+            summary = status.summary().lower()
+            if "connected" in summary or "online" in summary:
+                self.system_status_panel.set_subsystem_status("NET", SubsystemStatus.ONLINE, 100)
+            elif "degraded" in summary or "limited" in summary:
+                self.system_status_panel.set_subsystem_status("NET", SubsystemStatus.DEGRADED, 60)
+            else:
+                self.system_status_panel.set_subsystem_status("NET", SubsystemStatus.OFFLINE, 0)
 
     # ----------------------------------------------------------------------
     # Qt lifecycle
