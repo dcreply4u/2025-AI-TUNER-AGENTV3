@@ -47,7 +47,7 @@ from services import (
     USBManager,
 )
 from ui.ai_insight_panel import AIInsightPanel
-from ui.dragy_view import DragyPerformanceView
+from ui.dragy_view import DragyPerformanceView, DragTimesPanel, GPSTrackPanel
 from ui.enhanced_widgets import apply_standard_margins, make_expanding, make_hgrow
 from ui.fault_panel import FaultPanel
 from ui.gauge_widget import GaugePanel
@@ -178,6 +178,9 @@ class MainWindow(QWidget):
 
         self.advice_panel = AdvicePanel()
         self.dragy_view = DragyPerformanceView()
+        # Separate panels for flexible layout
+        self.drag_times_panel = DragTimesPanel()
+        self.gps_track_panel = GPSTrackPanel()
 
         # OBD & faults
         self.obd_interface = OBDInterface()
@@ -437,10 +440,11 @@ class MainWindow(QWidget):
         # ------------------------------------------------------------------
         # Left: primary telemetry stack
         left_column.addWidget(make_expanding(self.telemetry_panel), 3)
-        left_column.addWidget(make_expanding(self.dragy_view), 2)  # Drag Performance under Telemetry
+        left_column.addWidget(make_expanding(self.drag_times_panel), 1)  # Just the 6 drag tiles
         left_column.addWidget(make_expanding(self.health_widget), 1)  # Engine Health
         left_column.addWidget(make_expanding(self.ai_panel), 1)
         left_column.addWidget(make_expanding(self.advice_panel), 1)
+        left_column.addWidget(make_expanding(self.gps_track_panel), 1)  # GPS/Map at bottom
 
         # Right: gauges + faults + utilities + controls
         # 0) Live Gauges group (at top)

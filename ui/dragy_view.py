@@ -7,7 +7,6 @@ from PySide6.QtGui import QColor, QFont, QPainter, QPen
 from PySide6.QtWidgets import (
     QFrame,
     QGridLayout,
-    QHBoxLayout,
     QLabel,
     QSizePolicy,
     QVBoxLayout,
@@ -27,34 +26,28 @@ class MetricTile(QWidget):
         super().__init__(parent)
         self.metric_title = title
         
-        # Fixed size
         self.setFixedHeight(self.TILE_HEIGHT)
         self.setMinimumWidth(100)
         
-        # White background
         self.setAutoFillBackground(True)
         palette = self.palette()
         palette.setColor(self.backgroundRole(), QColor("#ffffff"))
         self.setPalette(palette)
         
-        # Layout
         layout = QVBoxLayout(self)
         layout.setContentsMargins(8, 6, 8, 6)
         layout.setSpacing(2)
         
-        # Title
         self.title_label = QLabel(f"🏎️ {title}")
         self.title_label.setFont(QFont("Arial", 10, QFont.Weight.Bold))
         self.title_label.setStyleSheet("color: #2c3e50; background-color: #e8f4f8; padding: 3px 6px; border-radius: 3px;")
         layout.addWidget(self.title_label)
         
-        # Value
         self.value_label = QLabel("--")
         self.value_label.setFont(QFont("Consolas", 18, QFont.Weight.Bold))
         self.value_label.setStyleSheet("color: #34495e;")
         layout.addWidget(self.value_label)
         
-        # Best
         self.best_label = QLabel("🏆 Best: --")
         self.best_label.setFont(QFont("Arial", 8))
         self.best_label.setStyleSheet("color: #27ae60;")
@@ -86,12 +79,139 @@ class MetricTile(QWidget):
             self.best_label.setStyleSheet("color: #27ae60; font-weight: bold;")
 
 
+# =============================================================================
+# DRAG TIMES PANEL - Just the 6 metric tiles (no GPS)
+# =============================================================================
+class DragTimesPanel(QWidget):
+    """Panel with just the 6 drag racing time tiles."""
+
+    METRIC_KEYS = [
+        "60ft",
+        "0-30 mph",
+        "0-60 mph",
+        "1/8 mile",
+        "1/4 mile",
+        "1/2 mile",
+    ]
+
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        
+        self.setAutoFillBackground(True)
+        palette = self.palette()
+        palette.setColor(self.backgroundRole(), QColor("#ffffff"))
+        self.setPalette(palette)
+        
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setSpacing(6)
+        
+        # Header
+        header = QLabel("🏁 Drag Performance")
+        header.setFont(QFont("Arial", 12, QFont.Weight.Bold))
+        header.setStyleSheet("color: #2c3e50;")
+        header.setFixedHeight(20)
+        layout.addWidget(header)
+
+        # Tiles container
+        tiles_container = QWidget()
+        tiles_container.setFixedHeight(MetricTile.TILE_HEIGHT * 2 + 8)
+        
+        tile_grid = QGridLayout(tiles_container)
+        tile_grid.setContentsMargins(0, 0, 0, 0)
+        tile_grid.setSpacing(6)
+        
+        self.tiles: Dict[str, MetricTile] = {}
+        for index, key in enumerate(self.METRIC_KEYS):
+            tile = MetricTile(key)
+            row = index // 3
+            col = index % 3
+            tile_grid.addWidget(tile, row, col)
+            self.tiles[key] = tile
+
+        layout.addWidget(tiles_container)
+
+    def paintEvent(self, event) -> None:
+        super().paintEvent(event)
+        painter = QPainter(self)
+        pen = QPen(QColor("#bdc3c7"), 1)
+        painter.setPen(pen)
+        painter.drawRoundedRect(1, 1, self.width() - 2, self.height() - 2, 8, 8)
+
+    def update_metrics(self, metrics: Dict[str, float], best_metrics: Dict[str, float] = None) -> None:
+        """Update tile values."""
+        best_metrics = best_metrics or {}
+        for key, tile in self.tiles.items():
+            tile.set_value(metrics.get(key))
+            tile.set_best(best_metrics.get(key))
+
+
+# =============================================================================
+# GPS TRACK PANEL - Distance, status, and map (separate from tiles)
+# =============================================================================
+class GPSTrackPanel(QWidget):
+    """Panel with GPS distance, status, and track map."""
+
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        
+        self.setAutoFillBackground(True)
+        palette = self.palette()
+        palette.setColor(self.backgroundRole(), QColor("#ffffff"))
+        self.setPalette(palette)
+        
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setSpacing(6)
+        
+        # Header
+        header = QLabel("📍 GPS Track")
+        header.setFont(QFont("Arial", 12, QFont.Weight.Bold))
+        header.setStyleSheet("color: #2c3e50;")
+        header.setFixedHeight(20)
+        layout.addWidget(header)
+
+        # Distance
+        self.distance_label = QLabel("📏 Distance: 0.00 mi")
+        self.distance_label.setFont(QFont("Arial", 10))
+        self.distance_label.setStyleSheet("color: #7f8c8d;")
+        self.distance_label.setFixedHeight(18)
+        layout.addWidget(self.distance_label)
+
+        # Status
+        self.status_label = QLabel("📍 Awaiting GPS fix…")
+        self.status_label.setFont(QFont("Arial", 10))
+        self.status_label.setStyleSheet("color: #95a5a6;")
+        self.status_label.setFixedHeight(18)
+        layout.addWidget(self.status_label)
+
+        # Map
+        self.map_widget = MiniMapWidget()
+        layout.addWidget(self.map_widget)
+
+    def paintEvent(self, event) -> None:
+        super().paintEvent(event)
+        painter = QPainter(self)
+        pen = QPen(QColor("#bdc3c7"), 1)
+        painter.setPen(pen)
+        painter.drawRoundedRect(1, 1, self.width() - 2, self.height() - 2, 8, 8)
+
+    def set_distance(self, miles: float) -> None:
+        self.distance_label.setText(f"📏 Distance: {miles:0.2f} mi")
+
+    def set_status(self, text: str) -> None:
+        self.status_label.setText(f"📍 {text}")
+
+    def set_track(self, points: Iterable[Tuple[float, float]]) -> None:
+        self.map_widget.set_points(points)
+
+
 class MiniMapWidget(QWidget):
     """Simple GPS track map."""
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
-        self.setFixedHeight(80)
+        self.setFixedHeight(100)
         self.points: List[Tuple[float, float]] = []
         
         self.setAutoFillBackground(True)
@@ -117,7 +237,7 @@ class MiniMapWidget(QWidget):
         if len(self.points) < 2:
             painter.setPen(QColor("#7f8c8d"))
             painter.setFont(QFont("Arial", 9))
-            painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, "📍 Awaiting GPS...")
+            painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, "Awaiting GPS data...")
             return
 
         lats = [p[0] for p in self.points]
@@ -152,111 +272,52 @@ class MiniMapWidget(QWidget):
         painter.drawEllipse(start[0] - 3, start[1] - 3, 6, 6)
 
 
+# =============================================================================
+# COMBINED VIEW - For backward compatibility (includes both)
+# =============================================================================
 class DragyPerformanceView(QWidget):
-    """Dashboard for drag racing performance metrics."""
+    """Combined view with tiles and GPS (for backward compatibility)."""
 
-    METRIC_KEYS = [
-        "60ft",
-        "0-30 mph",
-        "0-60 mph",
-        "1/8 mile",
-        "1/4 mile",
-        "1/2 mile",
-    ]
+    METRIC_KEYS = DragTimesPanel.METRIC_KEYS
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         
-        self.setAutoFillBackground(True)
-        palette = self.palette()
-        palette.setColor(self.backgroundRole(), QColor("#ffffff"))
-        self.setPalette(palette)
-        
-        # Main layout - no stretch
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(10, 10, 10, 10)
-        layout.setSpacing(6)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(8)
         
-        # Header
-        header = QLabel("🏁 Drag Performance")
-        header.setFont(QFont("Arial", 12, QFont.Weight.Bold))
-        header.setStyleSheet("color: #2c3e50;")
-        header.setFixedHeight(20)
-        layout.addWidget(header)
-
-        # === TILES CONTAINER (fixed height) ===
-        tiles_container = QWidget()
-        tiles_container.setFixedHeight(MetricTile.TILE_HEIGHT * 2 + 8)  # 2 rows + spacing
+        # Drag times panel
+        self.times_panel = DragTimesPanel()
+        layout.addWidget(self.times_panel)
         
-        tile_grid = QGridLayout(tiles_container)
-        tile_grid.setContentsMargins(0, 0, 0, 0)
-        tile_grid.setSpacing(6)
+        # GPS track panel
+        self.gps_panel = GPSTrackPanel()
+        layout.addWidget(self.gps_panel)
         
-        self.tiles: Dict[str, MetricTile] = {}
-        for index, key in enumerate(self.METRIC_KEYS):
-            tile = MetricTile(key)
-            row = index // 3
-            col = index % 3
-            tile_grid.addWidget(tile, row, col)
-            self.tiles[key] = tile
-
-        layout.addWidget(tiles_container)
-        
-        # === INFO SECTION (below tiles) ===
-        self.distance_label = QLabel("📏 Distance: 0.00 mi")
-        self.distance_label.setFont(QFont("Arial", 9))
-        self.distance_label.setStyleSheet("color: #7f8c8d;")
-        self.distance_label.setFixedHeight(16)
-        layout.addWidget(self.distance_label)
-
-        self.status_label = QLabel("📍 Awaiting GPS fix…")
-        self.status_label.setFont(QFont("Arial", 9))
-        self.status_label.setStyleSheet("color: #95a5a6;")
-        self.status_label.setFixedHeight(16)
-        layout.addWidget(self.status_label)
-
-        # === MAP SECTION ===
-        map_label = QLabel("🗺️ Track Map")
-        map_label.setFont(QFont("Arial", 9, QFont.Weight.Bold))
-        map_label.setStyleSheet("color: #7f8c8d;")
-        map_label.setFixedHeight(16)
-        layout.addWidget(map_label)
-        
-        self.map_widget = MiniMapWidget()
-        layout.addWidget(self.map_widget)
-        
-        # Push everything up
-        layout.addStretch()
-
-    def paintEvent(self, event) -> None:
-        super().paintEvent(event)
-        painter = QPainter(self)
-        pen = QPen(QColor("#bdc3c7"), 1)
-        painter.setPen(pen)
-        painter.drawRoundedRect(1, 1, self.width() - 2, self.height() - 2, 8, 8)
+        # For backward compatibility
+        self.tiles = self.times_panel.tiles
 
     def update_snapshot(self, snapshot: Optional["PerformanceSnapshot"]) -> None:
         if snapshot is None:
             return
-        for key, tile in self.tiles.items():
-            tile.set_value(snapshot.metrics.get(key))
-            tile.set_best(snapshot.best_metrics.get(key))
+        self.times_panel.update_metrics(snapshot.metrics, snapshot.best_metrics)
         miles = snapshot.total_distance_m / 1609.34
-        self.distance_label.setText(f"📏 Distance: {miles:0.2f} mi")
-        self.map_widget.set_points(snapshot.track_points)
+        self.gps_panel.set_distance(miles)
+        self.gps_panel.set_track(snapshot.track_points)
 
     def update_metrics(self, snapshot: Optional["PerformanceSnapshot"]) -> None:
         self.update_snapshot(snapshot)
 
     def update_track(self, points: Iterable[Tuple[float, float]]) -> None:
-        self.map_widget.set_points(points)
+        self.gps_panel.set_track(points)
 
     def set_status(self, text: str) -> None:
-        self.status_label.setText(f"📍 {text}")
+        self.gps_panel.set_status(text)
 
 
 class DragyView(QWidget):
-    """Container exposing legacy API."""
+    """Legacy container."""
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -264,6 +325,10 @@ class DragyView(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         self.performance = DragyPerformanceView()
         layout.addWidget(self.performance)
+        
+        # Expose sub-panels for independent access
+        self.times_panel = self.performance.times_panel
+        self.gps_panel = self.performance.gps_panel
 
     def set_status(self, text: str) -> None:
         self.performance.set_status(text)
@@ -288,4 +353,4 @@ class DragyView(QWidget):
         self.performance.update_snapshot(snapshot)
 
 
-__all__ = ["DragyPerformanceView", "DragyView"]
+__all__ = ["DragyPerformanceView", "DragyView", "DragTimesPanel", "GPSTrackPanel"]
