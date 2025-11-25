@@ -1227,17 +1227,22 @@ Tips:
                            "torque", "boost", "afr", "timing", "fuel pressure", "oil pressure"]
             has_spec = any(sk in question_lower for sk in spec_keywords)
             
+            # For "what is" questions about technical specs, ALWAYS use web search
+            is_what_is_question = "what is" in question_lower or "what's" in question_lower or "what are" in question_lower
+            is_technical_spec_question = is_what_is_question and has_spec
+            
             # Use web search if:
             # 1. Vehicle-specific question (ALWAYS search for vehicle specs)
-            # 2. No good knowledge matches (confidence < 5.0)
-            # 3. Question asks about specific products/components/vehicles
-            # 4. Troubleshooting questions
-            # 5. "What is" questions about technical specs
+            # 2. "What is" questions about technical specs (ALWAYS search - these need specific values)
+            # 3. No good knowledge matches (confidence < 5.0)
+            # 4. Question asks about specific products/components/vehicles
+            # 5. Troubleshooting questions
             # 6. Spec/technical questions
             should_search = (
                 has_vehicle or  # ALWAYS search for vehicle-specific questions
+                is_technical_spec_question or  # ALWAYS search for "what is [technical spec]" questions
                 has_spec or  # Search for technical specs
-                not knowledge_matches or knowledge_matches[0][1] < 5.0 or
+                not knowledge_matches or (knowledge_matches and knowledge_matches[0][1] < 5.0) or
                 intent in [IntentType.TROUBLESHOOTING, IntentType.WHAT_IS, IntentType.TELEMETRY_QUERY] or
                 any(word in question_lower for word in ["spec", "specification", "details", "information about", "look up", "research", "what is", "what are"])
             )
@@ -1455,8 +1460,15 @@ What would you like to know?"""
                           "supra", "gtr", "m3", "m4", "911", "gt3", "sti", "type r"]
         has_vehicle = any(vk in question_lower for vk in vehicle_keywords)
         
-        # For vehicle-specific questions, prioritize web search results
-        if has_vehicle and web_search_results and web_search_results.results:
+        # Check if this is a "what is" question about technical specs
+        is_what_is_question = "what is" in question_lower or "what's" in question_lower or "what are" in question_lower
+        spec_keywords = ["pressure", "psi", "bar", "rpm", "hp", "horsepower", "torque", 
+                        "boost", "afr", "timing", "fuel pressure", "oil pressure", "spec", "specification"]
+        has_spec = any(sk in question_lower for sk in spec_keywords)
+        is_technical_spec_question = is_what_is_question and has_spec
+        
+        # For vehicle-specific questions OR technical spec "what is" questions, prioritize web search results
+        if (has_vehicle or is_technical_spec_question) and web_search_results and web_search_results.results:
             response_parts = ["🌐 I researched this for you:\n"]
             
             # Extract key information from web results
