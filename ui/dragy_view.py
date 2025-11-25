@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Dict, Iterable, List, Optional, Tuple, TYPE_CHECKING
 
 from PySide6.QtCore import Qt  # type: ignore
-from PySide6.QtGui import QColor, QPainter, QPen  # type: ignore
+from PySide6.QtGui import QColor, QPainter, QPen, QFont  # type: ignore
 from PySide6.QtWidgets import (  # type: ignore
     QFrame,
     QGridLayout,
@@ -28,42 +28,107 @@ if TYPE_CHECKING:  # pragma: no cover - type checking only
 
 
 class MetricTile(QFrame):
+    """Modern styled metric tile for drag racing performance data."""
+    
     def __init__(self, title: str, parent: QWidget | None = None) -> None:
         super().__init__(parent)
-        self.setFrameShape(QFrame.StyledPanel)
+        self.setFrameShape(QFrame.Shape.StyledPanel)
         self.setObjectName("metricTile")
+        
+        # Modern light theme styling
+        self.setStyleSheet("""
+            QFrame#metricTile {
+                background-color: #ffffff;
+                border: 1px solid #bdc3c7;
+                border-radius: 8px;
+            }
+        """)
+        
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(scaled_spacing(8), scaled_spacing(6), scaled_spacing(8), scaled_spacing(6))
+        layout.setContentsMargins(12, 10, 12, 10)
+        layout.setSpacing(4)
+        
+        # Title
         self.title_label = QLabel(title.upper())
-        self.title_label.setStyleSheet("font-size: 11px; color: #9aa0a6;")
-        self.value_label = QLabel("--")
-        self.value_label.setStyleSheet("font-size: 24px; font-weight: bold; color: #00e0ff;")
-        self.best_label = QLabel("Best: --")
-        self.best_label.setStyleSheet("font-size: 11px; color: #5f6368;")
+        self.title_label.setStyleSheet("""
+            font-size: 10px; 
+            font-weight: bold;
+            color: #7f8c8d; 
+            letter-spacing: 1px;
+            background: transparent;
+        """)
         layout.addWidget(self.title_label)
+        
+        # Value - prominent display
+        self.value_label = QLabel("--")
+        self.value_label.setStyleSheet("""
+            font-size: 24px; 
+            font-weight: bold; 
+            color: #2c3e50;
+            background: transparent;
+            font-family: Consolas, monospace;
+        """)
         layout.addWidget(self.value_label)
+        
+        # Best time
+        self.best_label = QLabel("Best: --")
+        self.best_label.setStyleSheet("""
+            font-size: 10px; 
+            color: #27ae60;
+            background: transparent;
+        """)
         layout.addWidget(self.best_label)
 
     def set_value(self, value: Optional[float], suffix: str = "s") -> None:
         if value is None:
             self.value_label.setText("--")
+            self.value_label.setStyleSheet("""
+                font-size: 24px; 
+                font-weight: bold; 
+                color: #bdc3c7;
+                background: transparent;
+                font-family: Consolas, monospace;
+            """)
         else:
-            self.value_label.setText(f"{value:0.2f}{suffix}")
+            self.value_label.setText(f"{value:0.3f}{suffix}")
+            self.value_label.setStyleSheet("""
+                font-size: 24px; 
+                font-weight: bold; 
+                color: #2c3e50;
+                background: transparent;
+                font-family: Consolas, monospace;
+            """)
 
     def set_best(self, value: Optional[float], suffix: str = "s") -> None:
         if value is None:
             self.best_label.setText("Best: --")
+            self.best_label.setStyleSheet("""
+                font-size: 10px; 
+                color: #bdc3c7;
+                background: transparent;
+            """)
         else:
-            self.best_label.setText(f"Best: {value:0.2f}{suffix}")
+            self.best_label.setText(f"🏆 Best: {value:0.3f}{suffix}")
+            self.best_label.setStyleSheet("""
+                font-size: 10px; 
+                color: #27ae60;
+                font-weight: bold;
+                background: transparent;
+            """)
 
 
 class MiniMapWidget(QWidget):
-    """Simple painter-based breadcrumb map for GPS traces."""
+    """Simple painter-based breadcrumb map for GPS traces with modern styling."""
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
-        self.setMinimumHeight(180)
+        self.setMinimumHeight(150)
         self.points: List[Tuple[float, float]] = []
+        self.setStyleSheet("""
+            background-color: #1a1f2e;
+            border: 1px solid #bdc3c7;
+            border-radius: 8px;
+        """)
 
     def set_points(self, points: Iterable[Tuple[float, float]]) -> None:
         self.points = list(points)
@@ -72,8 +137,17 @@ class MiniMapWidget(QWidget):
     def paintEvent(self, event) -> None:  # noqa: N802
         super().paintEvent(event)
         painter = QPainter(self)
-        painter.fillRect(self.rect(), QColor("#0d1117"))
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        
+        # Dark background for the track map
+        painter.fillRect(self.rect(), QColor("#1a1f2e"))
+        
+        # Draw "No GPS Data" if no points
         if len(self.points) < 2:
+            painter.setPen(QColor("#7f8c8d"))
+            font = QFont("Arial", 11)
+            painter.setFont(font)
+            painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, "📍 Awaiting GPS data...")
             return
 
         lats = [p[0] for p in self.points]
@@ -87,25 +161,45 @@ class MiniMapWidget(QWidget):
             x = (lon - min_lon) / lon_range
             y = (lat - min_lat) / lat_range
             return (
-                int(x * (self.width() - 10) + 5),
-                int(self.height() - (y * (self.height() - 10) + 5)),
+                int(x * (self.width() - 20) + 10),
+                int(self.height() - (y * (self.height() - 20) + 10)),
             )
 
-        pen = QPen(QColor("#00e0ff"), 2)
+        # Draw track line with gradient effect
+        pen = QPen(QColor("#3498db"), 3)
+        pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+        pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
         painter.setPen(pen)
+        
         prev = transform(*self.points[0])
-        for lat, lon in self.points[1:]:
+        for i, (lat, lon) in enumerate(self.points[1:]):
             curr = transform(lat, lon)
+            # Gradient from blue to cyan as track progresses
+            progress = i / len(self.points)
+            color = QColor()
+            color.setRgbF(0.2 + 0.1 * progress, 0.6 + 0.3 * progress, 0.8 + 0.2 * progress)
+            pen.setColor(color)
+            painter.setPen(pen)
             painter.drawLine(prev[0], prev[1], curr[0], curr[1])
             prev = curr
 
-        painter.setPen(Qt.NoPen)
-        painter.setBrush(QColor("#ff6b6b"))
-        painter.drawEllipse(prev[0] - 4, prev[1] - 4, 8, 8)
+        # Current position indicator (pulsing dot effect)
+        painter.setPen(Qt.PenStyle.NoPen)
+        # Outer glow
+        painter.setBrush(QColor(231, 76, 60, 100))
+        painter.drawEllipse(prev[0] - 8, prev[1] - 8, 16, 16)
+        # Inner dot
+        painter.setBrush(QColor("#e74c3c"))
+        painter.drawEllipse(prev[0] - 5, prev[1] - 5, 10, 10)
+        
+        # Start position
+        start = transform(*self.points[0])
+        painter.setBrush(QColor("#27ae60"))
+        painter.drawEllipse(start[0] - 4, start[1] - 4, 8, 8)
 
 
-class DragyPerformanceView(QWidget):
-    """Dashboard-style widget inspired by Dragy performance UIs."""
+class DragyPerformanceView(QFrame):
+    """Dashboard-style widget inspired by Dragy performance UIs with modern styling."""
 
     METRIC_KEYS = [
         "60ft",
@@ -118,15 +212,32 @@ class DragyPerformanceView(QWidget):
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
+        
+        self.setFrameShape(QFrame.Shape.StyledPanel)
+        self.setStyleSheet("""
+            QFrame {
+                background-color: #ffffff;
+                border: 1px solid #bdc3c7;
+                border-radius: 8px;
+            }
+        """)
+        
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(scaled_spacing(0), scaled_spacing(0), scaled_spacing(0), scaled_spacing(0))
+        layout.setContentsMargins(12, 12, 12, 12)
+        layout.setSpacing(10)
+        
+        # Header
+        header = QLabel("🏁 Drag Performance")
+        header.setStyleSheet("font-size: 14px; font-weight: 700; color: #2c3e50; background: transparent;")
+        layout.addWidget(header)
 
+        # Metric tiles grid
         self.tiles: Dict[str, MetricTile] = {}
         tile_grid = QGridLayout()
-        tile_grid.setSpacing(scaled_spacing(10))
+        tile_grid.setSpacing(8)
+        
         for index, key in enumerate(self.METRIC_KEYS):
             tile = MetricTile(key)
-            # Use Expanding policy for responsive behavior
             tile.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
             row = index // 3
             col = index % 3
@@ -135,14 +246,25 @@ class DragyPerformanceView(QWidget):
 
         layout.addLayout(tile_grid)
 
-        self.distance_label = QLabel("Distance: 0.00 mi")
-        self.distance_label.setStyleSheet("color: #9aa0a6; font-size: 12px;")
-        layout.addWidget(self.distance_label)
+        # Stats row
+        stats_row = QVBoxLayout()
+        stats_row.setSpacing(4)
+        
+        self.distance_label = QLabel("📏 Distance: 0.00 mi")
+        self.distance_label.setStyleSheet("color: #7f8c8d; font-size: 11px; background: transparent;")
+        stats_row.addWidget(self.distance_label)
 
-        self.status_label = QLabel("Awaiting GPS fix…")
-        self.status_label.setStyleSheet("color: #5f6368; font-size: 11px;")
-        layout.addWidget(self.status_label)
+        self.status_label = QLabel("📍 Awaiting GPS fix…")
+        self.status_label.setStyleSheet("color: #95a5a6; font-size: 11px; background: transparent;")
+        stats_row.addWidget(self.status_label)
+        
+        layout.addLayout(stats_row)
 
+        # Track map
+        map_label = QLabel("🗺️ Track Map")
+        map_label.setStyleSheet("font-size: 11px; font-weight: bold; color: #7f8c8d; margin-top: 8px; background: transparent;")
+        layout.addWidget(map_label)
+        
         self.map_widget = MiniMapWidget()
         layout.addWidget(self.map_widget)
 
@@ -153,7 +275,7 @@ class DragyPerformanceView(QWidget):
             tile.set_value(snapshot.metrics.get(key))
             tile.set_best(snapshot.best_metrics.get(key))
         miles = snapshot.total_distance_m / 1609.34
-        self.distance_label.setText(f"Distance: {miles:0.2f} mi")
+        self.distance_label.setText(f"📏 Distance: {miles:0.2f} mi")
         self.map_widget.set_points(snapshot.track_points)
 
     def update_metrics(self, snapshot: Optional["PerformanceSnapshot"]) -> None:
@@ -163,7 +285,7 @@ class DragyPerformanceView(QWidget):
         self.map_widget.set_points(points)
 
     def set_status(self, text: str) -> None:
-        self.status_label.setText(text)
+        self.status_label.setText(f"📍 {text}")
 
 
 class DragyView(QWidget):
@@ -172,6 +294,7 @@ class DragyView(QWidget):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
         self.performance = DragyPerformanceView()
         layout.addWidget(self.performance)
 
@@ -199,4 +322,3 @@ class DragyView(QWidget):
 
 
 __all__ = ["DragyPerformanceView", "DragyView"]
-
