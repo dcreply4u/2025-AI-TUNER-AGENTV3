@@ -182,50 +182,81 @@ class DragyPerformanceView(QWidget):
         
         layout = QVBoxLayout(self)
         layout.setContentsMargins(12, 12, 12, 12)
-        layout.setSpacing(10)
+        layout.setSpacing(8)
         
         # Header
         header = QLabel("🏁 Drag Performance")
         header.setFont(QFont("Arial", 14, QFont.Weight.Bold))
         header.setStyleSheet("color: #2c3e50;")
+        header.setFixedHeight(25)
         layout.addWidget(header)
 
-        # Metric tiles in grid
+        # Metric tiles in grid - all same size
         self.tiles: Dict[str, MetricTile] = {}
         tile_grid = QGridLayout()
         tile_grid.setSpacing(8)
         
+        # Set equal row and column stretch
+        tile_grid.setRowStretch(0, 1)
+        tile_grid.setRowStretch(1, 1)
+        tile_grid.setColumnStretch(0, 1)
+        tile_grid.setColumnStretch(1, 1)
+        tile_grid.setColumnStretch(2, 1)
+        
         for index, key in enumerate(self.METRIC_KEYS):
             tile = MetricTile(key)
-            tile.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+            # Fixed size for all tiles
+            tile.setFixedHeight(95)
+            tile.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
             row = index // 3
             col = index % 3
             tile_grid.addWidget(tile, row, col)
             self.tiles[key] = tile
 
         layout.addLayout(tile_grid)
+        
+        # Spacer to separate tiles from info
+        layout.addSpacing(10)
 
+        # Info section in a container
+        info_container = QWidget()
+        info_layout = QVBoxLayout(info_container)
+        info_layout.setContentsMargins(0, 0, 0, 0)
+        info_layout.setSpacing(4)
+        
         # Distance label
         self.distance_label = QLabel("📏 Distance: 0.00 mi")
         self.distance_label.setFont(QFont("Arial", 10))
         self.distance_label.setStyleSheet("color: #7f8c8d;")
-        layout.addWidget(self.distance_label)
+        self.distance_label.setFixedHeight(18)
+        info_layout.addWidget(self.distance_label)
 
         # Status label
         self.status_label = QLabel("📍 Awaiting GPS fix…")
         self.status_label.setFont(QFont("Arial", 10))
         self.status_label.setStyleSheet("color: #95a5a6;")
-        layout.addWidget(self.status_label)
+        self.status_label.setFixedHeight(18)
+        info_layout.addWidget(self.status_label)
+        
+        layout.addWidget(info_container)
+        
+        # Spacer
+        layout.addSpacing(5)
 
         # Map label
         map_label = QLabel("🗺️ Track Map")
         map_label.setFont(QFont("Arial", 10, QFont.Weight.Bold))
-        map_label.setStyleSheet("color: #7f8c8d; margin-top: 8px;")
+        map_label.setStyleSheet("color: #7f8c8d;")
+        map_label.setFixedHeight(18)
         layout.addWidget(map_label)
         
         # Map widget
         self.map_widget = MiniMapWidget()
+        self.map_widget.setFixedHeight(100)
         layout.addWidget(self.map_widget)
+        
+        # Add stretch at bottom
+        layout.addStretch()
 
     def paintEvent(self, event) -> None:
         """Draw border around the panel."""
