@@ -38,6 +38,8 @@ aiohttp>=3.8.0
 # Optional: Advanced ML features (for optimized AI algorithms)
 # torch  # For LSTM models in optimized fault detector
 scipy  # For advanced statistics and signal processing (Savitzky-Golay filter for dyno)
+# Optional: Natural Language Processing (for conversational AI)
+# nltk  # For text processing and tokenization (lightweight NLP)
 # Optional: For analog sensors (ADC boards)
 # adafruit-circuitpython-ads1x15
 # Optional: For GPIO/digital sensors (Raspberry Pi)

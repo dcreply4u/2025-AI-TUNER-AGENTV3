@@ -30,6 +30,14 @@ except ImportError:
     TRANSFORMERS_AVAILABLE = False
     pipeline = None  # type: ignore
 
+# Import conversational response manager
+try:
+    from services.conversational_responses import get_conversation_manager
+    CONVERSATIONAL_RESPONSES_AVAILABLE = True
+except ImportError:
+    CONVERSATIONAL_RESPONSES_AVAILABLE = False
+    get_conversation_manager = None  # type: ignore
+
 
 class IntentType(Enum):
     """Intent classification types."""
@@ -150,6 +158,16 @@ class EnhancedAIAdvisorQ:
         self.conversation_history: List[ChatMessage] = []
         self.knowledge_base: List[KnowledgeEntry] = []
         self.response_context = ResponseContext()
+        
+        # Initialize conversational response manager
+        self.conversation_manager = None
+        if CONVERSATIONAL_RESPONSES_AVAILABLE:
+            try:
+                self.conversation_manager = get_conversation_manager()
+                LOGGER.info("Conversational response manager initialized")
+            except Exception as e:
+                LOGGER.warning("Failed to initialize conversation manager: %s", e)
+                self.conversation_manager = None
         
         # Initialize web search service
         self.web_search = None
@@ -1121,6 +1139,13 @@ Tips:
             ChatMessage(role="user", content=question, intent=intent, confidence=intent_confidence)
         )
         
+        # Update conversation context
+        if self.conversation_manager:
+            # Extract topic from question (simplified)
+            topic_words = [w for w in question.lower().split() if len(w) > 3][:3]
+            topic = " ".join(topic_words) if topic_words else None
+            self.conversation_manager.update_context(topic=topic, interaction_type="question")
+        
         # Find relevant knowledge
         knowledge_matches = self._find_relevant_knowledge_enhanced(question, intent)
         knowledge = [entry for entry, _ in knowledge_matches]
@@ -1195,6 +1220,14 @@ Tips:
                 answer = self._generate_llm_response(question, knowledge, intent, web_search_results)
             else:
                 answer = self._generate_enhanced_response(question, knowledge, intent, web_search_results)
+        
+        # Enhance with conversational formatting if manager available
+        if self.conversation_manager and intent != IntentType.GREETING:
+            answer = self.conversation_manager.get_contextual_response(
+                question=question,
+                base_response=answer,
+                intent=intent.value if hasattr(intent, 'value') else str(intent),
+            )
         
         # Integrate telemetry context
         answer, telemetry_integrated = self._integrate_telemetry_context(answer, knowledge, question)
@@ -1334,8 +1367,16 @@ Tips:
         """Generate response using enhanced rule-based system."""
         question_lower = question.lower()
         
-        # Greeting
+        # Greeting - use conversational manager if available
         if intent == IntentType.GREETING:
+            if self.conversation_manager:
+                # Update context for greeting
+                self.conversation_manager.update_context(topic="greeting", interaction_type="greeting")
+                return self.conversation_manager.get_greeting(
+                    is_returning=len(self.conversation_history) > 0,
+                    user_input=question
+                )
+            # Fallback to original greeting
             return """Hello! I'm Q, your TelemetryIQ AI advisor. I can help you with:
 
 • Tuning advice and best practices
