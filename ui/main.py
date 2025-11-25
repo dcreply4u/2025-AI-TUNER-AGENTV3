@@ -437,10 +437,10 @@ class MainWindow(QWidget):
         # ------------------------------------------------------------------
         # Left: primary telemetry stack
         left_column.addWidget(make_expanding(self.telemetry_panel), 3)
-        left_column.addWidget(make_expanding(self.health_widget), 1)
+        left_column.addWidget(make_expanding(self.dragy_view), 2)  # Drag Performance under Telemetry
+        left_column.addWidget(make_expanding(self.health_widget), 1)  # Engine Health
         left_column.addWidget(make_expanding(self.ai_panel), 1)
         left_column.addWidget(make_expanding(self.advice_panel), 1)
-        left_column.addWidget(make_expanding(self.dragy_view), 2)
 
         # Right: gauges + faults + utilities + controls
         # 0) Live Gauges group (at top)
