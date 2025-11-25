@@ -21,49 +21,49 @@ if TYPE_CHECKING:
 class MetricTile(QWidget):
     """Simple metric tile for drag racing performance data."""
     
+    TILE_HEIGHT = 85
+    
     def __init__(self, title: str, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.metric_title = title
         
-        # Simple background
+        # Fixed size
+        self.setFixedHeight(self.TILE_HEIGHT)
+        self.setMinimumWidth(100)
+        
+        # White background
         self.setAutoFillBackground(True)
         palette = self.palette()
         palette.setColor(self.backgroundRole(), QColor("#ffffff"))
         self.setPalette(palette)
         
-        # Main layout
+        # Layout
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(10, 8, 10, 8)
-        layout.setSpacing(4)
+        layout.setContentsMargins(8, 6, 8, 6)
+        layout.setSpacing(2)
         
-        # Title label
+        # Title
         self.title_label = QLabel(f"🏎️ {title}")
-        self.title_label.setFont(QFont("Arial", 11, QFont.Weight.Bold))
-        self.title_label.setStyleSheet("color: #2c3e50; background-color: #e8f4f8; padding: 4px 8px; border-radius: 4px;")
+        self.title_label.setFont(QFont("Arial", 10, QFont.Weight.Bold))
+        self.title_label.setStyleSheet("color: #2c3e50; background-color: #e8f4f8; padding: 3px 6px; border-radius: 3px;")
         layout.addWidget(self.title_label)
         
-        # Value label
+        # Value
         self.value_label = QLabel("--")
-        self.value_label.setFont(QFont("Consolas", 22, QFont.Weight.Bold))
+        self.value_label.setFont(QFont("Consolas", 18, QFont.Weight.Bold))
         self.value_label.setStyleSheet("color: #34495e;")
         layout.addWidget(self.value_label)
         
-        # Best label
+        # Best
         self.best_label = QLabel("🏆 Best: --")
-        self.best_label.setFont(QFont("Arial", 9))
+        self.best_label.setFont(QFont("Arial", 8))
         self.best_label.setStyleSheet("color: #27ae60;")
         layout.addWidget(self.best_label)
-        
-        # Set minimum size
-        self.setMinimumSize(120, 90)
 
     def paintEvent(self, event) -> None:
-        """Draw border around the widget."""
         super().paintEvent(event)
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        
-        # Draw rounded rectangle border
         pen = QPen(QColor("#bdc3c7"), 1)
         painter.setPen(pen)
         painter.setBrush(Qt.BrushStyle.NoBrush)
@@ -91,7 +91,7 @@ class MiniMapWidget(QWidget):
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
-        self.setMinimumHeight(120)
+        self.setFixedHeight(80)
         self.points: List[Tuple[float, float]] = []
         
         self.setAutoFillBackground(True)
@@ -108,22 +108,18 @@ class MiniMapWidget(QWidget):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         
-        # Background
         painter.fillRect(self.rect(), QColor("#1a1f2e"))
         
-        # Border
         pen = QPen(QColor("#bdc3c7"), 1)
         painter.setPen(pen)
         painter.drawRoundedRect(1, 1, self.width() - 2, self.height() - 2, 6, 6)
         
         if len(self.points) < 2:
-            # No data message
             painter.setPen(QColor("#7f8c8d"))
-            painter.setFont(QFont("Arial", 10))
-            painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, "📍 Awaiting GPS data...")
+            painter.setFont(QFont("Arial", 9))
+            painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, "📍 Awaiting GPS...")
             return
 
-        # Calculate bounds
         lats = [p[0] for p in self.points]
         lons = [p[1] for p in self.points]
         min_lat, max_lat = min(lats), max(lats)
@@ -139,7 +135,6 @@ class MiniMapWidget(QWidget):
                 int(self.height() - (y * (self.height() - 20) + 10)),
             )
 
-        # Draw track
         pen = QPen(QColor("#3498db"), 2)
         painter.setPen(pen)
         prev = transform(*self.points[0])
@@ -148,15 +143,13 @@ class MiniMapWidget(QWidget):
             painter.drawLine(prev[0], prev[1], curr[0], curr[1])
             prev = curr
 
-        # Current position
         painter.setPen(Qt.PenStyle.NoPen)
         painter.setBrush(QColor("#e74c3c"))
-        painter.drawEllipse(prev[0] - 5, prev[1] - 5, 10, 10)
+        painter.drawEllipse(prev[0] - 4, prev[1] - 4, 8, 8)
         
-        # Start position
         start = transform(*self.points[0])
         painter.setBrush(QColor("#27ae60"))
-        painter.drawEllipse(start[0] - 4, start[1] - 4, 8, 8)
+        painter.drawEllipse(start[0] - 3, start[1] - 3, 6, 6)
 
 
 class DragyPerformanceView(QWidget):
@@ -174,92 +167,68 @@ class DragyPerformanceView(QWidget):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         
-        # White background
         self.setAutoFillBackground(True)
         palette = self.palette()
         palette.setColor(self.backgroundRole(), QColor("#ffffff"))
         self.setPalette(palette)
         
+        # Main layout - no stretch
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(12, 12, 12, 12)
-        layout.setSpacing(8)
+        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setSpacing(6)
         
         # Header
         header = QLabel("🏁 Drag Performance")
-        header.setFont(QFont("Arial", 14, QFont.Weight.Bold))
+        header.setFont(QFont("Arial", 12, QFont.Weight.Bold))
         header.setStyleSheet("color: #2c3e50;")
-        header.setFixedHeight(25)
+        header.setFixedHeight(20)
         layout.addWidget(header)
 
-        # Metric tiles in grid - all same size
+        # === TILES CONTAINER (fixed height) ===
+        tiles_container = QWidget()
+        tiles_container.setFixedHeight(MetricTile.TILE_HEIGHT * 2 + 8)  # 2 rows + spacing
+        
+        tile_grid = QGridLayout(tiles_container)
+        tile_grid.setContentsMargins(0, 0, 0, 0)
+        tile_grid.setSpacing(6)
+        
         self.tiles: Dict[str, MetricTile] = {}
-        tile_grid = QGridLayout()
-        tile_grid.setSpacing(8)
-        
-        # Set equal row and column stretch
-        tile_grid.setRowStretch(0, 1)
-        tile_grid.setRowStretch(1, 1)
-        tile_grid.setColumnStretch(0, 1)
-        tile_grid.setColumnStretch(1, 1)
-        tile_grid.setColumnStretch(2, 1)
-        
         for index, key in enumerate(self.METRIC_KEYS):
             tile = MetricTile(key)
-            # Fixed size for all tiles
-            tile.setFixedHeight(95)
-            tile.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
             row = index // 3
             col = index % 3
             tile_grid.addWidget(tile, row, col)
             self.tiles[key] = tile
 
-        layout.addLayout(tile_grid)
+        layout.addWidget(tiles_container)
         
-        # Spacer to separate tiles from info
-        layout.addSpacing(10)
-
-        # Info section in a container
-        info_container = QWidget()
-        info_layout = QVBoxLayout(info_container)
-        info_layout.setContentsMargins(0, 0, 0, 0)
-        info_layout.setSpacing(4)
-        
-        # Distance label
+        # === INFO SECTION (below tiles) ===
         self.distance_label = QLabel("📏 Distance: 0.00 mi")
-        self.distance_label.setFont(QFont("Arial", 10))
+        self.distance_label.setFont(QFont("Arial", 9))
         self.distance_label.setStyleSheet("color: #7f8c8d;")
-        self.distance_label.setFixedHeight(18)
-        info_layout.addWidget(self.distance_label)
+        self.distance_label.setFixedHeight(16)
+        layout.addWidget(self.distance_label)
 
-        # Status label
         self.status_label = QLabel("📍 Awaiting GPS fix…")
-        self.status_label.setFont(QFont("Arial", 10))
+        self.status_label.setFont(QFont("Arial", 9))
         self.status_label.setStyleSheet("color: #95a5a6;")
-        self.status_label.setFixedHeight(18)
-        info_layout.addWidget(self.status_label)
-        
-        layout.addWidget(info_container)
-        
-        # Spacer
-        layout.addSpacing(5)
+        self.status_label.setFixedHeight(16)
+        layout.addWidget(self.status_label)
 
-        # Map label
+        # === MAP SECTION ===
         map_label = QLabel("🗺️ Track Map")
-        map_label.setFont(QFont("Arial", 10, QFont.Weight.Bold))
+        map_label.setFont(QFont("Arial", 9, QFont.Weight.Bold))
         map_label.setStyleSheet("color: #7f8c8d;")
-        map_label.setFixedHeight(18)
+        map_label.setFixedHeight(16)
         layout.addWidget(map_label)
         
-        # Map widget
         self.map_widget = MiniMapWidget()
-        self.map_widget.setFixedHeight(100)
         layout.addWidget(self.map_widget)
         
-        # Add stretch at bottom
+        # Push everything up
         layout.addStretch()
 
     def paintEvent(self, event) -> None:
-        """Draw border around the panel."""
         super().paintEvent(event)
         painter = QPainter(self)
         pen = QPen(QColor("#bdc3c7"), 1)
