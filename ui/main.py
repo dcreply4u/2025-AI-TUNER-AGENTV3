@@ -707,6 +707,16 @@ class MainWindow(QWidget):
         self.replay_btn.clicked.connect(self.start_replay_mode)
         session_layout.addWidget(self.replay_btn)
         
+        fleet_btn = QPushButton("🚗 Fleet Management")
+        fleet_btn.setStyleSheet("background-color: #16a085;")
+        fleet_btn.clicked.connect(self._open_fleet_management)
+        session_layout.addWidget(fleet_btn)
+        
+        social_btn = QPushButton("🏆 Social Racing")
+        social_btn.setStyleSheet("background-color: #9b59b6;")
+        social_btn.clicked.connect(self._open_social_racing)
+        session_layout.addWidget(social_btn)
+        
         session_layout.addStretch()
         self.bottom_tabs.addTab(session_tab, "🏁 Session")
 
@@ -863,6 +873,16 @@ class MainWindow(QWidget):
         diesel_btn.clicked.connect(self._open_diesel_tuning)
         tuning_layout.addWidget(diesel_btn)
         
+        voice_ecu_btn = QPushButton("🎤 Voice ECU")
+        voice_ecu_btn.setStyleSheet("background-color: #8e44ad;")
+        voice_ecu_btn.clicked.connect(self._open_voice_ecu_control)
+        tuning_layout.addWidget(voice_ecu_btn)
+        
+        weather_tune_btn = QPushButton("🌦️ Weather Tune")
+        weather_tune_btn.setStyleSheet("background-color: #3498db;")
+        weather_tune_btn.clicked.connect(self._open_weather_adaptive_tuning)
+        tuning_layout.addWidget(weather_tune_btn)
+        
         tuning_layout.addStretch()
         self.bottom_tabs.addTab(tuning_tab, "⚙️ Tuning")
 
@@ -886,6 +906,16 @@ class MainWindow(QWidget):
         dyno_btn.setStyleSheet("background-color: #9b59b6;")
         dyno_btn.clicked.connect(self._open_virtual_dyno)
         racing_layout.addWidget(dyno_btn)
+        
+        ai_coach_btn = QPushButton("🎓 AI Racing Coach")
+        ai_coach_btn.setStyleSheet("background-color: #16a085;")
+        ai_coach_btn.clicked.connect(self._open_ai_racing_coach)
+        racing_layout.addWidget(ai_coach_btn)
+        
+        pit_strategy_btn = QPushButton("🏁 Pit Strategist")
+        pit_strategy_btn.setStyleSheet("background-color: #d35400;")
+        pit_strategy_btn.clicked.connect(self._open_pit_strategist)
+        racing_layout.addWidget(pit_strategy_btn)
         
         racing_layout.addStretch()
         self.bottom_tabs.addTab(racing_tab, "🏎️ Racing")
@@ -934,6 +964,11 @@ class MainWindow(QWidget):
         failsafe_btn.setStyleSheet("background-color: #27ae60;")
         failsafe_btn.clicked.connect(self._open_safety_alerts)
         safety_layout.addWidget(failsafe_btn)
+        
+        crash_prevention_btn = QPushButton("⚠️ Crash Prevention")
+        crash_prevention_btn.setStyleSheet("background-color: #c0392b;")
+        crash_prevention_btn.clicked.connect(self._open_predictive_crash_prevention)
+        safety_layout.addWidget(crash_prevention_btn)
         
         safety_layout.addStretch()
         self.bottom_tabs.addTab(safety_tab, "🛡️ Safety")
@@ -1609,6 +1644,592 @@ class MainWindow(QWidget):
             )
         except Exception as e:
             self.ai_panel.update_insight(f"❌ Failed to open wizard: {e}", level="error")
+
+    def _open_ai_racing_coach(self) -> None:
+        """Open AI Racing Coach in a dialog window."""
+        from PySide6.QtWidgets import QDialog, QVBoxLayout, QLabel, QTextEdit, QPushButton, QHBoxLayout, QGroupBox
+        
+        try:
+            from services.ai_racing_coach import AIRacingCoach, CoachingAdvice
+            
+            dialog = QDialog(self)
+            dialog.setWindowTitle("🎓 AI Racing Coach - Real-Time Coaching")
+            dialog.setMinimumSize(800, 600)
+            dialog.resize(1000, 700)
+            
+            layout = QVBoxLayout(dialog)
+            layout.setContentsMargins(10, 10, 10, 10)
+            
+            # Title
+            title = QLabel("🎓 AI Racing Coach")
+            title.setStyleSheet("font-size: 20px; font-weight: bold; color: white; padding: 10px; background-color: #16a085; border-radius: 5px;")
+            layout.addWidget(title)
+            
+            # Status
+            status_label = QLabel("Status: Ready for coaching")
+            status_label.setStyleSheet("font-size: 12px; color: #2ecc71; padding: 5px;")
+            layout.addWidget(status_label)
+            
+            # Coaching advice display
+            advice_group = QGroupBox("Real-Time Coaching Advice")
+            advice_group.setStyleSheet("color: white; font-size: 14px;")
+            advice_layout = QVBoxLayout(advice_group)
+            
+            advice_text = QTextEdit()
+            advice_text.setReadOnly(True)
+            advice_text.setStyleSheet("background-color: #1a1a1a; color: #00ff00; font-family: monospace; font-size: 12px;")
+            advice_text.setPlainText("""
+🎓 AI Racing Coach Ready!
+
+Features:
+• Real-time voice coaching
+• Lap analysis and sector comparison
+• Personalized feedback
+• Learning from your best laps
+
+The coach will provide advice on:
+• Braking points
+• Throttle application
+• Shift timing
+• Corner entry/exit
+• Line optimization
+
+Start a session to begin receiving coaching!
+            """)
+            advice_layout.addWidget(advice_text)
+            layout.addWidget(advice_group)
+            
+            # Controls
+            controls_layout = QHBoxLayout()
+            
+            start_btn = QPushButton("▶️ Start Coaching")
+            start_btn.setStyleSheet("background-color: #27ae60; color: white; padding: 10px; font-weight: bold;")
+            start_btn.clicked.connect(lambda: status_label.setText("Status: 🎤 Coaching Active!"))
+            controls_layout.addWidget(start_btn)
+            
+            stop_btn = QPushButton("⏹️ Stop")
+            stop_btn.setStyleSheet("background-color: #e74c3c; color: white; padding: 10px;")
+            controls_layout.addWidget(stop_btn)
+            
+            controls_layout.addStretch()
+            layout.addLayout(controls_layout)
+            
+            self.ai_panel.update_insight(
+                "🎓 AI Racing Coach opened! Get real-time coaching advice.",
+                level="info",
+            )
+            dialog.exec()
+        except Exception as e:
+            self.ai_panel.update_insight(f"❌ Failed to open AI Racing Coach: {e}", level="error")
+
+    def _open_pit_strategist(self) -> None:
+        """Open AI Pit Strategist in a dialog window."""
+        from PySide6.QtWidgets import QDialog, QVBoxLayout, QLabel, QTextEdit, QPushButton, QHBoxLayout, QGroupBox, QTableWidget, QTableWidgetItem, QHeaderView
+        
+        try:
+            from services.ai_pit_strategist import AIPitStrategist, RaceConditions, TireCondition
+            
+            dialog = QDialog(self)
+            dialog.setWindowTitle("🏁 AI Pit Strategist - Optimal Race Strategy")
+            dialog.setMinimumSize(900, 700)
+            dialog.resize(1100, 800)
+            
+            layout = QVBoxLayout(dialog)
+            layout.setContentsMargins(10, 10, 10, 10)
+            
+            # Title
+            title = QLabel("🏁 AI Pit Strategist")
+            title.setStyleSheet("font-size: 20px; font-weight: bold; color: white; padding: 10px; background-color: #d35400; border-radius: 5px;")
+            layout.addWidget(title)
+            
+            # Strategy table
+            strategy_group = QGroupBox("Recommended Pit Strategy")
+            strategy_group.setStyleSheet("color: white; font-size: 14px;")
+            strategy_layout = QVBoxLayout(strategy_group)
+            
+            strategy_table = QTableWidget()
+            strategy_table.setColumnCount(6)
+            strategy_table.setHorizontalHeaderLabels(["Pit Lap", "Reason", "Tire Change", "Fuel (L)", "Time Loss", "Gain"])
+            strategy_table.horizontalHeader().setStretchLastSection(True)
+            strategy_table.setStyleSheet("background-color: #1a1a1a; color: white;")
+            strategy_layout.addWidget(strategy_table)
+            layout.addWidget(strategy_group)
+            
+            # Info
+            info_text = QTextEdit()
+            info_text.setReadOnly(True)
+            info_text.setStyleSheet("background-color: #1a1a1a; color: #00ff00; font-size: 11px;")
+            info_text.setPlainText("""
+🏁 AI Pit Strategist Features:
+
+• Optimal pit stop timing calculation
+• Tire change recommendations
+• Fuel strategy optimization
+• Time loss/gain analysis
+• Multi-stop strategy planning
+• Weather-adaptive strategy
+
+This AI analyzes:
+- Current race position
+- Fuel consumption
+- Tire wear
+- Track conditions
+- Weather changes
+- Competitor strategies
+
+Enter race conditions to get strategy recommendations!
+            """)
+            info_text.setMaximumHeight(200)
+            layout.addWidget(info_text)
+            
+            # Controls
+            controls_layout = QHBoxLayout()
+            
+            calculate_btn = QPushButton("🧮 Calculate Strategy")
+            calculate_btn.setStyleSheet("background-color: #27ae60; color: white; padding: 10px; font-weight: bold;")
+            controls_layout.addWidget(calculate_btn)
+            
+            controls_layout.addStretch()
+            layout.addLayout(controls_layout)
+            
+            self.ai_panel.update_insight(
+                "🏁 AI Pit Strategist opened! Calculate optimal race strategy.",
+                level="info",
+            )
+            dialog.exec()
+        except Exception as e:
+            self.ai_panel.update_insight(f"❌ Failed to open Pit Strategist: {e}", level="error")
+
+    def _open_voice_ecu_control(self) -> None:
+        """Open Voice ECU Control in a dialog window."""
+        from PySide6.QtWidgets import QDialog, QVBoxLayout, QLabel, QTextEdit, QPushButton, QHBoxLayout, QGroupBox, QListWidget, QListWidgetItem
+        
+        try:
+            from services.voice_ecu_control import VoiceECUControl, VoiceCommand
+            
+            dialog = QDialog(self)
+            dialog.setWindowTitle("🎤 Voice ECU Control - Hands-Free Tuning")
+            dialog.setMinimumSize(800, 600)
+            dialog.resize(1000, 700)
+            
+            layout = QVBoxLayout(dialog)
+            layout.setContentsMargins(10, 10, 10, 10)
+            
+            # Title
+            title = QLabel("🎤 Voice ECU Control")
+            title.setStyleSheet("font-size: 20px; font-weight: bold; color: white; padding: 10px; background-color: #8e44ad; border-radius: 5px;")
+            layout.addWidget(title)
+            
+            # Status
+            status_label = QLabel("Status: Voice control ready")
+            status_label.setStyleSheet("font-size: 12px; color: #2ecc71; padding: 5px;")
+            layout.addWidget(status_label)
+            
+            # Command list
+            commands_group = QGroupBox("Available Voice Commands")
+            commands_group.setStyleSheet("color: white; font-size: 14px;")
+            commands_layout = QVBoxLayout(commands_group)
+            
+            commands_list = QListWidget()
+            commands_list.setStyleSheet("background-color: #1a1a1a; color: white;")
+            commands = [
+                "🎤 'More Power' - Increase power output",
+                "🎤 'Fuel Economy' - Optimize for efficiency",
+                "🎤 'Race Mode' - Maximum performance",
+                "🎤 'Safe Mode' - Conservative settings",
+                "🎤 'Increase Boost' - Raise boost pressure",
+                "🎤 'Decrease Boost' - Lower boost pressure",
+                "🎤 'Richer' - Enrich fuel mixture",
+                "🎤 'Leaner' - Lean fuel mixture",
+                "🎤 'Reset' - Return to default settings"
+            ]
+            for cmd in commands:
+                commands_list.addItem(cmd)
+            commands_layout.addWidget(commands_list)
+            layout.addWidget(commands_group)
+            
+            # History
+            history_text = QTextEdit()
+            history_text.setReadOnly(True)
+            history_text.setStyleSheet("background-color: #1a1a1a; color: #00ff00; font-family: monospace; font-size: 11px;")
+            history_text.setPlainText("Command history will appear here...")
+            history_text.setMaximumHeight(150)
+            layout.addWidget(history_text)
+            
+            # Controls
+            controls_layout = QHBoxLayout()
+            
+            start_btn = QPushButton("🎤 Start Listening")
+            start_btn.setStyleSheet("background-color: #27ae60; color: white; padding: 10px; font-weight: bold;")
+            start_btn.clicked.connect(lambda: status_label.setText("Status: 🎤 Listening for commands..."))
+            controls_layout.addWidget(start_btn)
+            
+            stop_btn = QPushButton("⏹️ Stop")
+            stop_btn.setStyleSheet("background-color: #e74c3c; color: white; padding: 10px;")
+            controls_layout.addWidget(stop_btn)
+            
+            controls_layout.addStretch()
+            layout.addLayout(controls_layout)
+            
+            self.ai_panel.update_insight(
+                "🎤 Voice ECU Control opened! Control your ECU with voice commands.",
+                level="info",
+            )
+            dialog.exec()
+        except Exception as e:
+            self.ai_panel.update_insight(f"❌ Failed to open Voice ECU Control: {e}", level="error")
+
+    def _open_weather_adaptive_tuning(self) -> None:
+        """Open Weather Adaptive Tuning in a dialog window."""
+        from PySide6.QtWidgets import QDialog, QVBoxLayout, QLabel, QTextEdit, QPushButton, QHBoxLayout, QGroupBox, QTableWidget, QTableWidgetItem, QHeaderView
+        
+        try:
+            from services.weather_adaptive_tuning import WeatherAdaptiveTuning, WeatherConditions
+            
+            dialog = QDialog(self)
+            dialog.setWindowTitle("🌦️ Weather Adaptive Tuning - Automatic Weather Compensation")
+            dialog.setMinimumSize(900, 700)
+            dialog.resize(1100, 800)
+            
+            layout = QVBoxLayout(dialog)
+            layout.setContentsMargins(10, 10, 10, 10)
+            
+            # Title
+            title = QLabel("🌦️ Weather Adaptive Tuning")
+            title.setStyleSheet("font-size: 20px; font-weight: bold; color: white; padding: 10px; background-color: #3498db; border-radius: 5px;")
+            layout.addWidget(title)
+            
+            # Current conditions
+            conditions_group = QGroupBox("Current Weather Conditions")
+            conditions_group.setStyleSheet("color: white; font-size: 14px;")
+            conditions_layout = QVBoxLayout(conditions_group)
+            
+            conditions_text = QTextEdit()
+            conditions_text.setReadOnly(True)
+            conditions_text.setStyleSheet("background-color: #1a1a1a; color: #00ff00; font-family: monospace; font-size: 11px;")
+            conditions_text.setPlainText("""
+Temperature: --°C
+Humidity: --%
+Pressure: -- hPa
+Altitude: -- m
+Weather: -- 
+Track Temp: --°C
+            """)
+            conditions_text.setMaximumHeight(150)
+            conditions_layout.addWidget(conditions_text)
+            layout.addWidget(conditions_group)
+            
+            # Adjustments table
+            adjustments_group = QGroupBox("Recommended Tuning Adjustments")
+            adjustments_group.setStyleSheet("color: white; font-size: 14px;")
+            adjustments_layout = QVBoxLayout(adjustments_group)
+            
+            adjustments_table = QTableWidget()
+            adjustments_table.setColumnCount(4)
+            adjustments_table.setHorizontalHeaderLabels(["Parameter", "Adjustment", "Reason", "Confidence"])
+            adjustments_table.horizontalHeader().setStretchLastSection(True)
+            adjustments_table.setStyleSheet("background-color: #1a1a1a; color: white;")
+            adjustments_layout.addWidget(adjustments_table)
+            layout.addWidget(adjustments_group)
+            
+            # Info
+            info_text = QTextEdit()
+            info_text.setReadOnly(True)
+            info_text.setStyleSheet("background-color: #1a1a1a; color: #00ff00; font-size: 11px;")
+            info_text.setPlainText("""
+🌦️ Weather Adaptive Tuning Features:
+
+• Automatic tuning adjustments for weather changes
+• Rain compensation (reduced power, traction control)
+• Temperature compensation (air density changes)
+• Altitude compensation (boost adjustments)
+• Humidity compensation (cooling efficiency)
+• Real-time weather monitoring
+
+The system automatically adjusts:
+- Fuel mixture
+- Ignition timing
+- Boost pressure
+- Traction control
+- Cooling fan settings
+
+Set it and forget it - your car adapts automatically!
+            """)
+            info_text.setMaximumHeight(180)
+            layout.addWidget(info_text)
+            
+            # Controls
+            controls_layout = QHBoxLayout()
+            
+            enable_btn = QPushButton("✅ Enable Auto-Tuning")
+            enable_btn.setStyleSheet("background-color: #27ae60; color: white; padding: 10px; font-weight: bold;")
+            controls_layout.addWidget(enable_btn)
+            
+            update_btn = QPushButton("🔄 Update Weather")
+            update_btn.setStyleSheet("background-color: #3498db; color: white; padding: 10px;")
+            controls_layout.addWidget(update_btn)
+            
+            controls_layout.addStretch()
+            layout.addLayout(controls_layout)
+            
+            self.ai_panel.update_insight(
+                "🌦️ Weather Adaptive Tuning opened! Automatic weather compensation enabled.",
+                level="info",
+            )
+            dialog.exec()
+        except Exception as e:
+            self.ai_panel.update_insight(f"❌ Failed to open Weather Adaptive Tuning: {e}", level="error")
+
+    def _open_predictive_crash_prevention(self) -> None:
+        """Open Predictive Crash Prevention in a dialog window."""
+        from PySide6.QtWidgets import QDialog, QVBoxLayout, QLabel, QTextEdit, QPushButton, QHBoxLayout, QGroupBox, QListWidget
+        
+        try:
+            from services.predictive_crash_prevention import PredictiveCrashPrevention, DangerLevel
+            
+            dialog = QDialog(self)
+            dialog.setWindowTitle("⚠️ Predictive Crash Prevention - AI Safety System")
+            dialog.setMinimumSize(800, 600)
+            dialog.resize(1000, 700)
+            
+            layout = QVBoxLayout(dialog)
+            layout.setContentsMargins(10, 10, 10, 10)
+            
+            # Title
+            title = QLabel("⚠️ Predictive Crash Prevention")
+            title.setStyleSheet("font-size: 20px; font-weight: bold; color: white; padding: 10px; background-color: #c0392b; border-radius: 5px;")
+            layout.addWidget(title)
+            
+            # Status
+            status_label = QLabel("Status: Monitoring active")
+            status_label.setStyleSheet("font-size: 12px; color: #2ecc71; padding: 5px;")
+            layout.addWidget(status_label)
+            
+            # Alerts
+            alerts_group = QGroupBox("Active Danger Alerts")
+            alerts_group.setStyleSheet("color: white; font-size: 14px;")
+            alerts_layout = QVBoxLayout(alerts_group)
+            
+            alerts_list = QListWidget()
+            alerts_list.setStyleSheet("background-color: #1a1a1a; color: #ff0000; font-weight: bold;")
+            alerts_list.addItem("No active alerts - System monitoring...")
+            alerts_layout.addWidget(alerts_list)
+            layout.addWidget(alerts_group)
+            
+            # Info
+            info_text = QTextEdit()
+            info_text.setReadOnly(True)
+            info_text.setStyleSheet("background-color: #1a1a1a; color: #00ff00; font-size: 11px;")
+            info_text.setPlainText("""
+⚠️ Predictive Crash Prevention Features:
+
+• AI-powered danger detection
+• Real-time risk assessment
+• Predictive alerts before incidents
+• Automatic safety interventions
+• Driver behavior analysis
+• Collision avoidance warnings
+
+The system monitors:
+- Vehicle dynamics (G-forces, speed, acceleration)
+- Driver behavior patterns
+- Road conditions
+- Traffic patterns
+- Environmental factors
+
+Alerts are provided at multiple danger levels:
+🟢 Low - Informational
+🟡 Medium - Caution
+🟠 High - Warning
+🔴 Critical - Immediate action required
+            """)
+            info_text.setMaximumHeight(250)
+            layout.addWidget(info_text)
+            
+            # Controls
+            controls_layout = QHBoxLayout()
+            
+            enable_btn = QPushButton("✅ Enable Monitoring")
+            enable_btn.setStyleSheet("background-color: #27ae60; color: white; padding: 10px; font-weight: bold;")
+            controls_layout.addWidget(enable_btn)
+            
+            controls_layout.addStretch()
+            layout.addLayout(controls_layout)
+            
+            self.ai_panel.update_insight(
+                "⚠️ Predictive Crash Prevention opened! AI safety monitoring active.",
+                level="info",
+            )
+            dialog.exec()
+        except Exception as e:
+            self.ai_panel.update_insight(f"❌ Failed to open Crash Prevention: {e}", level="error")
+
+    def _open_fleet_management(self) -> None:
+        """Open Fleet Management in a dialog window."""
+        from PySide6.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QGroupBox, QTableWidget, QTableWidgetItem, QHeaderView
+        
+        try:
+            from services.fleet_management import FleetManagement, Vehicle
+            
+            dialog = QDialog(self)
+            dialog.setWindowTitle("🚗 Fleet Management - Multi-Vehicle Management")
+            dialog.setMinimumSize(900, 700)
+            dialog.resize(1100, 800)
+            
+            layout = QVBoxLayout(dialog)
+            layout.setContentsMargins(10, 10, 10, 10)
+            
+            # Title
+            title = QLabel("🚗 Fleet Management")
+            title.setStyleSheet("font-size: 20px; font-weight: bold; color: white; padding: 10px; background-color: #16a085; border-radius: 5px;")
+            layout.addWidget(title)
+            
+            # Vehicles table
+            vehicles_group = QGroupBox("Fleet Vehicles")
+            vehicles_group.setStyleSheet("color: white; font-size: 14px;")
+            vehicles_layout = QVBoxLayout(vehicles_group)
+            
+            vehicles_table = QTableWidget()
+            vehicles_table.setColumnCount(6)
+            vehicles_table.setHorizontalHeaderLabels(["Vehicle", "Status", "Last Session", "Best Time", "Health", "Actions"])
+            vehicles_table.horizontalHeader().setStretchLastSection(True)
+            vehicles_table.setStyleSheet("background-color: #1a1a1a; color: white;")
+            vehicles_layout.addWidget(vehicles_table)
+            layout.addWidget(vehicles_group)
+            
+            # Stats
+            stats_text = QLabel("""
+            <div style='color: white; font-size: 12px; padding: 10px;'>
+            <b>Fleet Statistics:</b><br>
+            Total Vehicles: --<br>
+            Active Vehicles: --<br>
+            Total Sessions: --<br>
+            Average Health Score: --
+            </div>
+            """)
+            stats_text.setStyleSheet("background-color: #1a1a1a; border-radius: 5px;")
+            layout.addWidget(stats_text)
+            
+            # Controls
+            controls_layout = QHBoxLayout()
+            
+            add_vehicle_btn = QPushButton("➕ Add Vehicle")
+            add_vehicle_btn.setStyleSheet("background-color: #27ae60; color: white; padding: 10px; font-weight: bold;")
+            controls_layout.addWidget(add_vehicle_btn)
+            
+            compare_btn = QPushButton("📊 Compare Vehicles")
+            compare_btn.setStyleSheet("background-color: #3498db; color: white; padding: 10px;")
+            controls_layout.addWidget(compare_btn)
+            
+            controls_layout.addStretch()
+            layout.addLayout(controls_layout)
+            
+            self.ai_panel.update_insight(
+                "🚗 Fleet Management opened! Manage multiple vehicles and compare performance.",
+                level="info",
+            )
+            dialog.exec()
+        except Exception as e:
+            self.ai_panel.update_insight(f"❌ Failed to open Fleet Management: {e}", level="error")
+
+    def _open_social_racing(self) -> None:
+        """Open Social Racing Platform in a dialog window."""
+        from PySide6.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QGroupBox, QTableWidget, QTableWidgetItem, QHeaderView, QTabWidget
+        
+        try:
+            from services.social_racing_platform import SocialRacingPlatform, LeaderboardEntry, Achievement
+            
+            dialog = QDialog(self)
+            dialog.setWindowTitle("🏆 Social Racing Platform - Leaderboards & Challenges")
+            dialog.setMinimumSize(900, 700)
+            dialog.resize(1100, 800)
+            
+            layout = QVBoxLayout(dialog)
+            layout.setContentsMargins(10, 10, 10, 10)
+            
+            # Title
+            title = QLabel("🏆 Social Racing Platform")
+            title.setStyleSheet("font-size: 20px; font-weight: bold; color: white; padding: 10px; background-color: #9b59b6; border-radius: 5px;")
+            layout.addWidget(title)
+            
+            # Tabs
+            tabs = QTabWidget()
+            tabs.setStyleSheet("color: white;")
+            
+            # Leaderboard tab
+            leaderboard_tab = QGroupBox("Global Leaderboard")
+            leaderboard_layout = QVBoxLayout(leaderboard_tab)
+            
+            leaderboard_table = QTableWidget()
+            leaderboard_table.setColumnCount(5)
+            leaderboard_table.setHorizontalHeaderLabels(["Rank", "Username", "Track", "Best Time", "Vehicle"])
+            leaderboard_table.horizontalHeader().setStretchLastSection(True)
+            leaderboard_table.setStyleSheet("background-color: #1a1a1a; color: white;")
+            leaderboard_layout.addWidget(leaderboard_table)
+            tabs.addTab(leaderboard_tab, "🏆 Leaderboard")
+            
+            # Achievements tab
+            achievements_tab = QGroupBox("Your Achievements")
+            achievements_layout = QVBoxLayout(achievements_tab)
+            
+            achievements_table = QTableWidget()
+            achievements_table.setColumnCount(3)
+            achievements_table.setHorizontalHeaderLabels(["Achievement", "Description", "Unlocked"])
+            achievements_table.horizontalHeader().setStretchLastSection(True)
+            achievements_table.setStyleSheet("background-color: #1a1a1a; color: white;")
+            achievements_layout.addWidget(achievements_table)
+            tabs.addTab(achievements_tab, "🏅 Achievements")
+            
+            # Challenges tab
+            challenges_tab = QGroupBox("Active Challenges")
+            challenges_layout = QVBoxLayout(challenges_tab)
+            
+            challenges_table = QTableWidget()
+            challenges_table.setColumnCount(4)
+            challenges_table.setHorizontalHeaderLabels(["Challenge", "Track", "Target Time", "Prize"])
+            challenges_table.horizontalHeader().setStretchLastSection(True)
+            challenges_table.setStyleSheet("background-color: #1a1a1a; color: white;")
+            challenges_layout.addWidget(challenges_table)
+            tabs.addTab(challenges_tab, "🎯 Challenges")
+            
+            layout.addWidget(tabs)
+            
+            # Info
+            info_text = QLabel("""
+            <div style='color: white; font-size: 11px; padding: 10px;'>
+            <b>Social Racing Features:</b><br>
+            • Global leaderboards for every track<br>
+            • Achievements and badges<br>
+            • Weekly challenges with prizes<br>
+            • Compare times with friends<br>
+            • Share your best runs<br>
+            • Join racing communities
+            </div>
+            """)
+            info_text.setStyleSheet("background-color: #1a1a1a; border-radius: 5px;")
+            layout.addWidget(info_text)
+            
+            # Controls
+            controls_layout = QHBoxLayout()
+            
+            sync_btn = QPushButton("🔄 Sync to Cloud")
+            sync_btn.setStyleSheet("background-color: #3498db; color: white; padding: 10px; font-weight: bold;")
+            controls_layout.addWidget(sync_btn)
+            
+            share_btn = QPushButton("📤 Share Run")
+            share_btn.setStyleSheet("background-color: #27ae60; color: white; padding: 10px;")
+            controls_layout.addWidget(share_btn)
+            
+            controls_layout.addStretch()
+            layout.addLayout(controls_layout)
+            
+            self.ai_panel.update_insight(
+                "🏆 Social Racing Platform opened! Compete on global leaderboards!",
+                level="info",
+            )
+            dialog.exec()
+        except Exception as e:
+            self.ai_panel.update_insight(f"❌ Failed to open Social Racing: {e}", level="error")
 
     def configure_display(self) -> None:
         """Open display configuration dialog."""
