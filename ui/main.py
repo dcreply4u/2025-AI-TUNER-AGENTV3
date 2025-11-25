@@ -59,6 +59,7 @@ from ui.status_bar import StatusBar
 from ui.telemetry_panel import TelemetryPanel
 from ui.theme_dialog import ThemeDialog
 from ui.theme_manager import ThemeManager
+from ui.wheel_slip_widget import WheelSlipPanel
 from ui.youtube_stream_widget import YouTubeStreamWidget
 
 
@@ -186,6 +187,15 @@ class MainWindow(QWidget):
             QSizePolicy.Policy.Expanding,
             QSizePolicy.Policy.Preferred,
         )
+
+        # Wheel slip panel for drag racing optimization
+        self.wheel_slip_panel = WheelSlipPanel()
+        self.wheel_slip_panel.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Preferred,
+        )
+        # Start demo mode for wheel slip visualization
+        self.wheel_slip_panel.start_demo()
 
         # Status bar
         self.status_bar = StatusBar()
@@ -438,6 +448,14 @@ class MainWindow(QWidget):
         gauge_layout.setSpacing(6)
         gauge_layout.addWidget(self.gauge_panel)
         right_column.addWidget(gauge_group, 3)
+
+        # 0.5) Wheel Slip Monitor (drag racing)
+        slip_group = QGroupBox("🏁 Wheel Slip Monitor")
+        slip_layout = QVBoxLayout(slip_group)
+        slip_layout.setContentsMargins(8, 8, 8, 8)
+        slip_layout.setSpacing(6)
+        slip_layout.addWidget(self.wheel_slip_panel)
+        right_column.addWidget(slip_group, 2)
 
         # 1) Faults / status group
         fault_group = QGroupBox("System Status")

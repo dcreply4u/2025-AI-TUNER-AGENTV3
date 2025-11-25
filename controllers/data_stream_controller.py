@@ -43,6 +43,8 @@ from ui.gauge_widget import GaugePanel
 from ui.health_score_widget import HealthScoreWidget
 from ui.status_bar import StatusBar
 from ui.telemetry_panel import TelemetryPanel
+from ui.wheel_slip_widget import WheelSlipPanel
+from services.wheel_slip_service import WheelSlipService
 
 if TYPE_CHECKING:  # pragma: no cover - imported for type hints only
     from controllers.camera_manager import CameraManager
@@ -92,12 +94,14 @@ class DataStreamController(QObject):
         connectivity_manager: ConnectivityManager | None = None,
         camera_manager: "CameraManager" | None = None,
         voice_feedback: "VoiceFeedback | None" = None,
+        wheel_slip_panel: WheelSlipPanel | None = None,
         parent: QObject | None = None,
     ) -> None:
         super().__init__(parent)
         self.telemetry_panel = telemetry_panel
         self.ai_panel = ai_panel
         self.gauge_panel = gauge_panel
+        self.wheel_slip_panel = wheel_slip_panel
         self.predictor = predictor or PredictiveFaultDetector()
         self.health_engine = HealthScoringEngine()
         self.health_widget = health_widget
@@ -120,6 +124,18 @@ class DataStreamController(QObject):
         self.connectivity_manager = connectivity_manager
         self.camera_manager = camera_manager
         self.voice_feedback = voice_feedback
+
+        # Wheel Slip Service for drag racing optimization
+        self.wheel_slip_service = WheelSlipService(
+            tire_type="drag_radial",  # Default to drag radial, can be configured
+            tire_diameter_inches=28.0,
+            final_drive_ratio=3.73,
+        )
+        # Connect wheel slip warnings to voice feedback
+        if self.voice_feedback and self.wheel_slip_panel:
+            self.wheel_slip_service.slip_warning.connect(
+                lambda msg, slip: self._speak(msg, channel="warning", throttle=5)
+            )
 
         # Fuel/Additive Manager (comprehensive fuel system management)
         self.fuel_additive_manager = None
@@ -788,6 +804,65 @@ class DataStreamController(QObject):
         if self.gauge_panel:
             self.gauge_panel.update_data(normalized_data)
 
+        # Update wheel slip calculation for drag racing
+        if self.wheel_slip_panel and self.wheel_slip_service:
+            # Get required speeds for slip calculation
+            # Driven wheel speed from driveshaft/rear wheel sensors
+            driveshaft_rpm = normalized_data.get("Driveshaft_RPM", 0)
+            driven_speed = normalized_data.get("Driven_Wheel_Speed", 0)
+            
+            # Actual vehicle speed from GPS, front wheels, or speed sensor
+            actual_speed = normalized_data.get("Speed", normalized_data.get("Vehicle_Speed", 0))
+            gps_speed = normalized_data.get("GPS_Speed", 0)
+            
+            # Prefer GPS speed if available (more accurate for slip calculation)
+            if gps_speed > 0:
+                actual_speed = gps_speed
+            
+            # Calculate wheel slip
+            if driveshaft_rpm > 0 and actual_speed > 0:
+                # Use driveshaft RPM for driven wheel speed calculation
+                reading = self.wheel_slip_service.update_from_driveshaft(
+                    driveshaft_rpm=driveshaft_rpm,
+                    actual_vehicle_speed=actual_speed,
+                    gear_ratio=1.0,  # Assume post-transmission measurement
+                )
+            elif driven_speed > 0 and actual_speed > 0:
+                # Use direct driven wheel speed
+                reading = self.wheel_slip_service.update(
+                    driven_wheel_speed=driven_speed,
+                    actual_vehicle_speed=actual_speed,
+                )
+            else:
+                # Estimate slip from RPM and speed (simplified)
+                rpm = normalized_data.get("RPM", normalized_data.get("Engine_RPM", 0))
+                if rpm > 500 and actual_speed > 5:
+                    # Simple estimation: compare expected speed from RPM to actual
+                    # This is a rough approximation for demo/estimation purposes
+                    # Assume some gear/final drive combo gives ~3500 RPM at 60 mph
+                    estimated_driven = (rpm / 3500.0) * 60.0
+                    reading = self.wheel_slip_service.update(
+                        driven_wheel_speed=estimated_driven,
+                        actual_vehicle_speed=actual_speed,
+                    )
+                else:
+                    reading = None
+            
+            # Update UI if we have a reading
+            if reading:
+                status_text = reading.status.value.upper()
+                rec = ""
+                if reading.status.value in ("excessive", "critical"):
+                    rec = "Reduce throttle to optimize traction!"
+                elif reading.status.value == "low":
+                    rec = "Room for more throttle"
+                
+                self.wheel_slip_panel.update_slip(
+                    reading.slip_percentage,
+                    status_text,
+                    rec,
+                )
+
         health_payload = self._update_health(data)
 
         if mode != "replay":
@@ -1040,6 +1115,7 @@ def start_data_stream(window: QObject, **settings) -> DataStreamController:
             connectivity_manager=getattr(window, "connectivity_manager", None),
             camera_manager=getattr(window, "camera_manager", None),
             voice_feedback=getattr(window, "voice_feedback", None),
+            wheel_slip_panel=getattr(window, "wheel_slip_panel", None),
             parent=window,
         )
         window.data_stream_controller = controller
