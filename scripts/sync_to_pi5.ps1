@@ -1,10 +1,11 @@
-# Sync AI-TUNER-AGENT to Raspberry Pi 5
+# Sync 2025-AI-TUNER-AGENTV3 to Raspberry Pi 5
+# FIXED: Now uses correct source path (2025-AI-TUNER-AGENTV3)
 param(
     [string]$PiIP = "192.168.1.214",
     [string]$PiUser = "aituner",
     [string]$PiPassword = "aituner",
-    [string]$SourcePath = "C:\Users\DC\OneDrive\Desktop\AITUNER\AI-TUNER-AGENT",
-    [string]$DestPath = "~/AITUNER/AI-TUNER-AGENT"
+    [string]$SourcePath = "C:\Users\DC\OneDrive\Desktop\AITUNER\2025-AI-TUNER-AGENTV3",
+    [string]$DestPath = "~/AITUNER/2025-AI-TUNER-AGENTV3"
 )
 
 $plinkPath = "C:\Program Files\PuTTY\plink.exe"
@@ -12,8 +13,10 @@ $pscpPath = "C:\Program Files\PuTTY\pscp.exe"
 $hostKey = "ssh-ed25519 255 SHA256:kYD1kP0J+ldb0WyphVRnikIRQgZJP1nnL6MzESnu2iw"
 
 Write-Host "==========================================" -ForegroundColor Cyan
-Write-Host "🔄 Syncing AI-TUNER-AGENT to Pi 5" -ForegroundColor Cyan
+Write-Host "🔄 Syncing 2025-AI-TUNER-AGENTV3 to Pi 5" -ForegroundColor Cyan
 Write-Host "==========================================" -ForegroundColor Cyan
+Write-Host "Source: $SourcePath" -ForegroundColor Gray
+Write-Host "Destination: $DestPath" -ForegroundColor Gray
 Write-Host ""
 
 if (-not (Test-Path $pscpPath)) {

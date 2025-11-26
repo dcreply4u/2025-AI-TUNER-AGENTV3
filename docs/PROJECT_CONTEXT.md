@@ -1,7 +1,24 @@
 # AI Tuner Project Context
 
-**Last Updated:** November 25, 2025  
+**Last Updated:** November 26, 2025  
 **Purpose:** Context file for AI assistants to quickly understand the project state
+
+---
+
+## 🎯 Current Focus
+
+**Active Development Areas:**
+- UI improvements and platform-aware sizing
+- Multi-row tab widget with scrolling
+- Pi sync workflow fixes
+- Code quality improvements (input validation, requirements split)
+
+**Recent Major Changes:**
+- Fixed wildcard imports in module_integrator.py
+- Split requirements into core/optional
+- Added comprehensive input validation
+- Created merge conflict resolution scripts for Pi
+- Platform-aware window sizing (Windows vs Pi)
 
 ---
 
@@ -9,14 +26,22 @@
 
 ```
 C:\Users\DC\OneDrive\Desktop\AITUNER\
-├── AI-TUNER-AGENT\              # Main development repo (v2 branch)
-├── 2025-AI-TUNER-AGENTV2\       # Secondary repo (main branch)
+├── AI-TUNER-AGENT\              # Main development repo (v2 branch) - Legacy
+├── 2025-AI-TUNER-AGENTV2\       # Secondary repo (main branch) - Legacy
 ├── 2025-AI-TUNER-AGENTV3\       # Latest V3 repo (main branch) ← WORK FROM HERE
 └── v2\AI-TUNER-AGENT\           # Backup/reference
 ```
 
 ### Primary Working Directory
 **Use `2025-AI-TUNER-AGENTV3` for new development work.**
+
+### Repository Relationships
+- **V3 (2025-AI-TUNER-AGENTV3)**: Primary active development, latest features
+- **V2 (2025-AI-TUNER-AGENTV2)**: Previous version, kept for reference
+- **AI-TUNER-AGENT**: Original repo on v2 branch, legacy codebase
+- **v2/AI-TUNER-AGENT**: Backup copy
+
+**Sync Strategy:** After major changes in V3, selectively copy critical files to other repos if needed.
 
 ---
 
@@ -36,18 +61,26 @@ C:\Users\DC\OneDrive\Desktop\AITUNER\
 IP Address: 192.168.1.214
 Username: aituner
 Password: aituner
-Project Path: /home/aituner/AITUNER/AI-TUNER-AGENT/
+Project Path: /home/aituner/AITUNER/2025-AI-TUNER-AGENTV3/
 ```
 
 ### SSH Commands (from Windows)
 ```powershell
 # Run command on Pi
-& "C:\Users\DC\OneDrive\Desktop\AITUNER\AI-TUNER-AGENT\scripts\run_pi5_command.ps1" -Command "your command here"
+& "C:\Users\DC\OneDrive\Desktop\AITUNER\2025-AI-TUNER-AGENTV3\scripts\run_pi5_command.ps1" -Command "your command here"
 
 # Copy file to Pi
 $hostKey = "ssh-ed25519 255 SHA256:kYD1kP0J+ldb0WyphVRnikIRQgZJP1nnL6MzESnu2iw"
 & "C:\Program Files\PuTTY\pscp.exe" -hostkey $hostKey -pw aituner "local\path" "aituner@192.168.1.214:/remote/path"
+
+# Sync entire project to Pi (FIXED - now uses correct source path)
+& "C:\Users\DC\OneDrive\Desktop\AITUNER\2025-AI-TUNER-AGENTV3\scripts\sync_to_pi5.ps1"
 ```
+
+### ⚠️ Pi Sync Issue (FIXED)
+**Problem:** Sync script was pointing to wrong source directory (`AI-TUNER-AGENT` instead of `2025-AI-TUNER-AGENTV3`)  
+**Status:** ✅ Fixed in `scripts/sync_to_pi5.ps1`  
+**If merge conflicts occur on Pi:** Use `fix_pi_merge.py` script on the Pi to resolve
 
 ---
 
@@ -91,13 +124,30 @@ The demo uses `demo_safe.py` which:
 
 ---
 
-## 🔧 Recent Changes (This Session)
+## 🔧 Recent Changes
 
-1. **Platform-aware window sizing** - Windows vs Pi/Linux different defaults
+### Latest Session (Nov 26, 2025)
+1. **Fixed Pi sync script** - Corrected source path to use `2025-AI-TUNER-AGENTV3`
+2. **Updated PROJECT_CONTEXT.md** - Added current focus, troubleshooting, quick commands
+3. **Documented merge conflict resolution** - Added scripts and procedures
+
+### Previous Session (Nov 25, 2025)
+1. **Platform-aware window sizing** - Windows uses 70%/65%, Pi uses 85%
 2. **Vertical scroll for right column** - Controls can be scrolled
-3. **Multi-row tab widget scrolling** - Tabs have vertical scroll
+3. **Multi-row tab widget scrolling** - Tabs have vertical scroll (8 per row)
 4. **QTimer import fix** - Removed shadowing in data_stream_controller.py
-5. **Created V3 repo** - Clean starting point
+5. **Code quality improvements** - Fixed wildcard imports, split requirements, added input validation
+6. **Created V3 repo** - Clean starting point for new development
+
+### Code Review Fixes (Nov 25, 2025)
+**All fixes completed and pushed to GitHub:**
+- ✅ **Fixed wildcard imports** - Replaced `import *` with explicit imports using AST parsing
+- ✅ **Split requirements** - Created `requirements-core.txt` and `requirements-optional.txt`
+- ✅ **Input validation** - Added `InputValidator` class with comprehensive validation
+- ✅ **Security improvements** - Added input sanitization, SQL injection protection
+- ✅ **Error handling** - Improved exception handling and logging throughout
+- ✅ **Documentation** - Enhanced docstrings and code comments
+- ✅ **Merge conflict scripts** - Created `fix_pi_merge.py` for Pi conflict resolution
 
 ---
 
@@ -126,6 +176,34 @@ scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
 ```
 
+### Error Handling
+```python
+# Use logging for errors
+import logging
+LOGGER = logging.getLogger(__name__)
+
+try:
+    # operation
+except Exception as e:
+    LOGGER.error("Operation failed: %s", e, exc_info=True)
+```
+
+### Platform Detection
+```python
+import sys
+IS_WINDOWS = sys.platform == "win32"
+IS_LINUX = sys.platform.startswith("linux")
+IS_PI = IS_LINUX and os.path.exists("/proc/device-tree/model")
+```
+
+### Input Validation
+```python
+from core.input_validator import InputValidator
+validator = InputValidator()
+if not validator.validate_rpm(value):
+    raise ValueError("Invalid RPM value")
+```
+
 ---
 
 ## ⚠️ Known Issues / Notes
@@ -134,17 +212,139 @@ scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
 2. **ECU detection fails** - Normal in demo mode (no hardware)
 3. **Voice control** - Requires `SpeechRecognition` and `PyAudio` packages
 4. **GitHub push protection** - Don't commit files with tokens (push_now.ps1)
+5. **Pi merge conflicts** - If sync fails due to merge conflicts, use `fix_pi_merge.py` on Pi
+
+---
+
+## 🔧 Troubleshooting
+
+### Common Issues & Solutions
+
+#### Pi Sync Fails
+**Symptom:** `sync_to_pi5.ps1` fails or syncs wrong files  
+**Solution:** 
+- Verify script uses correct source path: `2025-AI-TUNER-AGENTV3`
+- Check PuTTY installation: `C:\Program Files\PuTTY\pscp.exe`
+- Test SSH connection: `scripts/test_ssh_connection.ps1`
+
+#### Merge Conflicts on Pi
+**Symptom:** Git pull fails with merge conflicts  
+**Solution:**
+```bash
+# On Pi, run:
+cd ~/AITUNER/2025-AI-TUNER-AGENTV3
+python3 fix_pi_merge.py
+```
+
+#### Demo Won't Start
+**Symptom:** `demo_safe.py` crashes or window doesn't appear  
+**Solution:**
+- Check Python version: `python --version` (needs 3.9+)
+- Install dependencies: `pip install -r requirements-core.txt`
+- Check logs: `logs/ai_tuner.log`
+
+#### Import Errors
+**Symptom:** `ModuleNotFoundError` or import failures  
+**Solution:**
+- Install core deps: `pip install -r requirements-core.txt`
+- Install optional deps if needed: `pip install -r requirements-optional.txt`
+- Check virtual environment activation
+
+#### Camera Not Detected
+**Symptom:** Camera widget shows "No camera"  
+**Solution:**
+- This is normal if no camera connected
+- Check USB camera: `lsusb` (Linux) or Device Manager (Windows)
+- Test with: `python -c "import cv2; print(cv2.VideoCapture(0).isOpened())"`
+
+---
+
+## ⚡ Quick Commands Cheat Sheet
+
+### Development
+```powershell
+# Run demo
+cd 2025-AI-TUNER-AGENTV3
+python demo_safe.py
+
+# Install dependencies
+pip install -r requirements-core.txt
+pip install -r requirements-optional.txt  # Optional features
+
+# Run tests
+python -m pytest tests/
+```
+
+### Git Operations
+```powershell
+# Commit and push
+git add .
+git commit -m "Description"
+git push origin main
+
+# Check status
+git status
+git log --oneline -10
+```
+
+### Pi Operations
+```powershell
+# Sync to Pi
+.\scripts\sync_to_pi5.ps1
+
+# Run command on Pi
+.\scripts\run_pi5_command.ps1 -Command "python3 demo_safe.py"
+
+# Test SSH connection
+.\scripts\test_ssh_connection.ps1
+```
+
+### Testing
+```powershell
+# Test demo
+python demo_safe.py
+
+# Test minimal window
+python test_minimal_window.py
+
+# Test integration
+python test_integration.py
+```
 
 ---
 
 ## 🔄 Sync Workflow
 
-When making changes:
-1. Make changes in `2025-AI-TUNER-AGENTV3`
-2. Test with `python demo_safe.py`
-3. Commit and push to GitHub
-4. Copy changed files to other repos if needed
-5. Sync to Pi 5 using pscp
+### Standard Development Flow
+1. **Make changes** in `2025-AI-TUNER-AGENTV3`
+2. **Test locally** with `python demo_safe.py`
+3. **Commit and push** to GitHub:
+   ```powershell
+   git add .
+   git commit -m "Description of changes"
+   git push origin main
+   ```
+4. **Sync to Pi** using fixed script:
+   ```powershell
+   .\scripts\sync_to_pi5.ps1
+   ```
+5. **Copy to other repos** only if needed (selective sync)
+
+### Pi Sync Process
+1. Run `sync_to_pi5.ps1` from V3 directory
+2. Script creates directories on Pi if needed
+3. Copies essential files first (requirements.txt, demo_safe.py, README.md)
+4. Then copies directories (services, ui, controllers, etc.)
+5. If merge conflicts occur on Pi, run `fix_pi_merge.py` on Pi
+
+### Handling Merge Conflicts on Pi
+If sync fails due to merge conflicts:
+```bash
+# SSH to Pi first, then:
+cd ~/AITUNER/2025-AI-TUNER-AGENTV3
+python3 fix_pi_merge.py
+# Or use resolve_merge_simple.sh for automatic resolution
+```
 
 ---
 
@@ -167,12 +367,16 @@ pip3 install PySide6 pyqtgraph obd python-can opencv-python scipy numpy --break-
 
 ## 💡 Tips for Next AI
 
-1. **Always work from V3 repo** (`2025-AI-TUNER-AGENTV3`)
-2. **Run demo_safe.py** to test changes (not demo.py)
-3. **Use pscp with hostkey** for Pi file transfers
-4. **Check terminal output** at `~/.cursor/projects/.../terminals/` 
-5. **Platform detection:** Check `IS_WINDOWS` for OS-specific code
-6. **Keep all 3 repos in sync** after major changes
+1. **Always work from V3 repo** (`2025-AI-TUNER-AGENTV3`) - This is the primary working directory
+2. **Run demo_safe.py** to test changes (not demo.py) - Safe version handles errors gracefully
+3. **Use sync_to_pi5.ps1** for Pi sync (now fixed with correct path)
+4. **Check logs** in `logs/` directory for debugging
+5. **Platform detection:** Use `IS_WINDOWS`, `IS_LINUX`, `IS_PI` constants for OS-specific code
+6. **Input validation:** Use `InputValidator` class from `core/input_validator.py`
+7. **Requirements:** Install `requirements-core.txt` first, then optional features
+8. **Git workflow:** Commit frequently, push to GitHub, then sync to Pi
+9. **Merge conflicts:** Use `fix_pi_merge.py` on Pi if conflicts occur
+10. **Testing:** Run `python demo_safe.py` before committing major changes
 
 ---
 
