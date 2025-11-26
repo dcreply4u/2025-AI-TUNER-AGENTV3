@@ -254,7 +254,7 @@ def main():
     # Ingest document
     try:
         count = ingest_vbox_document(str(pdf_path), vector_store)
-        LOGGER.info(f"✅ Successfully ingested {count} chunks into knowledge base")
+        LOGGER.info(f"Successfully ingested {count} chunks into knowledge base")
         LOGGER.info(f"Total documents in store: {vector_store.count()}")
         return 0
     except Exception as e:
