@@ -187,3 +187,4 @@ def _calculate_hp_from_torque(self, torque_ftlb: float, rpm: float) -> float:
 - Virtual Dyno Code: `services/virtual_dyno.py`
 - Original Formula Source: James Watt (18th century)
 
+

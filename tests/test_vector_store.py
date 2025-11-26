@@ -58,3 +58,4 @@ class TestVectorKnowledgeStore:
         with pytest.raises(ValueError):
             store.add_knowledge("", {})
 
+
