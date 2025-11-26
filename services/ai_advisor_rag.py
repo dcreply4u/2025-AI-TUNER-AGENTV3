@@ -351,8 +351,10 @@ You use the provided context to answer questions accurately. Be concise but thor
                     parts = re.split(r"what (is|are|is the|are the|'s)", question.lower(), 1)
                     if len(parts) > 1:
                         subject = parts[-1].strip()
-                        # Remove common trailing words
-                        subject = re.sub(r"\b(for|on|in|at|with|to|the)\b.*$", "", subject).strip()
+                        # Remove common trailing words, but keep important terms
+                        # Don't remove if subject is a single important word (like "telemetryiq")
+                        if len(subject.split()) > 1:
+                            subject = re.sub(r"\b(for|on|in|at|with|to|the)\b.*$", "", subject).strip()
                         if subject:
                             search_query = subject  # Search for just the subject
                             LOGGER.debug(f"Refined 'what is' query to: {subject}")
@@ -360,34 +362,53 @@ You use the provided context to answer questions accurately. Be concise but thor
                 search_results = self.vector_store.search(
                     query=search_query,
                     n_results=5,
-                    min_similarity=0.4  # Increased from 0.3 for better precision
+                    min_similarity=0.3  # Lower threshold to catch more results
                 )
                 
-                # Filter results for "what is" questions - require topic match
+                # Filter and prioritize results for "what is" questions
                 if "what is" in question.lower() or "what's" in question.lower():
                     question_lower = question.lower()
-                    # Extract key terms from question
+                    # Extract key terms from question (keep all terms, not just > 3 chars)
                     key_terms = set(re.findall(r'\b\w+\b', question_lower))
-                    key_terms = {t for t in key_terms if len(t) > 3}  # Only meaningful words
+                    # Remove common stop words but keep important terms
+                    stop_words = {"what", "is", "are", "the", "a", "an", "for", "on", "in", "at", "with", "to"}
+                    key_terms = {t for t in key_terms if t not in stop_words and len(t) > 2}
                     
-                    filtered_results = []
+                    # Score and sort results by relevance
+                    scored_results = []
                     for result in search_results:
-                        # Check if topic or metadata contains key terms
                         metadata = result.get("metadata", {})
                         topic = metadata.get("topic", "").lower()
                         text = result.get("text", "").lower()
+                        similarity = result.get("similarity", 0)
                         
-                        # Check if topic matches question subject
-                        topic_matches = any(term in topic for term in key_terms)
-                        text_matches = any(term in text[:200] for term in key_terms)  # Check first 200 chars
+                        # Calculate relevance score
+                        score = similarity
                         
-                        if topic_matches or (text_matches and result["similarity"] > 0.5):
-                            filtered_results.append(result)
-                        elif result["similarity"] > 0.7:
-                            # High similarity even without exact match - include it
-                            filtered_results.append(result)
+                        # Boost for topic matches
+                        topic_matches = sum(1 for term in key_terms if term in topic)
+                        if topic_matches > 0:
+                            score += 0.2 * topic_matches
+                        
+                        # Strong boost for "Overview" topics for "what is" questions
+                        if "overview" in topic:
+                            score += 0.5  # Strong boost for overview topics
+                        
+                        # Boost if topic contains the main subject
+                        subject_lower = search_query.lower()
+                        if subject_lower in topic or any(word in topic for word in subject_lower.split() if len(word) > 3):
+                            score += 0.2
+                        
+                        # Boost for text matches
+                        text_matches = sum(1 for term in key_terms if term in text[:300])
+                        if text_matches > 0:
+                            score += 0.1 * text_matches
+                        
+                        scored_results.append((score, result))
                     
-                    retrieved_knowledge = filtered_results[:3]  # Limit to top 3 for precision
+                    # Sort by score (highest first) and take top results
+                    scored_results.sort(key=lambda x: x[0], reverse=True)
+                    retrieved_knowledge = [r[1] for r in scored_results[:3]]
                     LOGGER.debug(f"Filtered to {len(retrieved_knowledge)} relevant results for 'what is' question")
                 else:
                     retrieved_knowledge = search_results
@@ -401,16 +422,16 @@ You use the provided context to answer questions accurately. Be concise but thor
         web_search_results = None
         
         # Use web search if:
-        # - No good local knowledge (similarity < 0.6 for "what is" questions)
+        # - No good local knowledge (similarity < 0.5 for "what is" questions, < 0.4 for others)
         # - Question is about specific vehicle specs
         # - Question is about current/recent information
         if self.web_search and self.enable_web_search:
             is_what_is = "what is" in question.lower() or "what's" in question.lower()
-            min_similarity_threshold = 0.6 if is_what_is else 0.5  # Stricter for "what is" questions
+            min_similarity_threshold = 0.5 if is_what_is else 0.4  # Lower thresholds to trigger web search more often
             
             needs_web_search = (
                 not retrieved_knowledge or
-                (retrieved_knowledge and retrieved_knowledge[0]["similarity"] < min_similarity_threshold) or
+                (retrieved_knowledge and retrieved_knowledge[0].get("similarity", 0) < min_similarity_threshold) or
                 self._is_vehicle_specific_question(question) or
                 self._is_current_information_question(question)
             )
