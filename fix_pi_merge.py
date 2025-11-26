@@ -25,10 +25,26 @@ def run_cmd(cmd, cwd=None):
         return False, "", str(e)
 
 def main():
-    repo_path = Path.home() / "AITUNER" / "2025-AI-TUNER-AGENTV3"
+    """Main function to fix merge conflicts on Pi."""
+    # Try multiple possible paths
+    possible_paths = [
+        Path.home() / "AITUNER" / "2025-AI-TUNER-AGENTV3",
+        Path("/home/aituner/AITUNER/2025-AI-TUNER-AGENTV3"),
+        Path.cwd() / "2025-AI-TUNER-AGENTV3",
+        Path.cwd(),
+    ]
     
-    if not repo_path.exists():
-        print(f"Repository not found at {repo_path}")
+    repo_path = None
+    for path in possible_paths:
+        if path.exists() and (path / ".git").exists():
+            repo_path = path
+            break
+    
+    if not repo_path:
+        print("Repository not found. Please run this script from the repository directory.")
+        print("Tried paths:")
+        for path in possible_paths:
+            print(f"  - {path}")
         return
     
     print(f"Working in: {repo_path}")

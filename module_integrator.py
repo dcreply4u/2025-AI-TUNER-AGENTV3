@@ -242,12 +242,44 @@ class ModuleIntegrator:
 
 '''
         
-        # Add imports
+        # Add explicit imports (avoid wildcard imports)
+        # First, try to extract __all__ from each module
+        imported_items = []
         for module in all_list:
-            init_content += f"from .{module} import *\n"
+            module_path = package_dir / f"{module}.py"
+            if module_path.exists():
+                try:
+                    with open(module_path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                    # Try to find __all__ definition
+                    tree = ast.parse(content)
+                    for node in ast.walk(tree):
+                        if isinstance(node, ast.Assign):
+                            for target in node.targets:
+                                if isinstance(target, ast.Name) and target.id == '__all__':
+                                    if isinstance(node.value, (ast.List, ast.Tuple)):
+                                        items = [elt.s for elt in node.value.elts if isinstance(elt, ast.Constant)]
+                                        for item in items:
+                                            imported_items.append(f"{module}.{item}")
+                                        init_content += f"from .{module} import {', '.join(items)}\n"
+                                        break
+                    # If no __all__ found, import common patterns
+                    if not any(f"from .{module}" in line for line in init_content.split('\n')):
+                        # Extract classes and functions
+                        classes = [node.name for node in ast.walk(tree) if isinstance(node, ast.ClassDef)]
+                        functions = [node.name for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)]
+                        exports = [name for name in classes + functions if not name.startswith('_')]
+                        if exports:
+                            init_content += f"from .{module} import {', '.join(exports[:10])}\n"  # Limit to 10 to avoid clutter
+                            imported_items.extend([f"{module}.{item}" for item in exports[:10]])
+                except Exception as e:
+                    logger.warning(f"Could not parse {module}.py for imports: {e}")
+                    # Fallback: import module itself
+                    init_content += f"from . import {module}\n"
+                    imported_items.append(module)
         
         init_content += f'''
-__all__ = {all_list!r}
+__all__ = {sorted(set(imported_items))!r}
 '''
         
         # Only update if changed

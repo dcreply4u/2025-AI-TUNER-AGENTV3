@@ -504,6 +504,25 @@ class AIAdvisorWidget(QWidget):
         if not question:
             return
         
+        # Validate and sanitize input
+        try:
+            from core.input_validator import InputValidator
+            is_valid, error_msg = InputValidator.validate_chat_input(question)
+            if not is_valid:
+                QMessageBox.warning(self, "Invalid Input", error_msg or "Invalid input detected")
+                return
+            # Sanitize the input
+            question = InputValidator.sanitize_text(question, max_length=5000, allow_html=False)
+        except ImportError:
+            # Input validator not available, use basic validation
+            if len(question) > 5000:
+                QMessageBox.warning(self, "Input Too Long", "Input exceeds maximum length of 5000 characters")
+                return
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(f"Input validation failed: {e}")
+            # Continue with unsanitized input if validation fails (graceful degradation)
+        
         if not self.advisor:
             self._add_message("Q", "Sorry, AI advisor is not available.", is_user=False)
             return

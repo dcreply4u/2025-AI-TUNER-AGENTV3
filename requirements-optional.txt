@@ -1,0 +1,66 @@
+# Optional Dependencies - Install as needed
+# Install with: pip install -r requirements-optional.txt
+
+# OBD-II Interface
+obd
+
+# RaceCapture Interface
+racecapture
+
+# Machine Learning
+scikit-learn
+scipy  # Advanced statistics and signal processing
+joblib
+
+# Discord Integration
+discord.py>=2.3.0
+
+# Voice Control
+SpeechRecognition
+PyAudio
+pyttsx3
+
+# USB Device Detection (Windows)
+pyusb
+
+# GPS/NMEA
+pynmea2
+
+# Computer Vision
+opencv-python
+
+# MQTT/Cloud
+paho-mqtt
+cryptography
+psycopg2-binary  # PostgreSQL (for cloud database)
+
+# Mobile API Server
+fastapi
+uvicorn[standard]
+websockets>=11.0
+aiohttp>=3.8.0
+
+# RAG AI Advisor (required for modern AI advisor)
+chromadb>=0.4.0  # Vector database for semantic search
+sentence-transformers>=2.2.0  # Embeddings for semantic search
+ollama>=0.1.0  # Local LLM client (install Ollama separately from https://ollama.ai)
+
+# Knowledge Base Manager (for document ingestion and web scraping)
+PyPDF2>=3.0.0  # PDF document parsing
+python-docx>=1.0.0  # DOCX document parsing
+beautifulsoup4>=4.12.0  # HTML parsing for web scraping
+lxml>=4.9.0  # XML/HTML parser (faster than default)
+
+# Google Search API (optional, for high-quality web search)
+google-api-python-client>=2.100.0  # Google Custom Search API client
+
+# Optional: Advanced ML features (for optimized AI algorithms)
+# torch  # For LSTM models in optimized fault detector
+# nltk  # For text processing and tokenization (lightweight NLP)
+
+# Optional: Hardware-specific
+# adafruit-circuitpython-ads1x15  # For analog sensors (ADC boards)
+# RPi.GPIO  # For GPIO/digital sensors (Raspberry Pi)
+# Jetson.GPIO  # For GPIO on Jetson
+# yubikit  # YubiKey support
+

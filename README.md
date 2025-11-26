@@ -56,7 +56,13 @@ A comprehensive edge computing platform for real-time vehicle telemetry, AI-driv
 git clone https://github.com/YOUR_USERNAME/ai-tuner-agent.git
 cd ai-tuner-agent
 
-# Install dependencies
+# Install core dependencies (required)
+pip install -r requirements-core.txt
+
+# Install optional dependencies (as needed)
+pip install -r requirements-optional.txt
+
+# Or install all dependencies
 pip install -r requirements.txt
 
 # Run demo (no hardware required)
@@ -106,6 +112,65 @@ AI-TUNER-AGENT/
 ## 🔧 Configuration
 
 Configuration is managed through `config.py` and hardware-specific settings are auto-detected. See [docs/RETERMINAL_DM_SETUP.md](docs/RETERMINAL_DM_SETUP.md) for platform-specific setup.
+
+### Environment Variables
+
+The following environment variables can be set to configure the application:
+
+**Core Configuration:**
+- `SYSTEM_NAME` - System name (default: "AI Racing Agent v2.0")
+- `PROJECT_NAME` - Project name (default: "AI-Tuner")
+- `DEBUG_MODE` - Enable debug mode (default: "true")
+- `HARDWARE_PLATFORM` - Hardware platform override (auto-detected if not set)
+- `LOG_LEVEL` - Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+- `AITUNER_LOG_LEVEL` - Override log level (takes precedence over LOG_LEVEL)
+
+**CAN Bus Configuration:**
+- `CAN_CHANNEL` - Primary CAN channel (default: auto-detected)
+- `CAN_CHANNEL_SECONDARY` - Secondary CAN channel (for dual CAN systems)
+- `CAN_BUSTYPE` - CAN bus type (default: "socketcan")
+- `CAN_BITRATE` - CAN bus bitrate (default: 500000)
+
+**AWS IoT Core (Optional):**
+- `AWS_ENDPOINT` - AWS IoT Core endpoint
+- `AWS_PORT` - AWS IoT Core port (default: 8883)
+- `AI_TUNER_TOPIC` - MQTT topic for telemetry
+- `CA_CERT` - Path to CA certificate
+- `DEVICE_CERT` - Path to device certificate
+- `PRIVATE_KEY` - Path to private key
+
+**API Configuration:**
+- `API_BASE_URL` - API base URL (default: "http://localhost:8000")
+- `API_HOST` - API host (default: "0.0.0.0")
+- `API_PORT` - API port (default: 8000)
+
+**Security (Required in Production):**
+- `JWT_SECRET` - JWT secret key for authentication (REQUIRED in production)
+- `JWT_ALGORITHM` - JWT algorithm (default: "HS256")
+- `JWT_ACCESS_EXPIRES` - Access token expiration in seconds (default: 3600)
+- `JWT_REFRESH_EXPIRES` - Refresh token expiration in seconds (default: 86400)
+
+**Google Search API (Optional):**
+- `GOOGLE_SEARCH_API_KEY` - Google Custom Search API key
+- `GOOGLE_SEARCH_ENGINE_ID` - Custom Search Engine ID
+
+**Example .env file:**
+```bash
+# Core
+DEBUG_MODE=true
+LOG_LEVEL=INFO
+
+# Security (REQUIRED in production)
+JWT_SECRET=your-secure-random-key-here-minimum-32-characters
+
+# Google Search API (optional)
+GOOGLE_SEARCH_API_KEY=your-api-key
+GOOGLE_SEARCH_ENGINE_ID=your-engine-id
+
+# CAN Bus
+CAN_CHANNEL=can0
+CAN_BITRATE=500000
+```
 
 ## 🤝 Contributing
 

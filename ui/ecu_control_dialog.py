@@ -207,11 +207,37 @@ class ParameterEditor(QWidget):
         if isinstance(self.value_input, QSpinBox):
             new_value = self.value_input.value()
         else:
+            # Enhanced validation using InputValidator
             try:
-                new_value = float(self.value_input.text())
-            except ValueError:
-                QMessageBox.warning(self, "Invalid Value", "Please enter a valid number")
-                return
+                from core.input_validator import InputValidator
+                input_text = self.value_input.text().strip()
+                
+                # Validate numeric input
+                is_valid, error_msg, validated_value = InputValidator.validate_numeric_input(
+                    input_text,
+                    min_value=self.parameter.min_value if hasattr(self.parameter, 'min_value') else None,
+                    max_value=self.parameter.max_value if hasattr(self.parameter, 'max_value') else None
+                )
+                
+                if not is_valid:
+                    QMessageBox.warning(self, "Invalid Value", error_msg or "Please enter a valid number")
+                    return
+                
+                new_value = validated_value
+            except ImportError:
+                # Fallback to basic validation if InputValidator not available
+                try:
+                    new_value = float(self.value_input.text())
+                except ValueError:
+                    QMessageBox.warning(self, "Invalid Value", "Please enter a valid number")
+                    return
+            except Exception as e:
+                # Graceful degradation
+                try:
+                    new_value = float(self.value_input.text())
+                except ValueError:
+                    QMessageBox.warning(self, "Invalid Value", "Please enter a valid number")
+                    return
 
         # Confirm if dangerous
         analysis = self.ecu_control.get_safety_analysis(self.parameter.name, new_value)

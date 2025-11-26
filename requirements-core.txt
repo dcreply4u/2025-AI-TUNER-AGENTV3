@@ -1,0 +1,30 @@
+# Core Dependencies - Required for basic functionality
+# Install with: pip install -r requirements-core.txt
+
+# GUI Framework
+pyside6
+pyqtgraph
+
+# Data Processing
+numpy
+pandas
+openpyxl
+pyarrow
+
+# Basic Utilities
+python-dotenv>=1.0.0
+requests
+colorama
+
+# Hardware Interfaces (at least one required)
+pyserial  # Serial communication
+cantools  # CAN bus message parsing
+python-can  # CAN bus interface
+
+# Core Services
+psutil  # System monitoring
+
+# Testing (for development)
+pytest
+pytest-cov
+

@@ -201,6 +201,81 @@ class VectorKnowledgeStore:
         LOGGER.debug(f"Added knowledge to fallback store: {metadata.get('topic', 'Unknown')}")
         return doc_id
     
+    def add_knowledge_batch(
+        self,
+        texts: List[str],
+        metadata_list: Optional[List[Dict[str, Any]]] = None,
+        doc_ids: Optional[List[str]] = None
+    ) -> List[str]:
+        """
+        Add multiple knowledge entries in batch (more efficient).
+        
+        Args:
+            texts: List of knowledge text content
+            metadata_list: Optional list of metadata dicts (one per text)
+            doc_ids: Optional list of document IDs (auto-generated if not provided)
+            
+        Returns:
+            List of document IDs
+        """
+        if not texts:
+            return []
+        
+        if metadata_list is None:
+            metadata_list = [{}] * len(texts)
+        elif len(metadata_list) != len(texts):
+            raise ValueError("metadata_list must have same length as texts")
+        
+        if doc_ids is None:
+            doc_ids = [str(uuid.uuid4()) for _ in texts]
+        elif len(doc_ids) != len(texts):
+            raise ValueError("doc_ids must have same length as texts")
+        
+        # Validate all inputs
+        for i, text in enumerate(texts):
+            if not text or not text.strip():
+                raise ValueError(f"Text at index {i} cannot be empty")
+        
+        # Batch process with Chroma
+        if self.use_chroma and self.encoder:
+            try:
+                # Generate embeddings in batch (more efficient)
+                embeddings = self.encoder.encode(texts).tolist()
+                
+                # Prepare metadata
+                metadatas = []
+                for i, metadata in enumerate(metadata_list):
+                    meta = metadata.copy()
+                    if "text" not in meta:
+                        meta["text"] = texts[i][:200]  # Store preview
+                    metadatas.append(meta)
+                
+                # Add to Chroma in batch
+                self.collection.add(
+                    embeddings=embeddings,
+                    documents=texts,
+                    metadatas=metadatas,
+                    ids=doc_ids
+                )
+                
+                LOGGER.info(f"Added {len(texts)} knowledge entries to Chroma in batch")
+                return doc_ids
+                
+            except Exception as e:
+                LOGGER.error(f"Failed to add batch to Chroma: {e}")
+                # Fall through to fallback
+        
+        # Fallback: add individually
+        for i, text in enumerate(texts):
+            self.add_knowledge(
+                text=text,
+                metadata=metadata_list[i],
+                doc_id=doc_ids[i]
+            )
+        
+        LOGGER.info(f"Added {len(texts)} knowledge entries to fallback store")
+        return doc_ids
+    
     def search(
         self,
         query: str,
