@@ -122,6 +122,14 @@ except ImportError:
     DieselTuningTab = None
     DIESEL_TUNING_AVAILABLE = False
 
+# VBOX Features imports
+try:
+    from ui.vbox_features_main import VBOXFeaturesMain
+    VBOX_FEATURES_AVAILABLE = True
+except ImportError:
+    VBOXFeaturesMain = None
+    VBOX_FEATURES_AVAILABLE = False
+
 # Safety Alerts imports
 try:
     from ui.safety_alerts_system import SafetyAlertsPanel
@@ -1275,6 +1283,37 @@ class MainWindow(QWidget):
         except Exception as e:
             self.ai_panel.update_insight(f"❌ Failed to open ECU Tuning: {e}", level="error")
 
+    def _open_vbox_features(self) -> None:
+        """Open VBOX Features tab in a dialog window."""
+        from PySide6.QtWidgets import QDialog, QVBoxLayout
+        
+        if not VBOX_FEATURES_AVAILABLE or VBOXFeaturesMain is None:
+            self.ai_panel.update_insight(
+                "⚠️ VBOX Features module not available.",
+                level="warning",
+            )
+            return
+        
+        try:
+            dialog = QDialog(self)
+            dialog.setWindowTitle("📡 VBOX Features - GPS/IMU/ADAS/CAN")
+            dialog.setMinimumSize(1200, 800)
+            dialog.resize(1400, 900)
+            
+            layout = QVBoxLayout(dialog)
+            layout.setContentsMargins(0, 0, 0, 0)
+            
+            vbox_widget = VBOXFeaturesMain()
+            layout.addWidget(vbox_widget)
+            
+            self.ai_panel.update_insight(
+                "📡 VBOX Features opened! Configure GPS, IMU, ADAS, CAN, and more.",
+                level="info",
+            )
+            dialog.exec()
+        except Exception as e:
+            self.ai_panel.update_insight(f"❌ Failed to open VBOX Features: {e}", level="error")
+    
     def _open_drag_racing(self) -> None:
         """Open Drag Racing tab in a dialog window."""
         from PySide6.QtWidgets import QDialog, QVBoxLayout
