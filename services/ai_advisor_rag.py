@@ -1,0 +1,840 @@
+"""
+Production RAG-Based AI Advisor
+Modern, production-ready AI advisor using Retrieval Augmented Generation (RAG).
+This is the heart of the application - built for accuracy, reliability, and performance.
+"""
+
+from __future__ import annotations
+
+import logging
+import os
+import time
+from dataclasses import dataclass, field, asdict
+from typing import Dict, List, Optional, Any, Tuple
+
+LOGGER = logging.getLogger(__name__)
+
+# Import vector store
+try:
+    from services.vector_knowledge_store import VectorKnowledgeStore
+    VECTOR_STORE_AVAILABLE = True
+except ImportError as e:
+    LOGGER.warning(f"Vector store not available: {e}")
+    VECTOR_STORE_AVAILABLE = False
+    VectorKnowledgeStore = None
+
+# Try Ollama for local LLM
+try:
+    import ollama
+    OLLAMA_AVAILABLE = True
+except ImportError:
+    OLLAMA_AVAILABLE = False
+    ollama = None
+
+# Try OpenAI as fallback
+try:
+    import openai
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
+    openai = None
+
+# Import existing services
+try:
+    from services.web_search_service import WebSearchService
+    WEB_SEARCH_AVAILABLE = True
+except ImportError:
+    WEB_SEARCH_AVAILABLE = False
+    WebSearchService = None
+
+try:
+    from services.conversational_responses import get_conversation_manager
+    CONVERSATIONAL_RESPONSES_AVAILABLE = True
+except ImportError:
+    CONVERSATIONAL_RESPONSES_AVAILABLE = False
+    get_conversation_manager = None
+
+# Import learning system
+try:
+    from services.ai_advisor_learning_system import AILearningSystem
+    LEARNING_SYSTEM_AVAILABLE = True
+except ImportError:
+    LEARNING_SYSTEM_AVAILABLE = False
+    AILearningSystem = None
+
+
+@dataclass
+class ChatMessage:
+    """Chat message with metadata."""
+    role: str  # "user" or "assistant"
+    content: str
+    timestamp: float = field(default_factory=time.time)
+    sources: List[str] = field(default_factory=list)
+    confidence: float = 1.0
+
+
+@dataclass
+class RAGResponse:
+    """Structured RAG response."""
+    answer: str
+    confidence: float
+    sources: List[Dict[str, Any]]
+    used_web_search: bool = False
+    used_telemetry: bool = False
+    follow_up_questions: List[str] = field(default_factory=list)
+    warnings: List[str] = field(default_factory=list)
+
+
+class RAGAIAdvisor:
+    """
+    Production RAG-based AI Advisor.
+    
+    Uses vector search for semantic knowledge retrieval and LLM for natural response generation.
+    Integrates telemetry, web search, and all existing features.
+    """
+    
+    def __init__(
+        self,
+        use_local_llm: bool = True,
+        llm_model: str = "llama3.2:3b",
+        use_openai: bool = False,
+        openai_api_key: Optional[str] = None,
+        enable_web_search: bool = True,
+        telemetry_provider=None,
+        vector_store: Optional[VectorKnowledgeStore] = None,
+        max_history: int = 20
+    ):
+        """
+        Initialize RAG-based AI advisor.
+        
+        Args:
+            use_local_llm: Use local Ollama LLM (recommended for privacy/offline)
+            llm_model: Ollama model name (e.g., "llama3.2:3b", "mistral:7b")
+            use_openai: Use OpenAI API as fallback
+            openai_api_key: OpenAI API key (if using OpenAI)
+            enable_web_search: Enable web search for unknown questions
+            telemetry_provider: Function to get current telemetry data
+            vector_store: Optional pre-initialized vector store
+            max_history: Maximum conversation history length
+        """
+        self.use_local_llm = use_local_llm and OLLAMA_AVAILABLE
+        self.llm_model = llm_model
+        self.use_openai = use_openai and OPENAI_AVAILABLE
+        self.openai_api_key = openai_api_key
+        self.enable_web_search = enable_web_search
+        self.telemetry_provider = telemetry_provider
+        self.max_history = max_history
+        
+        # Initialize vector store
+        if vector_store:
+            self.vector_store = vector_store
+        elif VECTOR_STORE_AVAILABLE:
+            self.vector_store = VectorKnowledgeStore()
+            LOGGER.info("Vector knowledge store initialized")
+        else:
+            self.vector_store = None
+            LOGGER.warning("Vector store not available - advisor will have limited functionality")
+        
+        # Initialize LLM
+        self.llm_available = False
+        if self.use_local_llm:
+            self.llm_available = self._initialize_ollama()
+        elif self.use_openai and openai_api_key:
+            try:
+                openai.api_key = openai_api_key
+                self.llm_available = True
+                LOGGER.info("OpenAI API initialized")
+            except Exception as e:
+                LOGGER.warning(f"Failed to initialize OpenAI: {e}")
+        
+        if not self.llm_available:
+            LOGGER.warning("No LLM available - will use template-based responses")
+        
+        # Initialize web search
+        self.web_search = None
+        if enable_web_search and WEB_SEARCH_AVAILABLE:
+            try:
+                self.web_search = WebSearchService(enable_search=True)
+                if self.web_search.is_available():
+                    LOGGER.info("Web search enabled")
+            except Exception as e:
+                LOGGER.warning(f"Web search not available: {e}")
+        
+        # Initialize conversational manager
+        self.conversation_manager = None
+        if CONVERSATIONAL_RESPONSES_AVAILABLE:
+            try:
+                self.conversation_manager = get_conversation_manager()
+            except Exception as e:
+                LOGGER.debug(f"Conversation manager not available: {e}")
+        
+        # Conversation history
+        self.conversation_history: List[ChatMessage] = []
+        
+        # Initialize learning system
+        self.learning_system = None
+        if LEARNING_SYSTEM_AVAILABLE and self.vector_store:
+            try:
+                self.learning_system = AILearningSystem(
+                    vector_store=self.vector_store,
+                    enable_auto_learning=True
+                )
+                LOGGER.info("Learning system initialized")
+            except Exception as e:
+                LOGGER.warning(f"Learning system not available: {e}")
+        
+        # System prompt for LLM
+        self.system_prompt = """You are Q, an expert automotive tuning advisor with deep knowledge of:
+- ECU tuning (fuel maps, ignition timing, boost control)
+- Engine diagnostics and troubleshooting
+- Performance optimization
+- Safety and protection systems
+- Racing and motorsport applications
+
+You provide accurate, technical, and helpful advice. When you don't know something, you say so clearly.
+You use the provided context to answer questions accurately. Be concise but thorough."""
+
+        LOGGER.info("RAG AI Advisor initialized (LLM: %s, Vector Store: %s, Web Search: %s)",
+                   self.llm_available, self.vector_store is not None, self.web_search is not None)
+    
+    def _initialize_ollama(self) -> bool:
+        """Initialize Ollama LLM."""
+        if not OLLAMA_AVAILABLE:
+            return False
+        
+        try:
+            # Check if Ollama is running
+            models = ollama.list()
+            
+            # Check if our model is available
+            model_names = [m['name'] for m in models.get('models', [])]
+            if self.llm_model not in model_names:
+                LOGGER.warning(f"Model {self.llm_model} not found. Available: {model_names}")
+                LOGGER.info(f"To install: ollama pull {self.llm_model}")
+                # Try to use first available model
+                if model_names:
+                    self.llm_model = model_names[0]
+                    LOGGER.info(f"Using available model: {self.llm_model}")
+                else:
+                    return False
+            
+            # Test generation
+            test_response = ollama.generate(
+                model=self.llm_model,
+                prompt="test",
+                options={"num_predict": 1}
+            )
+            
+            LOGGER.info(f"Ollama LLM initialized with model: {self.llm_model}")
+            return True
+            
+        except Exception as e:
+            LOGGER.warning(f"Ollama not available: {e}")
+            LOGGER.info("Install Ollama from https://ollama.ai and run: ollama pull llama3.2:3b")
+            return False
+    
+    def answer(
+        self,
+        question: str,
+        telemetry: Optional[Dict[str, float]] = None,
+        context: Optional[Dict[str, Any]] = None
+    ) -> RAGResponse:
+        """
+        Answer a question using RAG.
+        
+        Args:
+            question: User's question
+            telemetry: Optional current telemetry data
+            context: Optional additional context
+            
+        Returns:
+            RAGResponse with answer, sources, and metadata
+        """
+        if not question or not question.strip():
+            return RAGResponse(
+                answer="Please ask a question.",
+                confidence=0.0,
+                sources=[]
+            )
+        
+        question = question.strip()
+        start_time = time.time()
+        
+        # Get telemetry if provider available
+        if not telemetry and self.telemetry_provider:
+            try:
+                telemetry = self.telemetry_provider()
+            except Exception as e:
+                LOGGER.debug(f"Failed to get telemetry: {e}")
+        
+        # Step 1: Retrieve relevant knowledge
+        retrieved_knowledge = []
+        if self.vector_store:
+            try:
+                # For "what is X" questions, be more precise with the query
+                search_query = question
+                if "what is" in question.lower() or "what's" in question.lower():
+                    # Extract the main subject for better matching
+                    import re
+                    parts = re.split(r"what (is|are|is the|are the|'s)", question.lower(), 1)
+                    if len(parts) > 1:
+                        subject = parts[-1].strip()
+                        # Remove common trailing words
+                        subject = re.sub(r"\b(for|on|in|at|with|to|the)\b.*$", "", subject).strip()
+                        if subject:
+                            search_query = subject  # Search for just the subject
+                            LOGGER.debug(f"Refined 'what is' query to: {subject}")
+                
+                search_results = self.vector_store.search(
+                    query=search_query,
+                    n_results=5,
+                    min_similarity=0.4  # Increased from 0.3 for better precision
+                )
+                
+                # Filter results for "what is" questions - require topic match
+                if "what is" in question.lower() or "what's" in question.lower():
+                    question_lower = question.lower()
+                    # Extract key terms from question
+                    key_terms = set(re.findall(r'\b\w+\b', question_lower))
+                    key_terms = {t for t in key_terms if len(t) > 3}  # Only meaningful words
+                    
+                    filtered_results = []
+                    for result in search_results:
+                        # Check if topic or metadata contains key terms
+                        metadata = result.get("metadata", {})
+                        topic = metadata.get("topic", "").lower()
+                        text = result.get("text", "").lower()
+                        
+                        # Check if topic matches question subject
+                        topic_matches = any(term in topic for term in key_terms)
+                        text_matches = any(term in text[:200] for term in key_terms)  # Check first 200 chars
+                        
+                        if topic_matches or (text_matches and result["similarity"] > 0.5):
+                            filtered_results.append(result)
+                        elif result["similarity"] > 0.7:
+                            # High similarity even without exact match - include it
+                            filtered_results.append(result)
+                    
+                    retrieved_knowledge = filtered_results[:3]  # Limit to top 3 for precision
+                    LOGGER.debug(f"Filtered to {len(retrieved_knowledge)} relevant results for 'what is' question")
+                else:
+                    retrieved_knowledge = search_results
+                
+                LOGGER.debug(f"Retrieved {len(retrieved_knowledge)} knowledge entries")
+            except Exception as e:
+                LOGGER.error(f"Vector search failed: {e}")
+        
+        # Step 2: Determine if web search is needed
+        use_web_search = False
+        web_search_results = None
+        
+        # Use web search if:
+        # - No good local knowledge (similarity < 0.6 for "what is" questions)
+        # - Question is about specific vehicle specs
+        # - Question is about current/recent information
+        if self.web_search and self.enable_web_search:
+            is_what_is = "what is" in question.lower() or "what's" in question.lower()
+            min_similarity_threshold = 0.6 if is_what_is else 0.5  # Stricter for "what is" questions
+            
+            needs_web_search = (
+                not retrieved_knowledge or
+                (retrieved_knowledge and retrieved_knowledge[0]["similarity"] < min_similarity_threshold) or
+                self._is_vehicle_specific_question(question) or
+                self._is_current_information_question(question)
+            )
+            
+            if needs_web_search:
+                try:
+                    web_search_results = self._perform_web_search(question)
+                    if web_search_results:
+                        use_web_search = True
+                        # Add web results to knowledge for future use
+                        if self.vector_store:
+                            for result in web_search_results[:2]:  # Top 2 results
+                                self.vector_store.add_knowledge(
+                                    text=result.get("snippet", ""),
+                                    metadata={
+                                        "source": "web",
+                                        "url": result.get("url", ""),
+                                        "title": result.get("title", "")
+                                    }
+                                )
+                except Exception as e:
+                    LOGGER.warning(f"Web search failed: {e}")
+        
+        # Step 3: Build context
+        context_text = self._build_context(
+            question=question,
+            retrieved_knowledge=retrieved_knowledge,
+            web_search_results=web_search_results,
+            telemetry=telemetry,
+            conversation_history=self.conversation_history[-3:]  # Last 3 messages
+        )
+        
+        # Step 4: Generate response
+        if self.llm_available:
+            answer = self._generate_llm_response(question, context_text)
+        else:
+            answer = self._generate_template_response(question, retrieved_knowledge, web_search_results)
+        
+        # Step 5: Post-process response
+        answer = self._post_process_response(answer, question)
+        
+        # Step 6: Calculate confidence
+        confidence = self._calculate_confidence(retrieved_knowledge, use_web_search, self.llm_available)
+        
+        # Step 7: Extract sources
+        sources = []
+        for item in retrieved_knowledge[:3]:
+            sources.append({
+                "text": item["text"][:200],
+                "metadata": item["metadata"],
+                "similarity": item["similarity"]
+            })
+        
+        if web_search_results:
+            for result in web_search_results[:2]:
+                sources.append({
+                    "text": result.get("snippet", "")[:200],
+                    "url": result.get("url", ""),
+                    "title": result.get("title", "")
+                })
+        
+        # Step 8: Generate follow-up questions
+        follow_ups = self._generate_follow_ups(question, retrieved_knowledge)
+        
+        # Step 9: Check for warnings
+        warnings = self._check_warnings(question, telemetry)
+        
+        # Store in history
+        self.conversation_history.append(ChatMessage(
+            role="user",
+            content=question,
+            sources=[],
+            confidence=1.0
+        ))
+        self.conversation_history.append(ChatMessage(
+            role="assistant",
+            content=answer,
+            sources=[s.get("title", s.get("text", ""))[:50] for s in sources],
+            confidence=confidence
+        ))
+        
+        # Keep history manageable
+        if len(self.conversation_history) > self.max_history:
+            self.conversation_history = self.conversation_history[-self.max_history:]
+        
+        elapsed = time.time() - start_time
+        LOGGER.info(f"Generated response in {elapsed:.2f}s (confidence: {confidence:.2f})")
+        
+        # Record interaction for learning
+        if self.learning_system:
+            try:
+                self.learning_system.record_interaction(
+                    question=question,
+                    answer=answer,
+                    confidence=confidence,
+                    sources=sources,
+                    session_id=context.get("session_id") if context else None,
+                    vehicle_id=context.get("vehicle_id") if context else None,
+                    response_time=elapsed
+                )
+            except Exception as e:
+                LOGGER.debug(f"Failed to record interaction: {e}")
+        
+        return RAGResponse(
+            answer=answer,
+            confidence=confidence,
+            sources=sources,
+            used_web_search=use_web_search,
+            used_telemetry=telemetry is not None,
+            follow_up_questions=follow_ups,
+            warnings=warnings
+        )
+    
+    def _build_context(
+        self,
+        question: str,
+        retrieved_knowledge: List[Dict[str, Any]],
+        web_search_results: Optional[List[Dict[str, Any]]],
+        telemetry: Optional[Dict[str, float]],
+        conversation_history: List[ChatMessage]
+    ) -> str:
+        """Build context string for LLM."""
+        context_parts = []
+        
+        # Add retrieved knowledge
+        if retrieved_knowledge:
+            context_parts.append("Relevant Knowledge:")
+            for i, item in enumerate(retrieved_knowledge[:3], 1):
+                context_parts.append(f"{i}. {item['text'][:500]}")
+                if item.get('metadata', {}).get('topic'):
+                    context_parts.append(f"   (Topic: {item['metadata']['topic']})")
+        
+        # Add web search results
+        if web_search_results:
+            context_parts.append("\nWeb Research:")
+            for i, result in enumerate(web_search_results[:2], 1):
+                title = result.get("title", "")
+                snippet = result.get("snippet", "")
+                context_parts.append(f"{i}. {title}")
+                context_parts.append(f"   {snippet[:300]}")
+        
+        # Add telemetry if relevant
+        if telemetry and self._is_telemetry_relevant(question):
+            context_parts.append("\nCurrent Vehicle Data:")
+            telemetry_str = self._format_telemetry(telemetry)
+            context_parts.append(telemetry_str)
+        
+        # Add recent conversation context
+        if conversation_history:
+            context_parts.append("\nRecent Conversation:")
+            for msg in conversation_history[-2:]:  # Last 2 messages
+                role = "User" if msg.role == "user" else "Assistant"
+                context_parts.append(f"{role}: {msg.content[:200]}")
+        
+        return "\n".join(context_parts)
+    
+    def _generate_llm_response(self, question: str, context: str) -> str:
+        """Generate response using LLM."""
+        if self.use_local_llm and OLLAMA_AVAILABLE:
+            return self._generate_ollama_response(question, context)
+        elif self.use_openai and OPENAI_AVAILABLE:
+            return self._generate_openai_response(question, context)
+        else:
+            return "I'm unable to generate a response. Please check LLM configuration."
+    
+    def _generate_ollama_response(self, question: str, context: str) -> str:
+        """Generate response using Ollama."""
+        try:
+            # Build prompt
+            prompt = f"""Context:
+{context}
+
+Question: {question}
+
+Answer the question using the context provided. Be accurate, technical, and helpful."""
+
+            # Generate response
+            response = ollama.generate(
+                model=self.llm_model,
+                prompt=prompt,
+                system=self.system_prompt,
+                options={
+                    "temperature": 0.7,
+                    "top_p": 0.9,
+                    "num_predict": 500,  # Limit response length
+                }
+            )
+            
+            answer = response.get("response", "").strip()
+            
+            # Clean up response
+            if answer.startswith("Answer:"):
+                answer = answer[7:].strip()
+            
+            return answer
+            
+        except Exception as e:
+            LOGGER.error(f"Ollama generation failed: {e}")
+            return f"I encountered an error generating a response: {str(e)}"
+    
+    def _generate_openai_response(self, question: str, context: str) -> str:
+        """Generate response using OpenAI."""
+        try:
+            messages = [
+                {"role": "system", "content": self.system_prompt},
+                {"role": "user", "content": f"Context:\n{context}\n\nQuestion: {question}"}
+            ]
+            
+            response = openai.ChatCompletion.create(
+                model="gpt-4o-mini",  # Fast and cheap
+                messages=messages,
+                temperature=0.7,
+                max_tokens=500
+            )
+            
+            return response.choices[0].message.content.strip()
+            
+        except Exception as e:
+            LOGGER.error(f"OpenAI generation failed: {e}")
+            return f"I encountered an error generating a response: {str(e)}"
+    
+    def _generate_template_response(
+        self,
+        question: str,
+        retrieved_knowledge: List[Dict[str, Any]],
+        web_search_results: Optional[List[Dict[str, Any]]]
+    ) -> str:
+        """Generate template-based response (fallback when no LLM)."""
+        if retrieved_knowledge:
+            # Use best matching knowledge
+            best_match = retrieved_knowledge[0]
+            answer = f"Based on the information I have:\n\n{best_match['text'][:500]}"
+            
+            if best_match.get('metadata', {}).get('topic'):
+                answer += f"\n\n(Topic: {best_match['metadata']['topic']})"
+            
+            return answer
+        
+        if web_search_results:
+            result = web_search_results[0]
+            answer = f"I found this information:\n\n{result.get('title', '')}\n{result.get('snippet', '')[:400]}"
+            return answer
+        
+        return "I don't have specific information about that. Could you rephrase your question or provide more context?"
+    
+    def _post_process_response(self, answer: str, question: str) -> str:
+        """Post-process response for better formatting."""
+        # Add conversational touch if manager available
+        if self.conversation_manager:
+            try:
+                answer = self.conversation_manager.get_contextual_response(
+                    question=question,
+                    base_response=answer,
+                    intent="general"
+                )
+            except Exception as e:
+                LOGGER.debug(f"Conversation manager post-processing failed: {e}")
+        
+        # Clean up common LLM artifacts
+        answer = answer.replace("Answer:", "").strip()
+        answer = answer.replace("Based on the context,", "").strip()
+        
+        return answer
+    
+    def _calculate_confidence(
+        self,
+        retrieved_knowledge: List[Dict[str, Any]],
+        used_web_search: bool,
+        used_llm: bool
+    ) -> float:
+        """Calculate confidence score for response."""
+        if not retrieved_knowledge and not used_web_search:
+            return 0.3  # Low confidence - no sources
+        
+        confidence = 0.5  # Base confidence
+        
+        # Boost for good knowledge match
+        if retrieved_knowledge:
+            best_similarity = retrieved_knowledge[0].get("similarity", 0.0)
+            confidence += best_similarity * 0.3  # Up to +0.3
+        
+        # Boost for LLM generation
+        if used_llm:
+            confidence += 0.1
+        
+        # Slight boost for web search
+        if used_web_search:
+            confidence += 0.05
+        
+        return min(confidence, 1.0)
+    
+    def _generate_follow_ups(
+        self,
+        question: str,
+        retrieved_knowledge: List[Dict[str, Any]]
+    ) -> List[str]:
+        """Generate follow-up questions."""
+        follow_ups = []
+        
+        # Suggest related topics
+        if retrieved_knowledge:
+            topics = set()
+            for item in retrieved_knowledge[:3]:
+                topic = item.get('metadata', {}).get('topic')
+                if topic:
+                    topics.add(topic)
+            
+            for topic in list(topics)[:2]:
+                follow_ups.append(f"Tell me more about {topic}")
+        
+        # Generic follow-ups
+        if "what is" in question.lower():
+            follow_ups.append("How do I use this in tuning?")
+        elif "how" in question.lower():
+            follow_ups.append("What are the safety considerations?")
+        
+        return follow_ups[:3]  # Limit to 3
+    
+    def _check_warnings(self, question: str, telemetry: Optional[Dict[str, float]]) -> List[str]:
+        """Check for safety warnings."""
+        warnings = []
+        
+        question_lower = question.lower()
+        
+        # Safety-related questions
+        if any(word in question_lower for word in ["dangerous", "safe", "risk", "damage"]):
+            warnings.append("Always follow safety protocols when tuning. Start conservative and test thoroughly.")
+        
+        # Telemetry warnings
+        if telemetry:
+            if telemetry.get("Knock_Count", 0) > 0:
+                warnings.append("⚠️ Knock detected - reduce timing or check AFR")
+            if telemetry.get("EGT", 0) > 900:
+                warnings.append("⚠️ High EGT - reduce boost or timing")
+            if telemetry.get("AFR", 14.7) < 12.0:
+                warnings.append("⚠️ Very rich AFR - may cause fouling")
+            if telemetry.get("AFR", 14.7) > 15.0:
+                warnings.append("⚠️ Very lean AFR - risk of knock")
+        
+        return warnings
+    
+    def _perform_web_search(self, question: str) -> Optional[List[Dict[str, Any]]]:
+        """Perform web search."""
+        if not self.web_search:
+            return None
+        
+        try:
+            results = self.web_search.search(question, max_results=3)
+            if results and results.results:
+                return [
+                    {
+                        "title": r.title,
+                        "snippet": r.snippet,
+                        "url": r.url
+                    }
+                    for r in results.results
+                ]
+        except Exception as e:
+            LOGGER.warning(f"Web search error: {e}")
+        
+        return None
+    
+    def _is_vehicle_specific_question(self, question: str) -> bool:
+        """Check if question is about specific vehicle."""
+        vehicle_keywords = [
+            "dodge", "ford", "chevrolet", "chevy", "honda", "toyota", "nissan",
+            "hellcat", "demon", "corvette", "camaro", "mustang", "charger", "challenger",
+            "supra", "gtr", "m3", "m4", "911", "gt3", "sti", "type r"
+        ]
+        question_lower = question.lower()
+        return any(vk in question_lower for vk in vehicle_keywords)
+    
+    def _is_current_information_question(self, question: str) -> bool:
+        """Check if question needs current information."""
+        current_keywords = ["current", "now", "today", "latest", "recent", "2024", "2025"]
+        question_lower = question.lower()
+        return any(ck in question_lower for ck in current_keywords)
+    
+    def _is_telemetry_relevant(self, question: str) -> bool:
+        """Check if question is about current telemetry."""
+        telemetry_keywords = [
+            "current", "now", "live", "real-time", "rpm", "boost", "afr", "lambda",
+            "temperature", "egt", "knock", "pressure", "fuel pressure", "oil pressure"
+        ]
+        question_lower = question.lower()
+        return any(tk in question_lower for tk in telemetry_keywords)
+    
+    def _format_telemetry(self, telemetry: Dict[str, float]) -> str:
+        """Format telemetry data for context."""
+        parts = []
+        for key, value in telemetry.items():
+            if isinstance(value, (int, float)):
+                if "temp" in key.lower() or "egt" in key.lower():
+                    parts.append(f"  {key}: {value:.1f}°C")
+                elif "pressure" in key.lower() or "boost" in key.lower():
+                    parts.append(f"  {key}: {value:.1f} PSI")
+                elif "rpm" in key.lower():
+                    parts.append(f"  {key}: {value:.0f}")
+                else:
+                    parts.append(f"  {key}: {value:.2f}")
+        return "\n".join(parts) if parts else "  No telemetry data available"
+    
+    def clear_history(self):
+        """Clear conversation history."""
+        self.conversation_history.clear()
+        LOGGER.info("Conversation history cleared")
+    
+    def record_feedback(
+        self,
+        question: str,
+        answer: str,
+        helpful: bool,
+        rating: Optional[int] = None,
+        comment: Optional[str] = None,
+        session_id: Optional[str] = None,
+        vehicle_id: Optional[str] = None,
+        confidence: Optional[float] = None,
+        sources: Optional[List[str]] = None
+    ) -> None:
+        """
+        Record user feedback for learning.
+        
+        Args:
+            question: Original question
+            answer: Given answer
+            helpful: Whether answer was helpful
+            rating: Optional rating (1-5)
+            comment: Optional comment
+            session_id: Session identifier
+            vehicle_id: Vehicle identifier
+            confidence: Answer confidence
+            sources: Sources used
+        """
+        if self.learning_system:
+            try:
+                self.learning_system.record_feedback(
+                    question=question,
+                    answer=answer,
+                    helpful=helpful,
+                    rating=rating,
+                    comment=comment,
+                    session_id=session_id,
+                    vehicle_id=vehicle_id,
+                    confidence=confidence,
+                    sources=sources
+                )
+                LOGGER.info(f"Feedback recorded: helpful={helpful}, rating={rating}")
+            except Exception as e:
+                LOGGER.error(f"Failed to record feedback: {e}")
+    
+    def get_performance_report(self) -> Optional[Dict[str, Any]]:
+        """
+        Get performance report from learning system.
+        
+        Returns:
+            Performance report dictionary or None
+        """
+        if self.learning_system:
+            try:
+                return self.learning_system.get_performance_report()
+            except Exception as e:
+                LOGGER.error(f"Failed to get performance report: {e}")
+        return None
+    
+    def get_knowledge_gaps(self, priority: Optional[str] = None) -> List[Dict[str, Any]]:
+        """
+        Get identified knowledge gaps.
+        
+        Args:
+            priority: Filter by priority (low, medium, high, critical)
+            
+        Returns:
+            List of knowledge gaps
+        """
+        if self.learning_system:
+            try:
+                gaps = self.learning_system.get_knowledge_gaps(priority=priority)
+                return [asdict(g) for g in gaps]
+            except Exception as e:
+                LOGGER.error(f"Failed to get knowledge gaps: {e}")
+        return []
+    
+    def get_suggestions(self, query: str = "") -> List[str]:
+        """Get suggested questions."""
+        suggestions = [
+            "What is fuel pressure?",
+            "How do I tune ignition timing?",
+            "What is the safe AFR range?",
+            "How does boost control work?",
+            "What causes engine knock?",
+        ]
+        
+        if query:
+            # Filter suggestions based on query
+            query_lower = query.lower()
+            suggestions = [s for s in suggestions if query_lower in s.lower()]
+        
+        return suggestions[:5]
+

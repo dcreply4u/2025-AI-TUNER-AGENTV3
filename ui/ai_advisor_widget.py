@@ -19,31 +19,48 @@ from PySide6.QtWidgets import (
     QPushButton,
     QListWidget,
     QListWidgetItem,
+    QSizePolicy,
 )
 
 from ui.ui_scaling import UIScaler, get_scaled_size, get_scaled_font_size
 from ui.racing_ui_theme import get_racing_stylesheet, RacingColor
 
 try:
-    # Try ultra-enhanced advisor first
+    # Try RAG advisor first (modern, production-ready)
+    from services.ai_advisor_rag import RAGAIAdvisor, RAGResponse
+    RAG_ADVISOR_AVAILABLE = True
+    ADVISOR_TYPE = "rag"
+except ImportError as e:
+    RAG_ADVISOR_AVAILABLE = False
+    RAGAIAdvisor = None  # type: ignore
+    RAGResponse = None  # type: ignore
+    import logging
+    logging.getLogger(__name__).debug(f"RAG advisor not available: {e}")
+
+try:
+    # Fallback to ultra-enhanced advisor
     from services.ai_advisor_ultra_enhanced import UltraEnhancedAIAdvisor as AIAdvisorQ
     ADVISOR_AVAILABLE = True
-    ADVISOR_TYPE = "ultra_enhanced"
+    if not RAG_ADVISOR_AVAILABLE:
+        ADVISOR_TYPE = "ultra_enhanced"
 except ImportError:
     try:
         # Fallback to enhanced advisor
         from services.ai_advisor_q_enhanced import EnhancedAIAdvisorQ as AIAdvisorQ
         ADVISOR_AVAILABLE = True
-        ADVISOR_TYPE = "enhanced"
+        if not RAG_ADVISOR_AVAILABLE:
+            ADVISOR_TYPE = "enhanced"
     except ImportError:
         try:
             # Fallback to basic advisor
             from services.ai_advisor_q import AIAdvisorQ
             ADVISOR_AVAILABLE = True
-            ADVISOR_TYPE = "basic"
+            if not RAG_ADVISOR_AVAILABLE:
+                ADVISOR_TYPE = "basic"
         except ImportError:
             ADVISOR_AVAILABLE = False
-            ADVISOR_TYPE = "none"
+            if not RAG_ADVISOR_AVAILABLE:
+                ADVISOR_TYPE = "none"
             AIAdvisorQ = None  # type: ignore
 
 
@@ -62,7 +79,14 @@ class AIAdvisorWidget(QWidget):
         
         # Initialize configuration monitor and AI advisor
         self.config_monitor = None
-        self.advisor: Optional[AIAdvisorQ] = None
+        self.advisor = None
+        self.advisor_type = None
+        
+        # Track last interaction for feedback
+        self.last_question: Optional[str] = None
+        self.last_answer: Optional[str] = None
+        self.last_confidence: float = 0.0
+        self.last_sources: List[str] = []
         
         try:
             # Try to initialize config monitor (optional)
@@ -77,18 +101,50 @@ class AIAdvisorWidget(QWidget):
                 logging.getLogger(__name__).warning(f"Config monitor not available: {e}")
                 self.config_monitor = None
             
-            if ADVISOR_AVAILABLE and AIAdvisorQ:
-                # Create telemetry provider function
-                def get_telemetry():
-                    # Try to get telemetry from parent window if available
-                    parent = self.parent()
-                    while parent:
-                        if hasattr(parent, '_telemetry_data'):
-                            return parent._telemetry_data
-                        parent = parent.parent()
-                    return None
-                
-                # Initialize advisor based on type
+            # Create telemetry provider function
+            def get_telemetry():
+                # Try to get telemetry from parent window if available
+                parent = self.parent()
+                while parent:
+                    if hasattr(parent, '_telemetry_data'):
+                        return parent._telemetry_data
+                    parent = parent.parent()
+                return None
+            
+            # Try RAG advisor first (modern, production-ready)
+            if RAG_ADVISOR_AVAILABLE and RAGAIAdvisor:
+                try:
+                    # Initialize vector store and migrate knowledge if needed
+                    from services.vector_knowledge_store import VectorKnowledgeStore
+                    from services.migrate_knowledge_to_rag import migrate_from_enhanced_advisor
+                    
+                    vector_store = VectorKnowledgeStore()
+                    
+                    # Migrate knowledge if store is empty
+                    if vector_store.count() == 0:
+                        import logging
+                        logging.getLogger(__name__).info("Vector store is empty, migrating knowledge...")
+                        migrate_from_enhanced_advisor(vector_store)
+                    
+                    # Initialize RAG advisor
+                    self.advisor = RAGAIAdvisor(
+                        use_local_llm=True,  # Use Ollama if available
+                        llm_model="llama3.2:3b",  # Lightweight model for Raspberry Pi
+                        enable_web_search=True,
+                        telemetry_provider=get_telemetry,
+                        vector_store=vector_store
+                    )
+                    self.advisor_type = "rag"
+                    
+                    import logging
+                    logging.getLogger(__name__).info("RAG AI Advisor initialized (production-ready)")
+                except Exception as e:
+                    import logging
+                    logging.getLogger(__name__).error(f"Failed to initialize RAG advisor: {e}", exc_info=True)
+                    self.advisor = None
+            
+            # Fallback to legacy advisors if RAG failed
+            if not self.advisor and ADVISOR_AVAILABLE and AIAdvisorQ:
                 try:
                     if ADVISOR_TYPE == "ultra_enhanced":
                         # Get vehicle ID from context if available
@@ -102,20 +158,23 @@ class AIAdvisorWidget(QWidget):
                         
                         self.advisor = AIAdvisorQ(
                             vehicle_id=vehicle_id,
-                            user_id=None,  # Could get from user context
-                            use_local_llm=False,  # Can enable if Ollama/etc available
+                            user_id=None,
+                            use_local_llm=False,
                         )
+                        self.advisor_type = "ultra_enhanced"
                     elif ADVISOR_TYPE == "enhanced":
                         self.advisor = AIAdvisorQ(
                             use_llm=False,
                             config_monitor=self.config_monitor,
                             telemetry_provider=get_telemetry,
                         )
+                        self.advisor_type = "enhanced"
                     else:
                         self.advisor = AIAdvisorQ()
+                        self.advisor_type = "basic"
                     
                     import logging
-                    logging.getLogger(__name__).info(f"AI Advisor initialized: {ADVISOR_TYPE}")
+                    logging.getLogger(__name__).info(f"AI Advisor initialized: {self.advisor_type} (legacy)")
                 except Exception as e:
                     import logging
                     logging.getLogger(__name__).error(f"Failed to initialize {ADVISOR_TYPE} advisor: {e}", exc_info=True)
@@ -123,11 +182,12 @@ class AIAdvisorWidget(QWidget):
                     try:
                         from services.ai_advisor_q import AIAdvisorQ as BasicAdvisor
                         self.advisor = BasicAdvisor()
+                        self.advisor_type = "basic"
                         logging.getLogger(__name__).info("Fell back to basic AI advisor")
                     except Exception as e2:
                         logging.getLogger(__name__).error(f"Failed to initialize basic advisor: {e2}", exc_info=True)
                         self.advisor = None
-            else:
+            elif not self.advisor:
                 import logging
                 logging.getLogger(__name__).warning("AI Advisor not available - no advisor service found")
                 self.advisor = None
@@ -143,7 +203,7 @@ class AIAdvisorWidget(QWidget):
         """Setup AI advisor widget with light theme."""
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(8, 8, 8, 8)
-        main_layout.setSpacing(6)
+        main_layout.setSpacing(4)  # Reduced spacing to prevent overlap
         
         # Header
         header_layout = QHBoxLayout()
@@ -178,7 +238,7 @@ class AIAdvisorWidget(QWidget):
         
         main_layout.addLayout(header_layout)
         
-        # Chat display - light theme
+        # Chat display - light theme (positioned first to ensure it has space)
         self.chat_display = QTextEdit()
         self.chat_display.setReadOnly(True)
         self.chat_display.setStyleSheet("""
@@ -203,14 +263,17 @@ class AIAdvisorWidget(QWidget):
             }
         """)
         # Chat display - make it expandable but with reasonable limits
-        self.chat_display.setMinimumHeight(120)
-        self.chat_display.setMaximumHeight(250)  # Increased from 180 to give more room
-        main_layout.addWidget(self.chat_display, stretch=2)  # Give chat more stretch priority
+        # Use size policy to ensure it takes available space
+        self.chat_display.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.chat_display.setMinimumHeight(180)
+        self.chat_display.setMaximumHeight(350)  # Increased to give more room
+        main_layout.addWidget(self.chat_display, stretch=10)  # Give chat very high stretch priority
         
-        # Suggestions - light theme (positioned above input, not below chat)
+        # Suggestions - light theme (positioned BELOW chat window, above input)
         self.suggestions_list = QListWidget()
-        self.suggestions_list.setMaximumHeight(50)  # Reduced from 60
+        self.suggestions_list.setMaximumHeight(40)  # Further reduced height
         self.suggestions_list.setFixedHeight(0)  # Start with 0 height when hidden
+        self.suggestions_list.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)  # Fixed height, don't expand
         self.suggestions_list.setStyleSheet("""
             QListWidget {
                 background-color: #ffffff;
@@ -232,7 +295,7 @@ class AIAdvisorWidget(QWidget):
         """)
         self.suggestions_list.itemClicked.connect(self._on_suggestion_clicked)
         self.suggestions_list.hide()
-        # Add with stretch=0 so it doesn't take space when hidden
+        # Add with stretch=0 so it doesn't take space when hidden - BELOW chat, above input
         main_layout.addWidget(self.suggestions_list, stretch=0)
         
         # Input area
@@ -308,7 +371,7 @@ class AIAdvisorWidget(QWidget):
                         item = QListWidgetItem(suggestion)
                         self.suggestions_list.addItem(item)
                     if self.suggestions_list.count() > 0:
-                        self.suggestions_list.setFixedHeight(50)
+                        self.suggestions_list.setFixedHeight(40)
                         self.suggestions_list.show()
                     else:
                         self.suggestions_list.setFixedHeight(0)
@@ -327,7 +390,7 @@ class AIAdvisorWidget(QWidget):
                             self.suggestions_list.addItem(item)
                     
                     if self.suggestions_list.count() > 0:
-                        self.suggestions_list.setFixedHeight(50)
+                        self.suggestions_list.setFixedHeight(40)
                         self.suggestions_list.show()
                     else:
                         self.suggestions_list.setFixedHeight(0)
@@ -397,12 +460,17 @@ class AIAdvisorWidget(QWidget):
                     break
                 parent = parent.parent()
             
-            # Ask Q - try answer() method first (ultra-enhanced), then ask() (enhanced), then direct call
+            # Ask Q - try RAG advisor first, then legacy advisors
             result = None
+            telemetry = context.get('telemetry')
+            
             try:
-                if hasattr(self.advisor, 'answer'):
+                # Check if RAG advisor
+                if self.advisor_type == "rag" and hasattr(self.advisor, 'answer'):
+                    logger.debug(f"Calling RAG advisor.answer() with question: {question[:50]}...")
+                    result = self.advisor.answer(question, telemetry=telemetry, context=context)
+                elif hasattr(self.advisor, 'answer'):
                     # Ultra-enhanced advisor
-                    telemetry = context.get('telemetry')
                     logger.debug(f"Calling ultra-enhanced advisor.answer() with question: {question[:50]}...")
                     result = self.advisor.answer(question, telemetry=telemetry, context=context)
                 elif hasattr(self.advisor, 'ask'):
@@ -423,33 +491,60 @@ class AIAdvisorWidget(QWidget):
                 logger.error(f"Error calling advisor: {e}", exc_info=True)
                 raise
             
-            # Handle both ResponseResult and string responses
+            # Handle RAGResponse, ResponseResult, and string responses
             if result is None:
                 response = "I received your question but couldn't generate a response. Please try rephrasing."
+                follow_ups = []
+                warnings = []
+            elif isinstance(result, RAGResponse):
+                # RAGResponse object (new RAG advisor)
+                response = result.answer
+                confidence = result.confidence
+                follow_ups = result.follow_up_questions
+                warnings = result.warnings
+                
+                # Add sources info if available
+                if result.sources:
+                    source_count = len(result.sources)
+                    if result.used_web_search:
+                        response += f"\n\n📚 Sources: {source_count} knowledge entries + web research"
+                    else:
+                        response += f"\n\n📚 Sources: {source_count} knowledge entries"
+                
+                # Add warnings if any
+                if warnings:
+                    response += "\n\n" + "\n".join(warnings)
             elif hasattr(result, 'answer'):
-                # ResponseResult object
+                # ResponseResult object (legacy enhanced advisor)
                 response = result.answer
                 confidence = getattr(result, 'confidence', 1.0)
-                
-                # Add follow-up questions if available (but don't make them too prominent)
-                if hasattr(result, 'follow_up_questions') and result.follow_up_questions:
-                    # Show follow-ups in suggestions list instead of in response text
-                    # This prevents them from taking up chat space
-                    self.suggestions_list.clear()
-                    for follow_up in result.follow_up_questions[:3]:  # Limit to 3
-                        item = QListWidgetItem(f"💡 {follow_up}")
-                        self.suggestions_list.addItem(item)
-                    if self.suggestions_list.count() > 0:
-                        self.suggestions_list.setFixedHeight(50)  # Set height when showing
-                        self.suggestions_list.show()
-                    # Don't add to response text to avoid clutter
+                follow_ups = getattr(result, 'follow_up_questions', [])
+                warnings = getattr(result, 'warnings', [])
             else:
                 # String response
                 response = str(result)
+                follow_ups = []
+                warnings = []
+            
+            # Show follow-up questions in suggestions list
+            if follow_ups:
+                self.suggestions_list.clear()
+                for follow_up in follow_ups[:3]:  # Limit to 3
+                    item = QListWidgetItem(f"💡 {follow_up}")
+                    self.suggestions_list.addItem(item)
+                if self.suggestions_list.count() > 0:
+                    self.suggestions_list.setFixedHeight(40)
+                    self.suggestions_list.show()
             
             # Ensure we have a valid response
             if not response or response.strip() == "":
                 response = "I'm not sure how to answer that. Could you try rephrasing your question?"
+            
+            # Store last interaction for feedback
+            self.last_question = question
+            self.last_answer = response
+            self.last_confidence = confidence if isinstance(result, RAGResponse) else getattr(result, 'confidence', 1.0)
+            self.last_sources = [s.get("title", s.get("text", ""))[:50] for s in sources] if isinstance(result, RAGResponse) else []
             
             # Add response
             self._add_message("Q", response, is_user=False)
@@ -497,14 +592,74 @@ class AIAdvisorWidget(QWidget):
                 .replace(">", "&gt;")
                 .replace("\n", "<br>"))
     
-    def _clear_chat(self) -> None:
-        """Clear chat history."""
-        if self.advisor and hasattr(self.advisor, 'clear_history'):
+    def record_feedback(self, helpful: bool, rating: Optional[int] = None, comment: Optional[str] = None) -> None:
+        """
+        Record user feedback for the last interaction.
+        
+        Args:
+            helpful: Whether the answer was helpful
+            rating: Optional rating (1-5)
+            comment: Optional comment
+        """
+        if not self.last_question or not self.last_answer:
+            return
+        
+        if self.advisor and hasattr(self.advisor, 'record_feedback'):
             try:
-                self.advisor.clear_history()
+                # Get session/vehicle context if available
+                session_id = None
+                vehicle_id = None
+                parent = self.parent()
+                while parent:
+                    if hasattr(parent, '_session_id'):
+                        session_id = parent._session_id
+                    if hasattr(parent, '_vehicle_id'):
+                        vehicle_id = parent._vehicle_id
+                    parent = parent.parent()
+                
+                self.advisor.record_feedback(
+                    question=self.last_question,
+                    answer=self.last_answer,
+                    helpful=helpful,
+                    rating=rating,
+                    comment=comment,
+                    session_id=session_id,
+                    vehicle_id=vehicle_id,
+                    confidence=self.last_confidence,
+                    sources=self.last_sources
+                )
+                
+                # Show confirmation
+                self.status_label.setText("Feedback recorded - thank you!")
+                self.status_label.setStyleSheet("color: #27ae60; font-size: 9px;")
+                QTimer.singleShot(3000, lambda: self.status_label.setText("Ready"))
+                
             except Exception as e:
                 import logging
-                logging.getLogger(__name__).debug(f"Error clearing history: {e}")
+                logging.getLogger(__name__).error(f"Failed to record feedback: {e}")
+    
+    def _clear_chat(self) -> None:
+        """Clear chat history."""
+        # Clear feedback tracking
+        self.last_question = None
+        self.last_answer = None
+        self.last_confidence = 0.0
+        self.last_sources = []
+        
+        if self.advisor:
+            if hasattr(self.advisor, 'clear_history'):
+                try:
+                    self.advisor.clear_history()
+                except Exception as e:
+                    import logging
+                    logging.getLogger(__name__).debug(f"Error clearing history: {e}")
+            elif hasattr(self.advisor, 'conversation_history'):
+                # RAG advisor uses conversation_history
+                try:
+                    self.advisor.conversation_history.clear()
+                except Exception as e:
+                    import logging
+                    logging.getLogger(__name__).debug(f"Error clearing RAG history: {e}")
         self.chat_display.clear()
         self._show_welcome_message()
     

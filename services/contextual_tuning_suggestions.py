@@ -125,54 +125,54 @@ class ContextualTuningSuggestions:
             knock_count = int(telemetry.get("Knock_Count", 0) or 0)
             
             current_boost_target = float(current_setup.get("boost_target", boost) or boost) if current_setup else boost
-        
-        # Safety checks first
-        if fuel_pressure < 40 and boost > 15:
-            suggestions.append(TuningSuggestion(
-                parameter="Boost Target",
-                current_value=current_boost_target,
-                suggested_value=max(5, current_boost_target - 3),
-                change_amount=-3,
-                unit="PSI",
-                reason=f"Fuel pressure ({fuel_pressure:.1f} PSI) is insufficient for current boost",
-                expected_benefit="Prevents lean condition and engine damage",
-                trade_offs=["Reduces peak power"],
-                confidence=0.95,
-                priority="critical",
-                prerequisites=["Fix fuel system first"]
-            ))
-        
-        if knock_count > 0 and boost > 15:
-            suggestions.append(TuningSuggestion(
-                parameter="Boost Target",
-                current_value=current_boost_target,
-                suggested_value=max(10, current_boost_target - 2),
-                change_amount=-2,
-                unit="PSI",
-                reason=f"Knock detected ({knock_count} counts) at current boost level",
-                expected_benefit="Eliminates knock and prevents engine damage",
-                trade_offs=["Reduces power by ~10-15 HP"],
-                confidence=0.9,
-                priority="critical"
-            ))
-        
-        # Performance optimization
-        if goal == "power" and boost < 20 and afr < 13.5 and timing < 25 and fuel_pressure > 45:
-            safe_increase = min(3, 20 - boost)
-            if safe_increase > 0:
+            
+            # Safety checks first
+            if fuel_pressure < 40 and boost > 15:
                 suggestions.append(TuningSuggestion(
                     parameter="Boost Target",
                     current_value=current_boost_target,
-                    suggested_value=current_boost_target + safe_increase,
-                    change_amount=safe_increase,
+                    suggested_value=max(5, current_boost_target - 3),
+                    change_amount=-3,
                     unit="PSI",
-                    reason="Safe conditions for power increase: good AFR, timing, and fuel pressure",
-                    expected_benefit=f"Increase power by ~{int(safe_increase * 8)}-{int(safe_increase * 12)} HP",
-                    trade_offs=["Increases heat and stress", "May need richer AFR", "Monitor EGT closely"],
-                    confidence=0.75,
-                    priority="medium",
-                    prerequisites=["Monitor AFR and EGT", "Ensure fuel pressure stays >45 PSI"]
+                    reason=f"Fuel pressure ({fuel_pressure:.1f} PSI) is insufficient for current boost",
+                    expected_benefit="Prevents lean condition and engine damage",
+                    trade_offs=["Reduces peak power"],
+                    confidence=0.95,
+                    priority="critical",
+                    prerequisites=["Fix fuel system first"]
                 ))
+            
+            if knock_count > 0 and boost > 15:
+                suggestions.append(TuningSuggestion(
+                    parameter="Boost Target",
+                    current_value=current_boost_target,
+                    suggested_value=max(10, current_boost_target - 2),
+                    change_amount=-2,
+                    unit="PSI",
+                    reason=f"Knock detected ({knock_count} counts) at current boost level",
+                    expected_benefit="Eliminates knock and prevents engine damage",
+                    trade_offs=["Reduces power by ~10-15 HP"],
+                    confidence=0.9,
+                    priority="critical"
+                ))
+            
+            # Performance optimization
+            if goal == "power" and boost < 20 and afr < 13.5 and timing < 25 and fuel_pressure > 45:
+                safe_increase = min(3, 20 - boost)
+                if safe_increase > 0:
+                    suggestions.append(TuningSuggestion(
+                        parameter="Boost Target",
+                        current_value=current_boost_target,
+                        suggested_value=current_boost_target + safe_increase,
+                        change_amount=safe_increase,
+                        unit="PSI",
+                        reason="Safe conditions for power increase: good AFR, timing, and fuel pressure",
+                        expected_benefit=f"Increase power by ~{int(safe_increase * 8)}-{int(safe_increase * 12)} HP",
+                        trade_offs=["Increases heat and stress", "May need richer AFR", "Monitor EGT closely"],
+                        confidence=0.75,
+                        priority="medium",
+                        prerequisites=["Monitor AFR and EGT", "Ensure fuel pressure stays >45 PSI"]
+                    ))
         
         except (ValueError, TypeError, KeyError) as e:
             LOGGER.error("Error extracting boost analysis values: %s", e)

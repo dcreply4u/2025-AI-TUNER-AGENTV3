@@ -40,6 +40,11 @@ aiohttp>=3.8.0
 scipy  # For advanced statistics and signal processing (Savitzky-Golay filter for dyno)
 # Optional: Natural Language Processing (for conversational AI)
 # nltk  # For text processing and tokenization (lightweight NLP)
+
+# RAG AI Advisor dependencies (required for modern AI advisor)
+chromadb>=0.4.0  # Vector database for semantic search
+sentence-transformers>=2.2.0  # Embeddings for semantic search
+ollama>=0.1.0  # Local LLM client (optional, install Ollama separately from https://ollama.ai)
 # Optional: For analog sensors (ADC boards)
 # adafruit-circuitpython-ads1x15
 # Optional: For GPIO/digital sensors (Raspberry Pi)

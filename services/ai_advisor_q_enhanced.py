@@ -1104,12 +1104,29 @@ Tips:
             # For "what is" questions, require topic or keyword match
             is_what_is_question = "what is" in question_lower or "what's" in question_lower or "what are" in question_lower
             if is_what_is_question and main_subject:
-                # Check if main subject is in topic or keywords
-                topic_has_subject = any(word in topic_lower for word in main_subject.split())
-                keywords_has_subject = any(word in [k.lower() for k in entry.keywords] for word in main_subject.split())
+                # Extract all words from main subject
+                main_subject_words = set(main_subject.split())
+                # For multi-word subjects like "fuel pressure", require ALL words to be present
+                # Check if ALL main subject words are in topic or keywords
+                topic_words = set(re.findall(r'\b\w+\b', topic_lower))
+                keyword_words = set()
+                for kw in entry.keywords:
+                    keyword_words.update(re.findall(r'\b\w+\b', kw.lower()))
                 
-                if not topic_has_subject and not keywords_has_subject:
-                    # This entry doesn't match the subject - skip it or heavily penalize
+                # Check if topic contains all subject words OR keywords contain all subject words
+                topic_has_all_subject = main_subject_words.issubset(topic_words) or all(any(sw in tw for tw in topic_words) for sw in main_subject_words)
+                keywords_has_all_subject = main_subject_words.issubset(keyword_words) or all(any(sw in kw for kw in keyword_words) for sw in main_subject_words)
+                
+                # For multi-word subjects, require at least 2 words to match (or exact phrase match)
+                if len(main_subject_words) > 1:
+                    # Multi-word subject - require at least 2 words to match
+                    topic_match_count = sum(1 for sw in main_subject_words if any(sw in tw for tw in topic_words))
+                    keyword_match_count = sum(1 for sw in main_subject_words if any(sw in kw for kw in keyword_words))
+                    if topic_match_count < 2 and keyword_match_count < 2:
+                        # Not enough words match - skip this entry
+                        continue
+                elif not topic_has_all_subject and not keywords_has_all_subject:
+                    # Single word subject - require exact match
                     continue  # Skip entries that don't match the subject for "what is" questions
             
             # Keyword matching (weighted by importance)
@@ -1652,7 +1669,20 @@ What would you like to know?"""
             
             # Check knowledge relevance - if score is low and we have web search, prioritize web
             knowledge_score = knowledge_match_quality
-            if knowledge_score < 3.0 and web_search_results and web_search_results.results:
+            # For "what is" questions, be more strict - require higher quality match or use web search
+            if is_what_is_question:
+                # For "what is" questions, require higher quality match (5.0+) or use web search
+                if knowledge_score < 5.0 and web_search_results and web_search_results.results:
+                    # Low relevance knowledge for "what is" - prioritize web search to avoid erroneous info
+                    response_parts = ["🌐 I found this information online:\n"]
+                    for result in web_search_results.results[:3]:
+                        response_parts.append(f"📋 {result.title}")
+                        if result.snippet:
+                            response_parts.append(f"  {result.snippet[:200]}")
+                        response_parts.append(f"  🔗 {result.url}\n")
+                    response_parts.append("\n💡 Note: This information is from web research. Please verify for your specific application.")
+                    return "\n".join(response_parts)
+            elif knowledge_score < 3.0 and web_search_results and web_search_results.results:
                 # Low relevance knowledge - prioritize web search to avoid erroneous info
                 response_parts = ["🌐 I found this information online:\n"]
                 for result in web_search_results.results[:3]:

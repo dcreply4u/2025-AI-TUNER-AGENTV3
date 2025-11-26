@@ -105,25 +105,25 @@ class PersonalizedCoaching:
             progress = self.get_user_progress(user_id)
             progress.total_questions += 1
             progress.updated_at = time.time()
-        
-        if topic:
-            if topic not in progress.topics_covered:
-                progress.topics_covered.append(topic)
-        
-        # Detect recurring issues
-        question_lower = question.lower()
-        issue_keywords = {
-            "knock": "knock/detonation issues",
-            "overheat": "overheating problems",
-            "unstable": "stability issues",
-            "lean": "lean condition problems",
-            "boost": "boost control issues",
-        }
-        
-        for keyword, issue_name in issue_keywords.items():
-            if keyword in question_lower:
-                progress.recurring_issues[issue_name] = progress.recurring_issues.get(issue_name, 0) + 1
-        
+            
+            if topic:
+                if topic not in progress.topics_covered:
+                    progress.topics_covered.append(topic)
+            
+            # Detect recurring issues
+            question_lower = question.lower()
+            issue_keywords = {
+                "knock": "knock/detonation issues",
+                "overheat": "overheating problems",
+                "unstable": "stability issues",
+                "lean": "lean condition problems",
+                "boost": "boost control issues",
+            }
+            
+            for keyword, issue_name in issue_keywords.items():
+                if keyword in question_lower:
+                    progress.recurring_issues[issue_name] = progress.recurring_issues.get(issue_name, 0) + 1
+            
             # Update skill level based on interactions
             self._update_skill_level(progress)
             
