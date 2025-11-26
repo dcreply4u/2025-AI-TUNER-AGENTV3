@@ -49,6 +49,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from ui.theme_manager import Style
+
 
 class RacingGauge(QWidget):
     """
