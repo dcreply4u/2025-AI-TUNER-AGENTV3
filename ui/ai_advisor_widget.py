@@ -492,6 +492,9 @@ class AIAdvisorWidget(QWidget):
                 raise
             
             # Handle RAGResponse, ResponseResult, and string responses
+            sources = []  # Initialize sources variable
+            confidence = 0.0  # Initialize confidence variable
+            
             if result is None:
                 response = "I received your question but couldn't generate a response. Please try rephrasing."
                 follow_ups = []
@@ -502,6 +505,7 @@ class AIAdvisorWidget(QWidget):
                 confidence = result.confidence
                 follow_ups = result.follow_up_questions
                 warnings = result.warnings
+                sources = result.sources  # Extract sources from RAGResponse
                 
                 # Add sources info if available
                 if result.sources:
@@ -520,6 +524,9 @@ class AIAdvisorWidget(QWidget):
                 confidence = getattr(result, 'confidence', 1.0)
                 follow_ups = getattr(result, 'follow_up_questions', [])
                 warnings = getattr(result, 'warnings', [])
+                # Try to get sources if available
+                if hasattr(result, 'sources'):
+                    sources = result.sources
             else:
                 # String response
                 response = str(result)
@@ -543,8 +550,8 @@ class AIAdvisorWidget(QWidget):
             # Store last interaction for feedback
             self.last_question = question
             self.last_answer = response
-            self.last_confidence = confidence if isinstance(result, RAGResponse) else getattr(result, 'confidence', 1.0)
-            self.last_sources = [s.get("title", s.get("text", ""))[:50] for s in sources] if isinstance(result, RAGResponse) else []
+            self.last_confidence = confidence
+            self.last_sources = [s.get("title", s.get("text", ""))[:50] if isinstance(s, dict) else str(s)[:50] for s in sources] if sources else []
             
             # Add response
             self._add_message("Q", response, is_user=False)

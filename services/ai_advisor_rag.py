@@ -62,6 +62,24 @@ except ImportError:
     LEARNING_SYSTEM_AVAILABLE = False
     AILearningSystem = None
 
+# Import knowledge base manager
+try:
+    from services.knowledge_base_manager import KnowledgeBaseManager
+    KNOWLEDGE_BASE_MANAGER_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_BASE_MANAGER_AVAILABLE = False
+    KnowledgeBaseManager = None
+
+# Import website list manager
+try:
+    from services.website_list_manager import WebsiteListManager
+    from services.website_ingestion_service import WebsiteIngestionService
+    WEBSITE_LIST_AVAILABLE = True
+except ImportError:
+    WEBSITE_LIST_AVAILABLE = False
+    WebsiteListManager = None
+    WebsiteIngestionService = None
+
 
 @dataclass
 class ChatMessage:
@@ -182,6 +200,31 @@ class RAGAIAdvisor:
                 LOGGER.info("Learning system initialized")
             except Exception as e:
                 LOGGER.warning(f"Learning system not available: {e}")
+        
+        # Initialize knowledge base manager
+        self.knowledge_base_manager = None
+        if KNOWLEDGE_BASE_MANAGER_AVAILABLE and self.vector_store:
+            try:
+                self.knowledge_base_manager = KnowledgeBaseManager(
+                    vector_store=self.vector_store
+                )
+                LOGGER.info("Knowledge base manager initialized")
+            except Exception as e:
+                LOGGER.warning(f"Knowledge base manager not available: {e}")
+        
+        # Initialize website list manager
+        self.website_list_manager = None
+        self.website_ingestion_service = None
+        if WEBSITE_LIST_AVAILABLE and self.knowledge_base_manager:
+            try:
+                self.website_list_manager = WebsiteListManager()
+                self.website_ingestion_service = WebsiteIngestionService(
+                    website_list_manager=self.website_list_manager,
+                    knowledge_base_manager=self.knowledge_base_manager
+                )
+                LOGGER.info("Website list manager initialized")
+            except Exception as e:
+                LOGGER.warning(f"Website list manager not available: {e}")
         
         # System prompt for LLM
         self.system_prompt = """You are Q, an expert automotive tuning advisor with deep knowledge of:
@@ -820,6 +863,221 @@ Answer the question using the context provided. Be accurate, technical, and help
             except Exception as e:
                 LOGGER.error(f"Failed to get knowledge gaps: {e}")
         return []
+    
+    def add_document(self, file_path: str, metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Add a document to the knowledge base.
+        
+        Args:
+            file_path: Path to document (PDF, TXT, DOCX, etc.)
+            metadata: Optional metadata
+            
+        Returns:
+            Result dictionary with success status and chunks added
+        """
+        if not self.knowledge_base_manager:
+            return {
+                "success": False,
+                "error": "Knowledge base manager not available"
+            }
+        
+        try:
+            result = self.knowledge_base_manager.add_document(file_path, metadata)
+            LOGGER.info(f"Added document: {file_path}, chunks: {result.get('chunks_added', 0)}")
+            return result
+        except Exception as e:
+            LOGGER.error(f"Failed to add document: {e}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
+    def add_website(self, url: str, metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Scrape and add a website to the knowledge base.
+        
+        Args:
+            url: URL to scrape
+            metadata: Optional metadata
+            
+        Returns:
+            Result dictionary with success status and chunks added
+        """
+        if not self.knowledge_base_manager:
+            return {
+                "success": False,
+                "error": "Knowledge base manager not available"
+            }
+        
+        try:
+            result = self.knowledge_base_manager.add_website(url, metadata)
+            LOGGER.info(f"Added website: {url}, chunks: {result.get('chunks_added', 0)}")
+            return result
+        except Exception as e:
+            LOGGER.error(f"Failed to add website: {e}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
+    def search_forum(self, forum_url: str, search_query: str, max_posts: int = 10) -> Dict[str, Any]:
+        """
+        Search a forum and add results to knowledge base.
+        
+        Args:
+            forum_url: Base URL of forum
+            search_query: Search query
+            max_posts: Maximum posts to retrieve
+            
+        Returns:
+            Result dictionary with success status and posts added
+        """
+        if not self.knowledge_base_manager:
+            return {
+                "success": False,
+                "error": "Knowledge base manager not available"
+            }
+        
+        try:
+            result = self.knowledge_base_manager.search_forum(forum_url, search_query, max_posts)
+            LOGGER.info(f"Forum search: {search_query}, posts: {result.get('posts_added', 0)}")
+            return result
+        except Exception as e:
+            LOGGER.error(f"Forum search failed: {e}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
+    def get_knowledge_base_stats(self) -> Dict[str, Any]:
+        """
+        Get knowledge base statistics.
+        
+        Returns:
+            Statistics dictionary
+        """
+        if not self.knowledge_base_manager:
+            return {"error": "Knowledge base manager not available"}
+        
+        try:
+            return self.knowledge_base_manager.get_stats()
+        except Exception as e:
+            LOGGER.error(f"Failed to get stats: {e}")
+            return {"error": str(e)}
+    
+    def add_website_to_list(
+        self,
+        url: str,
+        name: str,
+        description: str = "",
+        category: str = "forum",
+        metadata: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Add a website to the website list.
+        
+        Args:
+            url: Website URL
+            name: Display name
+            description: Description
+            category: Category (forum, documentation, blog, etc.)
+            metadata: Optional metadata
+            
+        Returns:
+            Result dictionary
+        """
+        if not self.website_list_manager:
+            return {"success": False, "error": "Website list manager not available"}
+        
+        try:
+            success = self.website_list_manager.add_website(url, name, description, category, metadata)
+            return {"success": success, "message": "Website added" if success else "Website already exists"}
+        except Exception as e:
+            LOGGER.error(f"Failed to add website to list: {e}")
+            return {"success": False, "error": str(e)}
+    
+    def remove_website_from_list(self, url: str) -> Dict[str, Any]:
+        """
+        Remove a website from the website list.
+        
+        Args:
+            url: Website URL to remove
+            
+        Returns:
+            Result dictionary
+        """
+        if not self.website_list_manager:
+            return {"success": False, "error": "Website list manager not available"}
+        
+        try:
+            success = self.website_list_manager.remove_website(url)
+            return {"success": success, "message": "Website removed" if success else "Website not found"}
+        except Exception as e:
+            LOGGER.error(f"Failed to remove website from list: {e}")
+            return {"success": False, "error": str(e)}
+    
+    def get_website_list(self, enabled_only: bool = False, category: Optional[str] = None) -> List[Dict[str, Any]]:
+        """
+        Get list of websites.
+        
+        Args:
+            enabled_only: Only return enabled websites
+            category: Filter by category
+            
+        Returns:
+            List of website dictionaries
+        """
+        if not self.website_list_manager:
+            return []
+        
+        try:
+            websites = self.website_list_manager.get_websites(enabled_only=enabled_only, category=category)
+            return [asdict(w) for w in websites]
+        except Exception as e:
+            LOGGER.error(f"Failed to get website list: {e}")
+            return []
+    
+    def ingest_websites_from_list(
+        self,
+        enabled_only: bool = True,
+        category: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Ingest all websites from the website list.
+        
+        Args:
+            enabled_only: Only ingest enabled websites
+            category: Filter by category
+            
+        Returns:
+            Summary dictionary
+        """
+        if not self.website_ingestion_service:
+            return {"error": "Website ingestion service not available"}
+        
+        try:
+            result = self.website_ingestion_service.ingest_all(enabled_only=enabled_only, category=category)
+            LOGGER.info(f"Ingested {result['successful']} websites, {result['total_chunks']} chunks")
+            return result
+        except Exception as e:
+            LOGGER.error(f"Failed to ingest websites: {e}")
+            return {"error": str(e)}
+    
+    def get_website_list_stats(self) -> Dict[str, Any]:
+        """
+        Get website list statistics.
+        
+        Returns:
+            Statistics dictionary
+        """
+        if not self.website_list_manager:
+            return {"error": "Website list manager not available"}
+        
+        try:
+            return self.website_list_manager.get_stats()
+        except Exception as e:
+            LOGGER.error(f"Failed to get website list stats: {e}")
+            return {"error": str(e)}
     
     def get_suggestions(self, query: str = "") -> List[str]:
         """Get suggested questions."""

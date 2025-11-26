@@ -45,6 +45,12 @@ scipy  # For advanced statistics and signal processing (Savitzky-Golay filter fo
 chromadb>=0.4.0  # Vector database for semantic search
 sentence-transformers>=2.2.0  # Embeddings for semantic search
 ollama>=0.1.0  # Local LLM client (optional, install Ollama separately from https://ollama.ai)
+
+# Knowledge Base Manager dependencies (for document ingestion and web scraping)
+PyPDF2>=3.0.0  # PDF document parsing
+python-docx>=1.0.0  # DOCX document parsing
+beautifulsoup4>=4.12.0  # HTML parsing for web scraping
+lxml>=4.9.0  # XML/HTML parser (faster than default)
 # Optional: For analog sensors (ADC boards)
 # adafruit-circuitpython-ads1x15
 # Optional: For GPIO/digital sensors (Raspberry Pi)
