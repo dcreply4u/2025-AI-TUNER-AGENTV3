@@ -80,6 +80,14 @@ except ImportError:
     WebsiteListManager = None
     WebsiteIngestionService = None
 
+# Import auto knowledge populator
+try:
+    from services.auto_knowledge_populator import AutoKnowledgePopulator
+    AUTO_POPULATOR_AVAILABLE = True
+except ImportError:
+    AUTO_POPULATOR_AVAILABLE = False
+    AutoKnowledgePopulator = None
+
 
 @dataclass
 class ChatMessage:
@@ -225,6 +233,27 @@ class RAGAIAdvisor:
                 LOGGER.info("Website list manager initialized")
             except Exception as e:
                 LOGGER.warning(f"Website list manager not available: {e}")
+        
+        # Initialize auto knowledge populator
+        self.auto_populator = None
+        if AUTO_POPULATOR_AVAILABLE and self.learning_system and self.website_ingestion_service:
+            try:
+                web_search = None
+                if self.web_search:
+                    web_search = self.web_search
+                
+                self.auto_populator = AutoKnowledgePopulator(
+                    learning_system=self.learning_system,
+                    website_ingestion_service=self.website_ingestion_service,
+                    knowledge_base_manager=self.knowledge_base_manager,
+                    web_search_service=web_search,
+                    auto_populate_enabled=True,
+                    confidence_threshold=0.5,
+                    min_gap_frequency=2  # Auto-populate after 2 occurrences
+                )
+                LOGGER.info("Auto knowledge populator initialized")
+            except Exception as e:
+                LOGGER.warning(f"Auto knowledge populator not available: {e}")
         
         # System prompt for LLM
         self.system_prompt = """You are Q, an expert automotive tuning advisor with deep knowledge of:
@@ -469,6 +498,20 @@ You use the provided context to answer questions accurately. Be concise but thor
         
         elapsed = time.time() - start_time
         LOGGER.info(f"Generated response in {elapsed:.2f}s (confidence: {confidence:.2f})")
+        
+        # Auto-populate knowledge if confidence is low
+        auto_populate_result = None
+        if self.auto_populator and confidence < 0.5:
+            try:
+                auto_populate_result = self.auto_populator.check_and_populate(
+                    question=question,
+                    confidence=confidence,
+                    answer=answer
+                )
+                if auto_populate_result.get("success"):
+                    LOGGER.info(f"Auto-populated {auto_populate_result.get('chunks_added', 0)} chunks")
+            except Exception as e:
+                LOGGER.debug(f"Auto-population check failed: {e}")
         
         # Record interaction for learning
         if self.learning_system:
