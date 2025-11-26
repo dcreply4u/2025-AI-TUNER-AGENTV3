@@ -206,37 +206,43 @@ class AIAdvisorWidget(QWidget):
         self._show_welcome_message()
     
     def setup_ui(self) -> None:
-        """Setup AI advisor widget with light theme."""
+        """Setup AI advisor widget with Cursor-style compact layout."""
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(8, 8, 8, 8)
-        main_layout.setSpacing(4)  # Reduced spacing to prevent overlap
+        main_layout.setContentsMargins(6, 6, 6, 6)
+        main_layout.setSpacing(4)
         
-        # Header
+        # Compact header - Cursor style
         header_layout = QHBoxLayout()
+        header_layout.setContentsMargins(0, 0, 0, 0)
+        header_layout.setSpacing(8)
         
-        title = QLabel("🤖 Q - AI Advisor")
+        title = QLabel("Q")
         title.setStyleSheet("""
-            font-size: 12px;
-            font-weight: bold;
-            color: #2c3e50;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a1a1a;
+            padding: 0px;
         """)
         header_layout.addWidget(title)
         
         header_layout.addStretch()
         
-        # Clear button
-        clear_btn = QPushButton("Clear")
+        # Minimal clear button (icon-style)
+        clear_btn = QPushButton("×")
+        clear_btn.setToolTip("Clear chat")
+        clear_btn.setFixedSize(20, 20)
         clear_btn.setStyleSheet("""
             QPushButton {
-                background-color: #ecf0f1;
-                color: #2c3e50;
-                padding: 4px 10px;
-                font-size: 10px;
-                border: 1px solid #bdc3c7;
-                border-radius: 4px;
+                background-color: transparent;
+                color: #666;
+                font-size: 16px;
+                font-weight: bold;
+                border: none;
+                border-radius: 3px;
             }
             QPushButton:hover {
-                background-color: #d5dbdb;
+                background-color: #f0f0f0;
+                color: #333;
             }
         """)
         clear_btn.clicked.connect(self._clear_chat)
@@ -244,185 +250,119 @@ class AIAdvisorWidget(QWidget):
         
         main_layout.addLayout(header_layout)
         
-        # Toolbar with functions
-        toolbar_layout = QHBoxLayout()
-        toolbar_layout.setSpacing(4)
-        
-        # Cut button
-        cut_btn = QPushButton("✂️ Cut")
-        cut_btn.setToolTip("Cut selected text")
-        cut_btn.setStyleSheet(self._get_toolbar_button_style())
-        cut_btn.clicked.connect(self._cut_text)
-        toolbar_layout.addWidget(cut_btn)
-        
-        # Copy button
-        copy_btn = QPushButton("📋 Copy")
-        copy_btn.setToolTip("Copy selected text")
-        copy_btn.setStyleSheet(self._get_toolbar_button_style())
-        copy_btn.clicked.connect(self._copy_text)
-        toolbar_layout.addWidget(copy_btn)
-        
-        # Paste button
-        paste_btn = QPushButton("📄 Paste")
-        paste_btn.setToolTip("Paste text")
-        paste_btn.setStyleSheet(self._get_toolbar_button_style())
-        paste_btn.clicked.connect(self._paste_text)
-        toolbar_layout.addWidget(paste_btn)
-        
-        toolbar_layout.addSpacing(8)
-        
-        # Image button
-        image_btn = QPushButton("🖼️ Image")
-        image_btn.setToolTip("Insert image")
-        image_btn.setStyleSheet(self._get_toolbar_button_style())
-        image_btn.clicked.connect(self._insert_image)
-        toolbar_layout.addWidget(image_btn)
-        
-        # Voice button
-        self.voice_btn = QPushButton("🎤 Voice")
-        self.voice_btn.setToolTip("Voice input")
-        self.voice_btn.setStyleSheet(self._get_toolbar_button_style())
-        self.voice_btn.clicked.connect(self._toggle_voice)
-        self.voice_recording = False
-        toolbar_layout.addWidget(self.voice_btn)
-        
-        # Upload file button
-        upload_btn = QPushButton("📁 Upload")
-        upload_btn.setToolTip("Upload file")
-        upload_btn.setStyleSheet(self._get_toolbar_button_style())
-        upload_btn.clicked.connect(self._upload_file)
-        toolbar_layout.addWidget(upload_btn)
-        
-        toolbar_layout.addSpacing(8)
-        
-        # Search button
-        search_btn = QPushButton("🔍 Search")
-        search_btn.setToolTip("Search in chat")
-        search_btn.setStyleSheet(self._get_toolbar_button_style())
-        search_btn.clicked.connect(self._show_search)
-        toolbar_layout.addWidget(search_btn)
-        
-        toolbar_layout.addStretch()
-        
-        main_layout.addLayout(toolbar_layout)
-        
-        # Chat display - light theme (positioned first to ensure it has space)
+        # Chat display - Cursor style: fixed size, clean background
         self.chat_display = QTextEdit()
-        self.chat_display.setReadOnly(True)  # Read-only for messages, but allow copy
-        # Add context menu for copy/paste
+        self.chat_display.setReadOnly(True)
         self.chat_display.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.chat_display.customContextMenuRequested.connect(self._show_context_menu)
+        
+        # Fixed size like Cursor - not expandable
+        self.chat_display.setFixedHeight(280)  # Fixed height like Cursor
+        self.chat_display.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        
         self.chat_display.setStyleSheet("""
             QTextEdit {
-                background-color: #f8f9fa;
-                color: #2c3e50;
-                font-family: 'Segoe UI', Arial, sans-serif;
-                font-size: 11px;
-                border: 1px solid #bdc3c7;
-                border-radius: 6px;
-                padding: 4px;
+                background-color: #ffffff;
+                color: #1a1a1a;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+                font-size: 13px;
+                border: 1px solid #e0e0e0;
+                border-radius: 4px;
+                padding: 8px;
             }
             QScrollBar:vertical {
-                background-color: #e0e0e0;
-                width: 8px;
-                border-radius: 4px;
+                background-color: transparent;
+                width: 10px;
+                border: none;
+                margin: 0px;
             }
             QScrollBar::handle:vertical {
-                background-color: #3498db;
-                border-radius: 4px;
-                min-height: 20px;
+                background-color: #d0d0d0;
+                border-radius: 5px;
+                min-height: 30px;
+                margin: 2px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background-color: #b0b0b0;
+            }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+                height: 0px;
             }
         """)
-        # Chat display - make it expandable but with reasonable limits
-        # Use size policy to ensure it takes available space
-        self.chat_display.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        self.chat_display.setMinimumHeight(180)
-        self.chat_display.setMaximumHeight(350)  # Increased to give more room
-        main_layout.addWidget(self.chat_display, stretch=10)  # Give chat very high stretch priority
+        main_layout.addWidget(self.chat_display)
         
-        # Suggestions - light theme (positioned BELOW chat window, above input)
+        # Suggestions - compact, appears above input when available
         self.suggestions_list = QListWidget()
-        self.suggestions_list.setMaximumHeight(40)  # Further reduced height
-        self.suggestions_list.setFixedHeight(0)  # Start with 0 height when hidden
-        self.suggestions_list.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)  # Fixed height, don't expand
+        self.suggestions_list.setFixedHeight(0)
+        self.suggestions_list.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.suggestions_list.setStyleSheet("""
             QListWidget {
-                background-color: #ffffff;
-                color: #2c3e50;
-                border: 1px solid #bdc3c7;
+                background-color: #f8f8f8;
+                color: #1a1a1a;
+                border: 1px solid #e0e0e0;
                 border-radius: 4px;
-                font-size: 10px;
+                font-size: 12px;
             }
             QListWidget::item {
-                padding: 3px;
+                padding: 4px 8px;
+                border-bottom: 1px solid #f0f0f0;
             }
             QListWidget::item:hover {
-                background-color: #ecf0f1;
+                background-color: #f0f0f0;
             }
             QListWidget::item:selected {
-                background-color: #3498db;
-                color: white;
+                background-color: #e8e8e8;
+                color: #1a1a1a;
             }
         """)
         self.suggestions_list.itemClicked.connect(self._on_suggestion_clicked)
         self.suggestions_list.hide()
-        # Add with stretch=0 so it doesn't take space when hidden - BELOW chat, above input
-        main_layout.addWidget(self.suggestions_list, stretch=0)
+        main_layout.addWidget(self.suggestions_list)
         
-        # Search bar (hidden by default)
-        self.search_bar = QLineEdit()
-        self.search_bar.setPlaceholderText("Search in chat...")
-        self.search_bar.setStyleSheet("""
-            QLineEdit {
-                background-color: #fff9c4;
-                color: #2c3e50;
-                border: 2px solid #f39c12;
-                border-radius: 4px;
-                padding: 4px;
-                font-size: 10px;
-            }
-        """)
-        self.search_bar.hide()
-        self.search_bar.textChanged.connect(self._search_in_chat)
-        self.search_bar.returnPressed.connect(self._search_next)
-        main_layout.addWidget(self.search_bar)
-        
-        # Input area
+        # Input area - Cursor style: clean, minimal
         input_layout = QHBoxLayout()
         input_layout.setSpacing(6)
+        input_layout.setContentsMargins(0, 0, 0, 0)
         
         self.input_field = QLineEdit()
         self.input_field.setPlaceholderText("Ask Q anything...")
         self.input_field.setStyleSheet("""
             QLineEdit {
                 background-color: #ffffff;
-                color: #2c3e50;
-                border: 1px solid #bdc3c7;
+                color: #1a1a1a;
+                border: 1px solid #e0e0e0;
                 border-radius: 6px;
-                padding: 6px;
-                font-size: 11px;
+                padding: 8px 12px;
+                font-size: 13px;
             }
             QLineEdit:focus {
-                border: 2px solid #3498db;
+                border: 1px solid #007acc;
+                outline: none;
             }
         """)
         self.input_field.returnPressed.connect(self._send_message)
         self.input_field.textChanged.connect(self._on_input_changed)
         input_layout.addWidget(self.input_field, stretch=1)
         
-        send_btn = QPushButton("Send")
+        # Send button - Cursor style: minimal, icon or text
+        send_btn = QPushButton("→")
+        send_btn.setToolTip("Send message")
+        send_btn.setFixedWidth(36)
         send_btn.setStyleSheet("""
             QPushButton {
-                background-color: #3498db;
+                background-color: #007acc;
                 color: white;
-                padding: 6px 12px;
-                font-size: 11px;
+                padding: 8px;
+                font-size: 16px;
                 font-weight: bold;
                 border: none;
                 border-radius: 6px;
             }
             QPushButton:hover {
-                background-color: #2980b9;
+                background-color: #005a9e;
+            }
+            QPushButton:pressed {
+                background-color: #004578;
             }
         """)
         send_btn.clicked.connect(self._send_message)
@@ -430,19 +370,20 @@ class AIAdvisorWidget(QWidget):
         
         main_layout.addLayout(input_layout)
         
-        # Status
-        self.status_label = QLabel("Ready")
-        self.status_label.setStyleSheet("color: #27ae60; font-size: 9px;")
+        # Status - minimal, at bottom
+        self.status_label = QLabel("")
+        self.status_label.setStyleSheet("color: #888; font-size: 11px; padding: 2px 0px;")
+        self.status_label.setFixedHeight(16)
         main_layout.addWidget(self.status_label)
+        
+        # Set fixed overall size to prevent resizing
+        self.setFixedWidth(400)  # Fixed width like Cursor
+        self.setMinimumHeight(350)
+        self.setMaximumHeight(400)
     
     def _show_welcome_message(self) -> None:
-        """Show welcome message from Q."""
-        welcome = """<b style="color: #3498db;">Q:</b> <span style="color: #2c3e50;">Hello! I'm Q, your AI advisor. I can help with:
-<br>• Software features
-<br>• Troubleshooting
-<br>• Tips & best practices
-<br><br>What would you like to know?</span>"""
-        
+        """Show welcome message from Q - Cursor style."""
+        welcome = self._format_message("Q", "Hello! I'm Q, your AI advisor. I can help with software features, troubleshooting, and best practices. What would you like to know?", is_user=False)
         self.chat_display.setHtml(welcome)
     
     def _on_input_changed(self, text: str) -> None:
@@ -460,7 +401,7 @@ class AIAdvisorWidget(QWidget):
                         item = QListWidgetItem(suggestion)
                         self.suggestions_list.addItem(item)
                     if self.suggestions_list.count() > 0:
-                        self.suggestions_list.setFixedHeight(40)
+                        self.suggestions_list.setFixedHeight(min(80, self.suggestions_list.count() * 28))
                         self.suggestions_list.show()
                     else:
                         self.suggestions_list.setFixedHeight(0)
@@ -479,7 +420,7 @@ class AIAdvisorWidget(QWidget):
                             self.suggestions_list.addItem(item)
                     
                     if self.suggestions_list.count() > 0:
-                        self.suggestions_list.setFixedHeight(40)
+                        self.suggestions_list.setFixedHeight(min(80, self.suggestions_list.count() * 28))
                         self.suggestions_list.show()
                     else:
                         self.suggestions_list.setFixedHeight(0)
@@ -538,8 +479,8 @@ class AIAdvisorWidget(QWidget):
         self.input_field.clear()
         
         # Update status
-        self.status_label.setText("Q is thinking...")
-        self.status_label.setStyleSheet("color: #f39c12; font-size: 9px;")
+        self.status_label.setText("Thinking...")
+        self.status_label.setStyleSheet("color: #007acc; font-size: 11px;")
         
         # Get response (with slight delay for better UX)
         QTimer.singleShot(100, lambda: self._get_response(question))
@@ -549,8 +490,8 @@ class AIAdvisorWidget(QWidget):
         if not self.advisor:
             error_msg = "Sorry, AI advisor is not available. Please check the logs for initialization errors."
             self._add_message("Q", error_msg, is_user=False)
-            self.status_label.setText("Advisor unavailable")
-            self.status_label.setStyleSheet("color: #e74c3c; font-size: 9px;")
+            self.status_label.setText("Unavailable")
+            self.status_label.setStyleSheet("color: #d32f2f; font-size: 11px;")
             return
         
         try:
@@ -648,7 +589,7 @@ class AIAdvisorWidget(QWidget):
                     item = QListWidgetItem(f"💡 {follow_up}")
                     self.suggestions_list.addItem(item)
                 if self.suggestions_list.count() > 0:
-                    self.suggestions_list.setFixedHeight(40)
+                    self.suggestions_list.setFixedHeight(min(80, self.suggestions_list.count() * 28))
                     self.suggestions_list.show()
             
             # Ensure we have a valid response
@@ -668,8 +609,8 @@ class AIAdvisorWidget(QWidget):
             self.advisor_responded.emit(response)
             
             # Update status
-            self.status_label.setText("Ready")
-            self.status_label.setStyleSheet("color: #27ae60; font-size: 9px;")
+            self.status_label.setText("")
+            self.status_label.setStyleSheet("color: #888; font-size: 11px;")
             
         except Exception as e:
             import logging
@@ -680,24 +621,38 @@ class AIAdvisorWidget(QWidget):
             error_msg = f"Sorry, I encountered an error: {str(e)}\n\nPlease check the logs for more details."
             self._add_message("Q", error_msg, is_user=False)
             self.status_label.setText("Error")
-            self.status_label.setStyleSheet("color: #e74c3c; font-size: 9px;")
+            self.status_label.setStyleSheet("color: #d32f2f; font-size: 11px;")
     
     def _add_message(self, sender: str, message: str, is_user: bool = False) -> None:
-        """Add message to chat display."""
-        sender_color = "#3498db" if not is_user else "#27ae60"  # Blue for Q, Green for user
-        
-        html = f"""
-        <div style="margin-bottom: 8px;">
-            <b style="color: {sender_color};">{sender}:</b>
-            <span style="color: #2c3e50; white-space: pre-wrap;">{self._escape_html(message)}</span>
-        </div>
-        """
-        
+        """Add message to chat display - Cursor style with message bubbles."""
+        html = self._format_message(sender, message, is_user)
         self.chat_display.append(html)
         
         # Scroll to bottom
         scrollbar = self.chat_display.verticalScrollBar()
         scrollbar.setValue(scrollbar.maximum())
+    
+    def _format_message(self, sender: str, message: str, is_user: bool = False) -> str:
+        """Format message in Cursor style - message bubbles."""
+        if is_user:
+            # User message - right aligned, blue background
+            return f"""
+            <div style="margin: 8px 0px; text-align: right;">
+                <div style="display: inline-block; max-width: 80%; background-color: #007acc; color: white; padding: 8px 12px; border-radius: 12px 12px 4px 12px; text-align: left; word-wrap: break-word;">
+                    <span style="white-space: pre-wrap;">{self._escape_html(message)}</span>
+                </div>
+            </div>
+            """
+        else:
+            # AI message - left aligned, gray background
+            return f"""
+            <div style="margin: 8px 0px;">
+                <div style="font-weight: 600; color: #1a1a1a; margin-bottom: 4px; font-size: 12px;">{sender}</div>
+                <div style="display: inline-block; max-width: 85%; background-color: #f0f0f0; color: #1a1a1a; padding: 8px 12px; border-radius: 12px 12px 12px 4px; word-wrap: break-word;">
+                    <span style="white-space: pre-wrap;">{self._escape_html(message)}</span>
+                </div>
+            </div>
+            """
     
     def _escape_html(self, text: str) -> str:
         """Escape HTML special characters."""
