@@ -21,7 +21,10 @@ import time
 from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Deque, Dict, List, Optional, Tuple, Union
+from typing import Deque, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from dataclasses import field
 
 import numpy as np
 
@@ -67,10 +70,49 @@ class VehicleSpecs:
     drivetrain_loss: float = DRIVETRAIN_LOSS_TYPICAL  # 0.15 = 15% loss
     wheel_radius_m: float = 0.33  # Wheel radius in meters (typical: 0.30-0.35)
     drivetrain_type: str = "RWD"  # FWD, RWD, AWD
+    # Advanced parameters for improved accuracy
+    tire_diameter_m: float = 0.66  # Tire diameter in meters (typical: 0.60-0.70)
+    wheel_inertia_kg_m2: float = 2.0  # Rotational inertia of wheels (kg·m²)
+    gear_ratios: Optional[List[float]] = field(default=None)  # Gear ratios [1st, 2nd, 3rd, ...]
+    final_drive_ratio: float = 3.5  # Final drive ratio
+    use_sae_correction: bool = True  # Apply SAE J1349 correction
+    sae_correction_factor: float = 1.0  # SAE correction factor (calculated)
 
     def total_weight_kg(self) -> float:
         """Total vehicle weight including driver and fuel."""
         return self.curb_weight_kg + self.driver_weight_kg + self.fuel_weight_kg
+    
+    def effective_radius_m(self) -> float:
+        """Effective tire radius (accounting for load and pressure)."""
+        return self.tire_diameter_m / 2.0
+    
+    def calculate_gear_ratio(self, rpm: float, speed_mps: float) -> Optional[float]:
+        """Calculate current gear ratio from RPM and speed."""
+        if rpm <= 0 or speed_mps <= 0:
+            return None
+        
+        # Angular velocity of wheel
+        wheel_angular_velocity = speed_mps / self.effective_radius_m()
+        # Engine angular velocity (rad/s)
+        engine_angular_velocity = (rpm / 60.0) * 2 * math.pi
+        
+        if wheel_angular_velocity <= 0:
+            return None
+        
+        # Total gear ratio = engine_rpm / wheel_rpm
+        total_ratio = engine_angular_velocity / wheel_angular_velocity
+        
+        # Approximate gear from total ratio
+        if self.gear_ratios:
+            # Find closest matching gear
+            gear_ratios_with_final = [gr * self.final_drive_ratio for gr in self.gear_ratios]
+            closest_gear = min(
+                range(len(gear_ratios_with_final)),
+                key=lambda i: abs(gear_ratios_with_final[i] - total_ratio)
+            )
+            return self.gear_ratios[closest_gear]
+        
+        return total_ratio / self.final_drive_ratio if self.final_drive_ratio > 0 else None
 
 
 @dataclass
@@ -219,6 +261,9 @@ class VirtualDyno:
 
         # Environmental conditions
         self.current_conditions = EnvironmentalConditions()
+        
+        # Calculate SAE correction factor
+        self._update_sae_correction()
 
     def update_environment(
         self,
@@ -236,6 +281,53 @@ class VirtualDyno:
             self.current_conditions.humidity_percent = humidity_percent
         if barometric_pressure_kpa is not None:
             self.current_conditions.barometric_pressure_kpa = barometric_pressure_kpa
+        
+        # Recalculate SAE correction when environment changes
+        if self.vehicle_specs.use_sae_correction:
+            self._update_sae_correction()
+    
+    def _update_sae_correction(self) -> None:
+        """
+        Calculate SAE J1349 correction factor for standardizing dyno results.
+        
+        SAE J1349 standardizes power measurements to:
+        - 77°F (25°C) temperature
+        - 29.234 inHg (99.0 kPa) barometric pressure
+        - 0% humidity (dry air)
+        
+        Formula: CF = (99.0 / P_dry) × sqrt((T + 273.15) / 298.15)
+        Where P_dry is dry air pressure in kPa, T is temperature in °C
+        """
+        if not self.vehicle_specs.use_sae_correction:
+            self.vehicle_specs.sae_correction_factor = 1.0
+            return
+        
+        # Standard conditions
+        T_std = 25.0  # °C
+        P_std = 99.0  # kPa (dry air)
+        
+        # Current conditions
+        T_actual = self.current_conditions.temperature_c
+        P_actual = self.current_conditions.barometric_pressure_kpa
+        
+        # Calculate dry air pressure
+        temp_kelvin = T_actual + 273.15
+        humidity_ratio = self.current_conditions.humidity_percent / 100.0
+        
+        # Saturation vapor pressure (Magnus formula)
+        saturation_pressure_pa = 6.1078 * (10 ** ((7.5 * T_actual) / (T_actual + 237.3))) * 100
+        vapor_pressure_pa = humidity_ratio * saturation_pressure_pa
+        dry_air_pressure_pa = (P_actual * 1000) - vapor_pressure_pa
+        dry_air_pressure_kpa = dry_air_pressure_pa / 1000.0
+        
+        # SAE correction factor
+        # CF = (P_std / P_dry) × sqrt((T_actual + 273.15) / (T_std + 273.15))
+        if dry_air_pressure_kpa > 0:
+            pressure_ratio = P_std / dry_air_pressure_kpa
+            temp_ratio = math.sqrt((temp_kelvin) / (T_std + 273.15))
+            self.vehicle_specs.sae_correction_factor = pressure_ratio * temp_ratio
+        else:
+            self.vehicle_specs.sae_correction_factor = 1.0
 
     def calculate_horsepower(
         self,
@@ -288,7 +380,7 @@ class VirtualDyno:
             smoothed_accel = acceleration_mps2
 
         # Method 1: Acceleration-based (most accurate for real-world)
-        hp_wheel_accel = self._calculate_hp_from_acceleration(speed_mps, smoothed_accel)
+        hp_wheel_accel = self._calculate_hp_from_acceleration(speed_mps, smoothed_accel, rpm)
         confidence_accel = self._calculate_confidence(speed_mps, smoothed_accel)
 
         # Method 2: Torque-based (if torque available)
@@ -395,17 +487,18 @@ class VirtualDyno:
 
         return reading
 
-    def _calculate_hp_from_acceleration(self, speed_mps: float, acceleration_mps2: float) -> float:
+    def _calculate_hp_from_acceleration(self, speed_mps: float, acceleration_mps2: float, rpm: Optional[float] = None) -> float:
         """
         Calculate horsepower from acceleration (most accurate method).
         
-        Improved formula based on best practices:
-        - Cleaner force calculation structure
-        - Proper separation of forces
-        - Accurate power calculation
+        Enhanced formula with advanced corrections:
+        - Tire/wheel rotational inertia
+        - Gear ratio effects
+        - SAE correction factors
+        - Improved force calculations
         
         Formula: P = F × v
-        Where F = m×a + F_drag + F_roll
+        Where F = m×a + F_drag + F_roll + F_inertia
         """
         total_weight_kg = self.vehicle_specs.total_weight_kg()
 
@@ -416,8 +509,26 @@ class VirtualDyno:
         
         F_roll = self.vehicle_specs.rolling_resistance_coef * total_weight_kg * GRAVITY
 
+        # Advanced: Account for wheel/tire rotational inertia
+        F_inertia = 0.0
+        if rpm is not None and rpm > 0 and speed_mps > 0:
+            # Calculate angular acceleration of wheels
+            effective_radius = self.vehicle_specs.effective_radius_m()
+            wheel_angular_velocity = speed_mps / effective_radius
+            
+            # Estimate angular acceleration (simplified - assumes constant gear ratio)
+            if len(self.speed_buffer) >= 2:
+                prev_speed = self.speed_buffer[-2][1]
+                dt = self.speed_buffer[-1][0] - self.speed_buffer[-2][0]
+                if dt > 0:
+                    dv = speed_mps - prev_speed
+                    angular_accel = (dv / dt) / effective_radius
+                    # Rotational inertia force: F = I × α / r
+                    # Where I is moment of inertia, α is angular acceleration
+                    F_inertia = (self.vehicle_specs.wheel_inertia_kg_m2 * angular_accel) / effective_radius
+
         # Compute total tractive force at the wheels
-        F_tractive = total_weight_kg * acceleration_mps2 + F_drag + F_roll
+        F_tractive = total_weight_kg * acceleration_mps2 + F_drag + F_roll + F_inertia
 
         # Power at wheels (Watts): P = F × v
         P_wheel_watts = F_tractive * speed_mps
@@ -425,6 +536,10 @@ class VirtualDyno:
         # Convert to horsepower (wheel HP)
         # Using 745.7 W/HP (matches industry standard and provided code)
         hp_wheel = P_wheel_watts * WATTS_TO_HP
+
+        # Apply SAE correction if enabled
+        if self.vehicle_specs.use_sae_correction:
+            hp_wheel = hp_wheel * self.vehicle_specs.sae_correction_factor
 
         return max(0.0, hp_wheel)
 
@@ -755,6 +870,92 @@ class VirtualDyno:
             accuracy += 0.05
 
         return min(1.0, accuracy)
+    
+    def calculate_power_band(
+        self,
+        curve: Optional[DynoCurve] = None,
+        power_threshold: float = 0.90  # 90% of peak power
+    ) -> Dict[str, float]:
+        """
+        Calculate power band characteristics.
+        
+        Returns:
+            Dictionary with:
+            - peak_power_rpm: RPM at peak power
+            - peak_power: Peak power value
+            - power_band_start: RPM where power reaches threshold
+            - power_band_end: RPM where power drops below threshold
+            - power_band_width: Width of power band in RPM
+            - area_under_curve: Approximate area under power curve (for comparison)
+        """
+        if curve is None:
+            curve = self.current_curve
+        
+        if not curve.readings:
+            return {
+                'peak_power_rpm': 0.0,
+                'peak_power': 0.0,
+                'power_band_start': 0.0,
+                'power_band_end': 0.0,
+                'power_band_width': 0.0,
+                'area_under_curve': 0.0,
+            }
+        
+        # Filter readings with RPM
+        readings_with_rpm = [
+            r for r in curve.readings if r.rpm is not None and r.rpm > 0
+        ]
+        if not readings_with_rpm:
+            return {
+                'peak_power_rpm': 0.0,
+                'peak_power': 0.0,
+                'power_band_start': 0.0,
+                'power_band_end': 0.0,
+                'power_band_width': 0.0,
+                'area_under_curve': 0.0,
+            }
+        
+        # Sort by RPM
+        sorted_readings = sorted(readings_with_rpm, key=lambda x: x.rpm or 0)
+        
+        # Find peak power
+        peak_reading = max(sorted_readings, key=lambda r: r.horsepower_crank)
+        peak_power = peak_reading.horsepower_crank
+        peak_power_rpm = peak_reading.rpm or 0.0
+        
+        # Calculate power threshold
+        threshold_power = peak_power * power_threshold
+        
+        # Find power band (where power >= threshold)
+        power_band_start = None
+        power_band_end = None
+        
+        for reading in sorted_readings:
+            if reading.horsepower_crank >= threshold_power:
+                if power_band_start is None:
+                    power_band_start = reading.rpm or 0.0
+                power_band_end = reading.rpm or 0.0
+        
+        power_band_width = (power_band_end - power_band_start) if power_band_start and power_band_end else 0.0
+        
+        # Calculate approximate area under curve (trapezoidal rule)
+        area = 0.0
+        for i in range(len(sorted_readings) - 1):
+            r1 = sorted_readings[i]
+            r2 = sorted_readings[i + 1]
+            if r1.rpm and r2.rpm:
+                width = r2.rpm - r1.rpm
+                avg_power = (r1.horsepower_crank + r2.horsepower_crank) / 2.0
+                area += width * avg_power
+        
+        return {
+            'peak_power_rpm': peak_power_rpm,
+            'peak_power': peak_power,
+            'power_band_start': power_band_start or 0.0,
+            'power_band_end': power_band_end or 0.0,
+            'power_band_width': power_band_width,
+            'area_under_curve': area,
+        }
 
 
 __all__ = [

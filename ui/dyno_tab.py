@@ -10,6 +10,7 @@ import time
 import threading
 
 from PySide6.QtCore import Qt, QTimer, QThread, Signal
+from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -29,12 +30,15 @@ try:
     from ui.dyno_view import VirtualDynoView
     from services.virtual_dyno import VirtualDyno, VehicleSpecs, EnvironmentalConditions
     from ui.dyno_calibration_dialog import DynoCalibrationDialog
+    from services.dyno_file_manager import DynoFileManager, LoadedDynoFile
 except ImportError:
     VirtualDynoView = None
     VirtualDyno = None
     VehicleSpecs = None
     EnvironmentalConditions = None
     DynoCalibrationDialog = None
+    DynoFileManager = None
+    LoadedDynoFile = None
 
 
 class DynoTab(QWidget):
@@ -49,6 +53,11 @@ class DynoTab(QWidget):
         self.logging_active = False
         self.logged_data: List[Tuple[float, float, Optional[float]]] = []  # (time, speed_mps, rpm)
         self.log_start_time: Optional[float] = None
+        
+        # Dyno file manager
+        self.file_manager: Optional[DynoFileManager] = None
+        if DynoFileManager:
+            self.file_manager = DynoFileManager()
         
         self.setup_ui()
         self._start_update_timer()
@@ -155,6 +164,12 @@ class DynoTab(QWidget):
         self.export_session_btn.clicked.connect(self._export_session)
         layout.addWidget(self.export_session_btn)
         
+        # Load Dyno File button
+        self.load_file_btn = QPushButton("Load Dyno File")
+        self.load_file_btn.setStyleSheet(f"background-color: #7b1fa2; color: #ffffff; padding: {btn_padding_v}px {btn_padding_h}px; font-size: {btn_font}px;")
+        self.load_file_btn.clicked.connect(self._load_dyno_file)
+        layout.addWidget(self.load_file_btn)
+        
         return bar
         
     def _create_settings_panel(self) -> QWidget:
@@ -170,12 +185,67 @@ class DynoTab(QWidget):
         layout.setContentsMargins(margin, margin, margin, margin)
         layout.setSpacing(spacing)
         
-        # Session controls
-        session_group = QGroupBox("Session Controls")
+        # Loaded Files section
+        files_group = QGroupBox("Loaded Dyno Files")
         group_font = get_scaled_font_size(12)
         group_border = get_scaled_size(1)
         group_radius = get_scaled_size(3)
         group_margin = get_scaled_size(10)
+        files_group.setStyleSheet(f"""
+            QGroupBox {{
+                font-size: {group_font}px; font-weight: bold; color: #ffffff;
+                border: {group_border}px solid #404040; border-radius: {group_radius}px;
+                margin-top: {group_margin}px; padding-top: {group_margin}px;
+            }}
+        """)
+        files_layout = QVBoxLayout()
+        files_layout.setSpacing(get_scaled_size(5))
+        
+        # File list widget
+        from PySide6.QtWidgets import QListWidget, QListWidgetItem
+        self.loaded_files_list = QListWidget()
+        self.loaded_files_list.setMaximumHeight(get_scaled_size(200))
+        self.loaded_files_list.setStyleSheet("""
+            QListWidget {
+                background-color: #2a2a2a;
+                color: #ffffff;
+                border: 1px solid #404040;
+            }
+            QListWidget::item {
+                padding: 4px;
+                border-bottom: 1px solid #404040;
+            }
+            QListWidget::item:selected {
+                background-color: #404040;
+            }
+        """)
+        self.loaded_files_list.itemDoubleClicked.connect(self._on_file_item_double_clicked)
+        files_layout.addWidget(self.loaded_files_list)
+        
+        # File management buttons
+        file_btn_layout = QHBoxLayout()
+        self.remove_file_btn = QPushButton("Remove")
+        self.remove_file_btn.setStyleSheet(f"background-color: #c62828; color: #ffffff; padding: {get_scaled_size(3)}px {get_scaled_size(8)}px; font-size: {get_scaled_font_size(10)}px;")
+        self.remove_file_btn.clicked.connect(self._remove_selected_file)
+        file_btn_layout.addWidget(self.remove_file_btn)
+        
+        self.clear_files_btn = QPushButton("Clear All")
+        self.clear_files_btn.setStyleSheet(f"background-color: #555555; color: #ffffff; padding: {get_scaled_size(3)}px {get_scaled_size(8)}px; font-size: {get_scaled_font_size(10)}px;")
+        self.clear_files_btn.clicked.connect(self._clear_all_files)
+        file_btn_layout.addWidget(self.clear_files_btn)
+        
+        files_layout.addLayout(file_btn_layout)
+        
+        # File count label
+        self.file_count_label = QLabel("0 files loaded")
+        self.file_count_label.setStyleSheet(f"font-size: {get_scaled_font_size(10)}px; color: #9aa0a6;")
+        files_layout.addWidget(self.file_count_label)
+        
+        files_group.setLayout(files_layout)
+        layout.addWidget(files_group)
+        
+        # Session controls
+        session_group = QGroupBox("Session Controls")
         session_group.setStyleSheet(f"""
             QGroupBox {{
                 font-size: {group_font}px; font-weight: bold; color: #ffffff;
@@ -812,13 +882,163 @@ class DynoTab(QWidget):
                 # Update view
                 self.dyno_view.update_reading(reading)
                 
-                # Update curve
+                # Update curve with all loaded files
                 if self.virtual_dyno.current_curve:
-                    self.dyno_view.update_curve(self.virtual_dyno.current_curve)
+                    if hasattr(self.dyno_view, 'update_all_curves'):
+                        self.dyno_view.update_all_curves(self.virtual_dyno.current_curve)
+                    else:
+                        self.dyno_view.update_curve(self.virtual_dyno.current_curve)
                     
             except Exception as e:
                 import logging
                 logging.getLogger(__name__).error(f"Error updating dyno: {e}")
+    
+    def _load_dyno_file(self) -> None:
+        """Load a dyno file for comparison."""
+        if not self.file_manager:
+            from PySide6.QtWidgets import QMessageBox
+            QMessageBox.warning(self, "Not Available", "Dyno file manager not available.")
+            return
+        
+        from PySide6.QtWidgets import QFileDialog
+        filename, _ = QFileDialog.getOpenFileName(
+            self,
+            "Load Dyno File",
+            "",
+            "Dyno Files (*.csv *.drf *.dyn *.md *.mdx *.sf *.sfd *.lsd *.mln *.frd *.json);;All Files (*)"
+        )
+        
+        if filename:
+            try:
+                loaded_file = self.file_manager.load_file(filename)
+                
+                # Add to graph
+                if hasattr(self, 'dyno_view') and self.dyno_view:
+                    self.dyno_view.add_loaded_file_curve(
+                        str(loaded_file.file_path),
+                        loaded_file.curve,
+                        loaded_file.name,
+                        loaded_file.color,
+                        loaded_file.visible
+                    )
+                
+                # Update file list
+                self._update_file_list()
+                
+                # Update graph if we have live data
+                if self.virtual_dyno and self.virtual_dyno.current_curve:
+                    if hasattr(self.dyno_view, 'update_all_curves'):
+                        self.dyno_view.update_all_curves(self.virtual_dyno.current_curve)
+                
+                from PySide6.QtWidgets import QMessageBox
+                QMessageBox.information(
+                    self,
+                    "File Loaded",
+                    f"Loaded dyno file: {loaded_file.name}\n"
+                    f"Peak HP: {loaded_file.curve.peak_hp_crank:.1f} @ {loaded_file.curve.peak_hp_rpm:.0f} RPM"
+                )
+            except Exception as e:
+                from PySide6.QtWidgets import QMessageBox
+                QMessageBox.critical(self, "Load Failed", f"Failed to load dyno file:\n{str(e)}")
+    
+    def _remove_selected_file(self) -> None:
+        """Remove selected file from list."""
+        if not self.file_manager:
+            return
+        
+        current_item = self.loaded_files_list.currentItem()
+        if not current_item:
+            return
+        
+        file_path = current_item.data(Qt.ItemDataRole.UserRole)
+        if file_path:
+            # Remove from manager
+            self.file_manager.remove_file(file_path)
+            
+            # Remove from graph
+            if hasattr(self, 'dyno_view') and self.dyno_view:
+                self.dyno_view.remove_loaded_file_curve(str(file_path))
+            
+            # Update list
+            self._update_file_list()
+            
+            # Update graph
+            if self.virtual_dyno and self.virtual_dyno.current_curve:
+                if hasattr(self.dyno_view, 'update_all_curves'):
+                    self.dyno_view.update_all_curves(self.virtual_dyno.current_curve)
+    
+    def _clear_all_files(self) -> None:
+        """Clear all loaded files."""
+        if not self.file_manager:
+            return
+        
+        from PySide6.QtWidgets import QMessageBox
+        reply = QMessageBox.question(
+            self,
+            "Clear All Files",
+            "Remove all loaded dyno files?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        
+        if reply == QMessageBox.StandardButton.Yes:
+            # Clear from manager
+            self.file_manager.clear_all()
+            
+            # Clear from graph
+            if hasattr(self, 'dyno_view') and self.dyno_view:
+                self.dyno_view.clear_loaded_files()
+            
+            # Update list
+            self._update_file_list()
+            
+            # Update graph
+            if self.virtual_dyno and self.virtual_dyno.current_curve:
+                if hasattr(self.dyno_view, 'update_all_curves'):
+                    self.dyno_view.update_all_curves(self.virtual_dyno.current_curve)
+    
+    def _on_file_item_double_clicked(self, item) -> None:
+        """Handle double-click on file item (toggle visibility)."""
+        if not self.file_manager:
+            return
+        
+        file_path = item.data(Qt.ItemDataRole.UserRole)
+        if file_path:
+            # Toggle visibility
+            loaded_file = self.file_manager.get_file(file_path)
+            if loaded_file:
+                new_visible = not loaded_file.visible
+                self.file_manager.set_visibility(file_path, new_visible)
+                
+                # Update graph
+                if hasattr(self, 'dyno_view') and self.dyno_view:
+                    self.dyno_view.set_loaded_file_visibility(str(file_path), new_visible)
+                
+                # Update list
+                self._update_file_list()
+    
+    def _update_file_list(self) -> None:
+        """Update the loaded files list widget."""
+        if not self.file_manager:
+            return
+        
+        self.loaded_files_list.clear()
+        
+        for loaded_file in self.file_manager.get_all_files():
+            item = QListWidgetItem()
+            visibility_icon = "✓" if loaded_file.visible else "✗"
+            item.setText(f"{visibility_icon} {loaded_file.name} ({loaded_file.curve.peak_hp_crank:.0f} HP)")
+            item.setData(Qt.ItemDataRole.UserRole, str(loaded_file.file_path))
+            
+            # Set color indicator
+            color_style = f"background-color: {loaded_file.color}; color: white; padding: 2px;"
+            item.setBackground(QColor(loaded_file.color))
+            
+            self.loaded_files_list.addItem(item)
+        
+        # Update count label
+        count = self.file_manager.get_count()
+        available = self.file_manager.get_available_slots()
+        self.file_count_label.setText(f"{count} files loaded ({available} slots available)")
 
 
 __all__ = ["DynoTab"]

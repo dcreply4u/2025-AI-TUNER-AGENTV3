@@ -10,7 +10,7 @@ Beautiful UI for displaying:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Dict
 
 import pyqtgraph as pg
 from PySide6.QtCore import Qt  # type: ignore
@@ -125,6 +125,13 @@ class DynoCurveWidget(QWidget):
         # Comparison curves (for before/after)
         self.comparison_hp_curves: list = []
         self.comparison_torque_curves: list = []
+        
+        # Multiple loaded files tracking
+        self.loaded_file_curves: Dict[str, Dict] = {}  # key: file_path, value: {hp_curve, torque_curve, name, color}
+        
+        # Add legend
+        self.hp_plot.addLegend(offset=(10, 10))
+        self.torque_plot.addLegend(offset=(10, 10))
 
     def update_curve(self, curve: "DynoCurve", color: str = "#00e0ff") -> None:
         """Update dyno curve display."""
@@ -246,6 +253,104 @@ class DynoCurveWidget(QWidget):
             )
             self.comparison_torque_curves.append(torque_curve)
 
+    def add_loaded_file_curve(
+        self, file_path: str, curve: "DynoCurve", name: str, color: str, visible: bool = True
+    ) -> None:
+        """
+        Add a loaded dyno file curve to the graph.
+        
+        Args:
+            file_path: Unique identifier for the file
+            curve: DynoCurve to display
+            name: Display name
+            color: Color for the curve
+            visible: Whether curve is visible
+        """
+        if not curve.readings:
+            return
+
+        readings_with_rpm = [
+            r for r in curve.readings if r.rpm is not None and r.rpm > 0
+        ]
+        if not readings_with_rpm:
+            return
+
+        sorted_readings = sorted(readings_with_rpm, key=lambda x: x.rpm or 0)
+        rpms = [r.rpm for r in sorted_readings if r.rpm]
+        hp_values = [r.horsepower_crank for r in sorted_readings]
+        torque_values = [
+            r.torque_ftlb for r in sorted_readings if r.torque_ftlb is not None
+        ]
+
+        # Remove existing curves for this file if present
+        if file_path in self.loaded_file_curves:
+            self.remove_loaded_file_curve(file_path)
+
+        # Add HP curve
+        hp_curve = None
+        if rpms and hp_values:
+            hp_curve = self.hp_plot.plot(
+                rpms,
+                hp_values,
+                pen=pg.mkPen(color=color, width=2, style=Qt.DashLine),
+                name=name,
+            )
+            if not visible:
+                hp_curve.hide()
+
+        # Add torque curve
+        torque_curve = None
+        if rpms and torque_values and len(torque_values) == len(rpms):
+            torque_curve = self.torque_plot.plot(
+                rpms,
+                torque_values,
+                pen=pg.mkPen(color=color, width=2, style=Qt.DashLine),
+                name=name,
+            )
+            if not visible:
+                torque_curve.hide()
+
+        # Store curve references
+        self.loaded_file_curves[file_path] = {
+            'hp_curve': hp_curve,
+            'torque_curve': torque_curve,
+            'name': name,
+            'color': color,
+            'visible': visible,
+        }
+
+    def remove_loaded_file_curve(self, file_path: str) -> None:
+        """Remove a loaded file curve from the graph."""
+        if file_path in self.loaded_file_curves:
+            curve_data = self.loaded_file_curves[file_path]
+            if curve_data['hp_curve']:
+                self.hp_plot.removeItem(curve_data['hp_curve'])
+            if curve_data['torque_curve']:
+                self.torque_plot.removeItem(curve_data['torque_curve'])
+            del self.loaded_file_curves[file_path]
+
+    def set_loaded_file_visibility(self, file_path: str, visible: bool) -> None:
+        """Set visibility of a loaded file curve."""
+        if file_path in self.loaded_file_curves:
+            curve_data = self.loaded_file_curves[file_path]
+            curve_data['visible'] = visible
+            if curve_data['hp_curve']:
+                if visible:
+                    curve_data['hp_curve'].show()
+                else:
+                    curve_data['hp_curve'].hide()
+            if curve_data['torque_curve']:
+                if visible:
+                    curve_data['torque_curve'].show()
+                else:
+                    curve_data['torque_curve'].hide()
+
+    def clear_loaded_files(self) -> None:
+        """Clear all loaded file curves."""
+        file_paths = list(self.loaded_file_curves.keys())
+        for file_path in file_paths:
+            self.remove_loaded_file_curve(file_path)
+
     def clear_comparisons(self) -> None:
         """Clear all comparison curves."""
         for curve in self.comparison_hp_curves:
@@ -254,6 +359,54 @@ class DynoCurveWidget(QWidget):
             self.torque_plot.removeItem(curve)
         self.comparison_hp_curves.clear()
         self.comparison_torque_curves.clear()
+        
+    def update_all_curves(self, live_curve: "DynoCurve") -> None:
+        """
+        Update all curves including live data and loaded files.
+        Updates Y-axis ranges to accommodate all visible curves.
+        """
+        # Update live curve
+        self.update_curve(live_curve)
+        
+        # Update Y ranges to accommodate all curves
+        all_hp_values = []
+        all_torque_values = []
+        all_rpms = []
+        
+        # Collect from live curve
+        if live_curve.readings:
+            readings_with_rpm = [r for r in live_curve.readings if r.rpm is not None and r.rpm > 0]
+            if readings_with_rpm:
+                all_hp_values.extend([r.horsepower_crank for r in readings_with_rpm])
+                all_torque_values.extend([r.torque_ftlb for r in readings_with_rpm if r.torque_ftlb])
+                all_rpms.extend([r.rpm for r in readings_with_rpm if r.rpm])
+        
+        # Collect from loaded files
+        for curve_data in self.loaded_file_curves.values():
+            if curve_data['visible'] and curve_data['hp_curve']:
+                # Get data from curve (pyqtgraph stores data)
+                if hasattr(curve_data['hp_curve'], 'xData') and hasattr(curve_data['hp_curve'], 'yData'):
+                    hp_data = curve_data['hp_curve'].yData
+                    rpm_data = curve_data['hp_curve'].xData
+                    if hp_data is not None and rpm_data is not None:
+                        all_hp_values.extend(hp_data)
+                        all_rpms.extend(rpm_data)
+                if curve_data['torque_curve'] and hasattr(curve_data['torque_curve'], 'yData'):
+                    torque_data = curve_data['torque_curve'].yData
+                    if torque_data is not None:
+                        all_torque_values.extend(torque_data)
+        
+        # Update Y ranges
+        if all_hp_values:
+            max_hp = max(all_hp_values)
+            self.hp_plot.setYRange(0, max_hp * 1.15)
+        if all_torque_values:
+            max_torque = max(all_torque_values)
+            self.torque_plot.setYRange(0, max_torque * 1.15)
+        if all_rpms:
+            max_rpm = max(all_rpms)
+            self.hp_plot.setXRange(0, max_rpm * 1.05)
+            self.torque_plot.setXRange(0, max_rpm * 1.05)
 
 
 class VirtualDynoView(QWidget):
