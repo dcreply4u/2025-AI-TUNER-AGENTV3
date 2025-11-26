@@ -878,6 +878,11 @@ class MainWindow(QWidget):
         weather_tune_btn.clicked.connect(self._open_weather_adaptive_tuning)
         tuning_layout.addWidget(weather_tune_btn)
         
+        vbox_btn = QPushButton("📡 VBOX Features")
+        vbox_btn.setStyleSheet("background-color: #16a085;")
+        vbox_btn.clicked.connect(self._open_vbox_features)
+        tuning_layout.addWidget(vbox_btn)
+        
         tuning_layout.addStretch()
         self.bottom_tabs.addTab(tuning_tab, "⚙️ Tuning")
 
