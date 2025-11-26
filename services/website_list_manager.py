@@ -100,10 +100,11 @@ class WebsiteListManager:
                 "category": "forum"
             },
             {
-                "url": "https://www.bimmerforums.com/forum/forumdisplay.php?352-Engine-Tuning",
-                "name": "BimmerForums Engine Tuning",
-                "description": "BMW engine tuning forum",
-                "category": "forum"
+                "url": "https://www.bimmerforums.com/forum/",
+                "name": "BimmerForums",
+                "description": "BMW engine tuning and modification forum",
+                "category": "forum",
+                "metadata": {"subforum": "Engine Tuning"}
             },
             {
                 "url": "https://www.torquecars.com/forums/",
