@@ -18,10 +18,12 @@ try:
     from services.website_ingestion_service import WebsiteIngestionService
     from services.knowledge_base_manager import KnowledgeBaseManager
     from services.web_search_service import WebSearchService
+    from services.knowledge_base_file_manager import KnowledgeBaseFileManager
     SERVICES_AVAILABLE = True
 except ImportError as e:
     SERVICES_AVAILABLE = False
     LOGGER.warning(f"Services not available: {e}")
+    KnowledgeBaseFileManager = None
 
 
 class AutoKnowledgePopulator:
@@ -41,6 +43,7 @@ class AutoKnowledgePopulator:
         website_ingestion_service: Optional[WebsiteIngestionService] = None,
         knowledge_base_manager: Optional[KnowledgeBaseManager] = None,
         web_search_service: Optional[WebSearchService] = None,
+        kb_file_manager: Optional[KnowledgeBaseFileManager] = None,
         auto_populate_enabled: bool = True,
         confidence_threshold: float = 0.5,
         min_gap_frequency: int = 2
@@ -53,6 +56,7 @@ class AutoKnowledgePopulator:
             website_ingestion_service: Service for forum search
             knowledge_base_manager: Knowledge base manager
             web_search_service: Web search service
+            kb_file_manager: KB file manager for saving learned knowledge
             auto_populate_enabled: Enable automatic population
             confidence_threshold: Minimum confidence to trigger auto-population
             min_gap_frequency: Minimum gap frequency before auto-populating
@@ -64,6 +68,7 @@ class AutoKnowledgePopulator:
         self.website_ingestion_service = website_ingestion_service
         self.knowledge_base_manager = knowledge_base_manager
         self.web_search_service = web_search_service
+        self.kb_file_manager = kb_file_manager or (KnowledgeBaseFileManager() if KnowledgeBaseFileManager else None)
         self.auto_populate_enabled = auto_populate_enabled
         self.confidence_threshold = confidence_threshold
         self.min_gap_frequency = min_gap_frequency
@@ -193,23 +198,55 @@ class AutoKnowledgePopulator:
                 LOGGER.info("Trying web search...")
                 search_results = self.web_search_service.search(question, max_results=3)
                 
-                if search_results:
-                    # Add top results to knowledge base
+                if search_results and search_results.results:
+                    # Extract answer from top result
+                    top_result = search_results.results[0]
+                    answer_text = ""
+                    
+                    if top_result:
+                        # Combine title and snippet for answer
+                        answer_text = f"{top_result.title}\n\n{top_result.snippet}"
+                        
+                        # Save to KB file for user review
+                        if self.kb_file_manager:
+                            try:
+                                # Extract topic from question
+                                topic = self._extract_topic(question)
+                                
+                                # Extract keywords
+                                keywords = self._extract_keywords(question)
+                                
+                                self.kb_file_manager.add_entry(
+                                    question=question,
+                                    answer=answer_text,
+                                    source="auto_populate",
+                                    url=top_result.url,
+                                    title=top_result.title,
+                                    confidence=0.7,  # Medium confidence for auto-populated
+                                    keywords=keywords,
+                                    topic=topic,
+                                    verified=False  # User should verify
+                                )
+                                LOGGER.info(f"Saved learned knowledge to KB file: {question[:50]}...")
+                            except Exception as e:
+                                LOGGER.warning(f"Failed to save to KB file: {e}")
+                    
+                    # Add top results to knowledge base (vector store)
                     if self.knowledge_base_manager:
-                        for result in search_results[:2]:
+                        for result in search_results.results[:2]:
                             try:
                                 chunks = self.knowledge_base_manager.add_website(
-                                    result.get("url", ""),
+                                    result.url,
                                     metadata={
                                         "source": "auto_populate",
                                         "search_query": question,
-                                        "title": result.get("title", "")
+                                        "title": result.title
                                     }
                                 )
                                 chunks_added = chunks.get("chunks_added", 0)
                                 if chunks_added > 0:
                                     results["chunks_added"] += chunks_added
-                                    results["sources_tried"].append(f"web:{result.get('url', '')[:50]}")
+                                    results["sources_tried"].append(f"web:{result.url[:50]}")
                                     results["success"] = True
                             except Exception as e:
                                 results["errors"].append(f"Web add error: {e}")
@@ -224,6 +261,37 @@ class AutoKnowledgePopulator:
             LOGGER.warning(f"Auto-population failed for: {question[:50]}")
         
         return results
+    
+    def _extract_topic(self, question: str) -> str:
+        """Extract topic category from question."""
+        question_lower = question.lower()
+        
+        # Topic keywords
+        topics = {
+            "ECU Tuning": ["ecu", "tune", "tuning", "map", "calibration"],
+            "Fuel System": ["fuel", "pressure", "injector", "pump", "afr"],
+            "Boost Control": ["boost", "turbo", "supercharger", "psi", "bar"],
+            "Ignition": ["spark", "timing", "ignition", "coil"],
+            "Engine": ["engine", "rpm", "hp", "torque", "power"],
+            "Diagnostics": ["error", "code", "fault", "diagnostic", "problem"],
+            "Hardware": ["sensor", "ecu", "module", "hardware", "component"],
+            "General": []  # Default
+        }
+        
+        for topic, keywords in topics.items():
+            if any(kw in question_lower for kw in keywords):
+                return topic
+        
+        return "General"
+    
+    def _extract_keywords(self, question: str) -> List[str]:
+        """Extract keywords from question."""
+        # Simple keyword extraction (can be enhanced)
+        words = question.lower().split()
+        # Remove common words
+        stop_words = {"what", "is", "the", "a", "an", "how", "do", "does", "can", "should", "when", "where", "why"}
+        keywords = [w for w in words if len(w) > 3 and w not in stop_words]
+        return keywords[:10]  # Top 10 keywords
     
     def get_stats(self) -> Dict[str, Any]:
         """

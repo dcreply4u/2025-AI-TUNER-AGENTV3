@@ -242,16 +242,26 @@ class RAGAIAdvisor:
                 if self.web_search:
                     web_search = self.web_search
                 
+                # Initialize KB file manager for saving learned knowledge
+                kb_file_manager = None
+                try:
+                    from services.knowledge_base_file_manager import KnowledgeBaseFileManager
+                    kb_file_manager = KnowledgeBaseFileManager(auto_save=True)
+                    LOGGER.info("KB file manager initialized for saving learned knowledge")
+                except Exception as e:
+                    LOGGER.warning(f"KB file manager not available: {e}")
+                
                 self.auto_populator = AutoKnowledgePopulator(
                     learning_system=self.learning_system,
                     website_ingestion_service=self.website_ingestion_service,
                     knowledge_base_manager=self.knowledge_base_manager,
                     web_search_service=web_search,
+                    kb_file_manager=kb_file_manager,
                     auto_populate_enabled=True,
                     confidence_threshold=0.5,
-                    min_gap_frequency=2  # Auto-populate after 2 occurrences
+                    min_gap_frequency=1  # Auto-populate immediately (user wants instant learning)
                 )
-                LOGGER.info("Auto knowledge populator initialized")
+                LOGGER.info("Auto knowledge populator initialized with KB file saving")
             except Exception as e:
                 LOGGER.warning(f"Auto knowledge populator not available: {e}")
         
@@ -522,6 +532,7 @@ You use the provided context to answer questions accurately. Be concise but thor
         
         # Auto-populate knowledge if confidence is low
         auto_populate_result = None
+        # Auto-populate if confidence is low (system doesn't know the answer well)
         if self.auto_populator and confidence < 0.5:
             try:
                 auto_populate_result = self.auto_populator.check_and_populate(
@@ -530,7 +541,11 @@ You use the provided context to answer questions accurately. Be concise but thor
                     answer=answer
                 )
                 if auto_populate_result.get("success"):
-                    LOGGER.info(f"Auto-populated {auto_populate_result.get('chunks_added', 0)} chunks")
+                    chunks_added = auto_populate_result.get("chunks_added", 0)
+                    LOGGER.info(f"Auto-populated {chunks_added} chunks and saved to KB file")
+                    # Add note to answer that knowledge was learned
+                    if chunks_added > 0:
+                        answer += "\n\n💡 I've learned about this topic and saved it for future reference. You can review/edit it in the KB files."
             except Exception as e:
                 LOGGER.debug(f"Auto-population check failed: {e}")
         

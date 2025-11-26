@@ -37,6 +37,13 @@ except ImportError:
     GOOGLESEARCH_AVAILABLE = False
     googlesearch = None  # type: ignore
 
+try:
+    from services.google_search_service import GoogleSearchService
+    GOOGLE_API_AVAILABLE = True
+except ImportError:
+    GOOGLE_API_AVAILABLE = False
+    GoogleSearchService = None  # type: ignore
+
 
 @dataclass
 class SearchResult:
@@ -74,16 +81,29 @@ class WebSearchService:
     - Graceful offline fallback
     """
     
-    def __init__(self, enable_search: bool = True):
+    def __init__(self, enable_search: bool = True, prefer_google: bool = True):
         """
         Initialize web search service.
         
         Args:
             enable_search: Enable web search (can be disabled for offline mode)
+            prefer_google: Prefer Google API over DuckDuckGo (if available)
         """
         self.enable_search = enable_search
+        self.prefer_google = prefer_google
         self.has_internet = False
         self.search_available = False
+        self.google_search = None
+        
+        # Initialize Google Search if available
+        if GOOGLE_API_AVAILABLE and prefer_google:
+            try:
+                self.google_search = GoogleSearchService()
+                if self.google_search.is_available:
+                    LOGGER.info("Google Search API available")
+            except Exception as e:
+                LOGGER.warning(f"Google Search API initialization failed: {e}")
+        
         self._check_availability()
         
         # Result cache (simple in-memory cache)
@@ -176,7 +196,25 @@ class WebSearchService:
         """Perform actual web search using available search engine."""
         results = []
         
-        # Try DuckDuckGo first (no API key required)
+        # Try Google Custom Search API first (if available and preferred)
+        if self.google_search and self.google_search.is_available and not self.google_search.quota_exceeded:
+            try:
+                google_results = self.google_search.search(query, max_results=max_results)
+                if google_results:
+                    for result in google_results:
+                        results.append(SearchResult(
+                            title=result.title,
+                            url=result.url,
+                            snippet=result.snippet,
+                            source=result.source,
+                        ))
+                    if results:
+                        LOGGER.info("Found %d results via Google API for: %s", len(results), query)
+                        return results
+            except Exception as e:
+                LOGGER.debug("Google API search failed: %s", e)
+        
+        # Fallback to DuckDuckGo (no API key required, unlimited)
         if DUCKDUCKGO_AVAILABLE:
             try:
                 with DDGS() as ddgs:
@@ -194,7 +232,7 @@ class WebSearchService:
             except Exception as e:
                 LOGGER.debug("DuckDuckGo search failed: %s", e)
         
-        # Fallback to Google search
+        # Fallback to Google search library (scraping - not recommended)
         if GOOGLESEARCH_AVAILABLE and not results:
             try:
                 google_results = googlesearch.search(query, num_results=max_results)
@@ -204,18 +242,13 @@ class WebSearchService:
                         title=url,
                         url=url,
                         snippet="",
-                        source="Google",
+                        source="Google (scraped)",
                     ))
                 if results:
-                    LOGGER.info("Found %d results via Google for: %s", len(results), query)
+                    LOGGER.info("Found %d results via Google scraping for: %s", len(results), query)
                     return results
             except Exception as e:
                 LOGGER.debug("Google search failed: %s", e)
-        
-        # Fallback: Direct API call (if requests available)
-        if REQUESTS_AVAILABLE and not results:
-            # Could implement direct API calls here
-            pass
         
         return results
     
@@ -277,6 +310,23 @@ class WebSearchService:
             # General component query
             query = f"{item} {item_type} specifications technical details"
         
+        # Use Google API for specification lookups (better quality)
+        if self.google_search and self.google_search.is_available:
+            try:
+                google_results = self.google_search.search(query, max_results=5)
+                if google_results:
+                    search_results = [
+                        SearchResult(
+                            title=r.title,
+                            url=r.url,
+                            snippet=r.snippet,
+                            source=r.source
+                        ) for r in google_results
+                    ]
+                    return ResearchResult(query=query, results=search_results)
+            except Exception as e:
+                LOGGER.debug("Google API lookup failed, falling back: %s", e)
+        
         return self.search(query, max_results=5)  # Increased from 3 to 5 for better results
     
     def find_troubleshooting_info(self, issue: str) -> Optional[ResearchResult]:
@@ -298,7 +348,15 @@ class WebSearchService:
     def clear_cache(self) -> None:
         """Clear the search result cache."""
         self._cache.clear()
+        if self.google_search:
+            self.google_search.clear_cache()
         LOGGER.info("Web search cache cleared")
+    
+    def get_google_quota_status(self) -> Optional[Dict[str, Any]]:
+        """Get Google Search API quota status."""
+        if self.google_search:
+            return self.google_search.get_quota_status()
+        return None
 
 
 __all__ = ["WebSearchService", "SearchResult", "ResearchResult"]
