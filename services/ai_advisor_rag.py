@@ -194,6 +194,15 @@ class RAGAIAdvisor:
             except Exception as e:
                 LOGGER.debug(f"Conversation manager not available: {e}")
         
+        # Initialize reasoning engine for advanced reasoning
+        try:
+            from services.ai_advisor_reasoning import ReasoningEngine
+            self.reasoning_engine = ReasoningEngine()
+            LOGGER.info("Advanced reasoning engine initialized")
+        except Exception as e:
+            LOGGER.warning(f"Reasoning engine not available: {e}")
+            self.reasoning_engine = None
+        
         # Conversation history
         self.conversation_history: List[ChatMessage] = []
         
@@ -265,7 +274,7 @@ class RAGAIAdvisor:
             except Exception as e:
                 LOGGER.warning(f"Auto knowledge populator not available: {e}")
         
-        # System prompt for LLM
+        # Enhanced system prompt with advanced reasoning
         self.system_prompt = """You are Q, an expert automotive tuning advisor with deep knowledge of:
 - ECU tuning (fuel maps, ignition timing, boost control)
 - Engine diagnostics and troubleshooting
@@ -273,8 +282,24 @@ class RAGAIAdvisor:
 - Safety and protection systems
 - Racing and motorsport applications
 
-You provide accurate, technical, and helpful advice. When you don't know something, you say so clearly.
-You use the provided context to answer questions accurately. Be concise but thorough."""
+**Your Thinking Process:**
+1. **Analyze the question** - Understand what the user is really asking
+2. **Gather information** - Use all available context (knowledge base, web search, telemetry, conversation history)
+3. **Reason step-by-step** - Think through the problem logically
+4. **Synthesize** - Combine information from multiple sources intelligently
+5. **Validate** - Check your answer makes sense and is accurate
+6. **Respond** - Provide clear, technical, and helpful advice
+
+**Guidelines:**
+- Use chain-of-thought reasoning for complex questions
+- Cross-reference multiple sources when available
+- Consider telemetry data when relevant
+- Remember conversation context
+- If information conflicts, explain the discrepancy
+- When uncertain, say so and explain what you do know
+- Be concise but thorough
+- Use technical terminology appropriately
+- Prioritize safety in all recommendations"""
 
         LOGGER.info("RAG AI Advisor initialized (LLM: %s, Vector Store: %s, Web Search: %s)",
                    self.llm_available, self.vector_store is not None, self.web_search is not None)
@@ -341,6 +366,15 @@ You use the provided context to answer questions accurately. Be concise but thor
         
         question = question.strip()
         start_time = time.time()
+        
+        # Step 0: Analyze question with reasoning engine
+        question_analysis = None
+        if self.reasoning_engine:
+            try:
+                question_analysis = self.reasoning_engine.analyze_question(question)
+                LOGGER.debug(f"Question analysis: {question_analysis}")
+            except Exception as e:
+                LOGGER.debug(f"Question analysis failed: {e}")
         
         # Get telemetry if provider available
         if not telemetry and self.telemetry_provider:
@@ -474,13 +508,47 @@ You use the provided context to answer questions accurately. Be concise but thor
             conversation_history=self.conversation_history[-3:]  # Last 3 messages
         )
         
-        # Step 4: Generate response
+        # Step 4: Synthesize sources (if reasoning engine available)
+        synthesis = None
+        if self.reasoning_engine and (retrieved_knowledge or web_search_results):
+            try:
+                synthesis = self.reasoning_engine.synthesize_sources(
+                    retrieved_knowledge,
+                    web_search_results or [],
+                    question
+                )
+                LOGGER.debug(f"Source synthesis: {len(synthesis.get('main_points', []))} main points")
+                # Add synthesis to context
+                if synthesis.get("main_points"):
+                    context_text += f"\n\n=== SYNTHESIS ===\nMain Points:\n" + "\n".join(f"- {p}" for p in synthesis.get("main_points", [])[:3])
+                if synthesis.get("conflicts"):
+                    context_text += f"\n\n⚠️ Conflicts Detected:\n" + "\n".join(f"- {c}" for c in synthesis.get("conflicts", []))
+            except Exception as e:
+                LOGGER.debug(f"Source synthesis failed: {e}")
+        
+        # Step 5: Generate response
         if self.llm_available:
-            answer = self._generate_llm_response(question, context_text)
+            answer = self._generate_llm_response(question, context_text, question_analysis)
         else:
             answer = self._generate_template_response(question, retrieved_knowledge, web_search_results)
         
-        # Step 5: Post-process response
+        # Step 6: Validate answer (if reasoning engine available)
+        if self.reasoning_engine:
+            try:
+                validation = self.reasoning_engine.validate_answer(
+                    answer,
+                    question,
+                    sources
+                )
+                if validation.get("warnings"):
+                    warnings.extend(validation.get("warnings", []))
+                if validation.get("missing_info") and not answer.endswith("?"):
+                    answer += "\n\n(Note: This answer may benefit from additional context)"
+                LOGGER.debug(f"Answer validation: {validation}")
+            except Exception as e:
+                LOGGER.debug(f"Answer validation failed: {e}")
+        
+        # Step 7: Post-process response
         answer = self._post_process_response(answer, question)
         
         # Step 6: Calculate confidence
@@ -582,80 +650,183 @@ You use the provided context to answer questions accurately. Be concise but thor
         telemetry: Optional[Dict[str, float]],
         conversation_history: List[ChatMessage]
     ) -> str:
-        """Build context string for LLM."""
+        """Build enhanced context string for LLM with better organization."""
         context_parts = []
         
-        # Add retrieved knowledge
+        # Add retrieved knowledge with relevance scores
         if retrieved_knowledge:
-            context_parts.append("Relevant Knowledge:")
-            for i, item in enumerate(retrieved_knowledge[:3], 1):
-                context_parts.append(f"{i}. {item['text'][:500]}")
-                if item.get('metadata', {}).get('topic'):
-                    context_parts.append(f"   (Topic: {item['metadata']['topic']})")
+            context_parts.append("=== KNOWLEDGE BASE ===")
+            for i, item in enumerate(retrieved_knowledge[:5], 1):  # More results for better synthesis
+                similarity = item.get('similarity', 0)
+                text = item.get('text', '')[:600]  # More text for context
+                metadata = item.get('metadata', {})
+                topic = metadata.get('topic', 'General')
+                source = metadata.get('source', 'knowledge_base')
+                
+                context_parts.append(f"\n[{i}] Relevance: {similarity:.2f} | Topic: {topic} | Source: {source}")
+                context_parts.append(f"Content: {text}")
         
-        # Add web search results
+        # Add web search results with source attribution
         if web_search_results:
-            context_parts.append("\nWeb Research:")
-            for i, result in enumerate(web_search_results[:2], 1):
+            context_parts.append("\n=== WEB RESEARCH ===")
+            for i, result in enumerate(web_search_results[:3], 1):  # More web results
                 title = result.get("title", "")
                 snippet = result.get("snippet", "")
-                context_parts.append(f"{i}. {title}")
-                context_parts.append(f"   {snippet[:300]}")
+                url = result.get("url", "")
+                source = result.get("source", "web")
+                
+                context_parts.append(f"\n[{i}] {title} (Source: {source})")
+                context_parts.append(f"URL: {url}")
+                context_parts.append(f"Summary: {snippet[:400]}")  # More snippet text
         
-        # Add telemetry if relevant
+        # Add telemetry with analysis hints
         if telemetry and self._is_telemetry_relevant(question):
-            context_parts.append("\nCurrent Vehicle Data:")
+            context_parts.append("\n=== CURRENT VEHICLE TELEMETRY ===")
             telemetry_str = self._format_telemetry(telemetry)
             context_parts.append(telemetry_str)
+            
+            # Add analysis hints for telemetry
+            if any(k in question.lower() for k in ['boost', 'pressure', 'psi', 'bar']):
+                boost = telemetry.get('boost', telemetry.get('boost_pressure', 0))
+                if boost:
+                    context_parts.append(f"\nBoost Analysis: Current boost is {boost} PSI")
+            
+            if any(k in question.lower() for k in ['afr', 'lambda', 'fuel', 'air']):
+                afr = telemetry.get('afr', telemetry.get('lambda', 0))
+                if afr:
+                    context_parts.append(f"\nAFR Analysis: Current AFR is {afr}")
         
-        # Add recent conversation context
+        # Add conversation history with more context
         if conversation_history:
-            context_parts.append("\nRecent Conversation:")
-            for msg in conversation_history[-2:]:  # Last 2 messages
-                role = "User" if msg.role == "user" else "Assistant"
-                context_parts.append(f"{role}: {msg.content[:200]}")
+            context_parts.append("\n=== CONVERSATION CONTEXT ===")
+            # Include more history for better context
+            for msg in conversation_history[-4:]:  # Last 4 messages for better context
+                role = "User" if msg.role == "user" else "Assistant (Q)"
+                content = msg.content[:300]  # More context
+                context_parts.append(f"{role}: {content}")
+        
+        # Add question analysis hints
+        context_parts.append(f"\n=== QUESTION ANALYSIS ===")
+        question_lower = question.lower()
+        
+        # Detect question type
+        if any(k in question_lower for k in ['what is', "what's", 'define']):
+            context_parts.append("Question Type: Definition/Explanation")
+        elif any(k in question_lower for k in ['how', 'why']):
+            context_parts.append("Question Type: Process/Reasoning")
+        elif any(k in question_lower for k in ['should', 'recommend', 'best', 'optimal']):
+            context_parts.append("Question Type: Recommendation/Advice")
+        elif any(k in question_lower for k in ['problem', 'issue', 'error', 'fault']):
+            context_parts.append("Question Type: Troubleshooting")
+        else:
+            context_parts.append("Question Type: General Inquiry")
         
         return "\n".join(context_parts)
     
-    def _generate_llm_response(self, question: str, context: str) -> str:
-        """Generate response using LLM."""
+    def _generate_llm_response(self, question: str, context: str, question_analysis: Optional[Dict[str, Any]] = None) -> str:
+        """Generate response using LLM with enhanced reasoning."""
         if self.use_local_llm and OLLAMA_AVAILABLE:
-            return self._generate_ollama_response(question, context)
+            return self._generate_ollama_response(question, context, question_analysis)
         elif self.use_openai and OPENAI_AVAILABLE:
-            return self._generate_openai_response(question, context)
+            return self._generate_openai_response(question, context, question_analysis)
         else:
             return "I'm unable to generate a response. Please check LLM configuration."
     
-    def _generate_ollama_response(self, question: str, context: str) -> str:
-        """Generate response using Ollama."""
+    def _generate_ollama_response(self, question: str, context: str, question_analysis: Optional[Dict[str, Any]] = None) -> str:
+        """Generate response using Ollama with advanced reasoning."""
         try:
-            # Build prompt
-            prompt = f"""Context:
+            # Build reasoning chain if analysis available
+            reasoning_hint = ""
+            if question_analysis and self.reasoning_engine:
+                try:
+                    reasoning_chain = self.reasoning_engine.generate_reasoning_chain(question, question_analysis)
+                    reasoning_hint = f"\n\nReasoning Framework:\n{reasoning_chain}\n"
+                except Exception as e:
+                    LOGGER.debug(f"Failed to generate reasoning chain: {e}")
+            
+            # Enhanced prompt with chain-of-thought reasoning
+            prompt = f"""Context Information:
 {context}
+{reasoning_hint}
+User Question: {question}
 
-Question: {question}
+**Think through this step-by-step:**
 
-Answer the question using the context provided. Be accurate, technical, and helpful."""
+1. **What is the user really asking?** (Analyze the intent and key concepts)
+   - Question type: {question_analysis.get('question_type', 'general') if question_analysis else 'general'}
+   - Key terms: {', '.join(question_analysis.get('key_terms', [])[:5]) if question_analysis else 'N/A'}
 
-            # Generate response
+2. **What information do I have?** (Review the context - knowledge base, web search, telemetry, conversation history)
+   - Multiple sources available - synthesize them intelligently
+   - Look for patterns and relationships
+   - Note any conflicts or contradictions
+
+3. **How do I connect the information?** (Synthesize multiple sources, identify relationships)
+   - Combine information from different sources
+   - Identify the most relevant and reliable information
+   - Build a coherent understanding
+
+4. **What's the best answer?** (Reason logically, consider edge cases, prioritize accuracy)
+   - Use technical knowledge appropriately
+   - Consider safety implications
+   - Be specific and actionable when possible
+
+5. **Is my answer complete and accurate?** (Self-check: Does it make sense? Am I missing anything?)
+   - Verify the answer addresses the question
+   - Check for completeness
+   - Note any uncertainties
+
+Now provide your answer. Be thorough, technical, and helpful. If you're uncertain about anything, explain what you know and what you're not sure about."""
+
+            # Generate response with better parameters for reasoning
             response = ollama.generate(
                 model=self.llm_model,
                 prompt=prompt,
                 system=self.system_prompt,
                 options={
-                    "temperature": 0.7,
+                    "temperature": 0.6,  # Slightly lower for more focused reasoning
                     "top_p": 0.9,
-                    "num_predict": 500,  # Limit response length
+                    "num_predict": 800,  # More tokens for detailed reasoning
+                    "repeat_penalty": 1.1,  # Reduce repetition
                 }
             )
             
             answer = response.get("response", "").strip()
             
-            # Clean up response
-            if answer.startswith("Answer:"):
-                answer = answer[7:].strip()
+            # Clean up response - remove thinking process if it's too verbose
+            lines = answer.split('\n')
+            # Skip lines that are clearly part of thinking process
+            cleaned_lines = []
+            skip_thinking = False
+            for line in lines:
+                if line.strip().startswith('**') and ('Think' in line or 'Step' in line):
+                    skip_thinking = True
+                elif skip_thinking and (line.strip() == '' or not line.strip().startswith('**')):
+                    skip_thinking = False
+                    if line.strip():
+                        cleaned_lines.append(line)
+                elif not skip_thinking:
+                    cleaned_lines.append(line)
             
-            return answer
+            answer = '\n'.join(cleaned_lines).strip()
+            
+            # Remove thinking markers if present
+            if answer.startswith("**"):
+                # Find first non-markdown line
+                for i, line in enumerate(answer.split('\n')):
+                    if not line.strip().startswith('**') and line.strip():
+                        answer = '\n'.join(answer.split('\n')[i:]).strip()
+                        break
+            
+            # Clean up common prefixes
+            for prefix in ["Answer:", "Response:", "Based on", "Here's"]:
+                if answer.startswith(prefix):
+                    answer = answer[len(prefix):].strip()
+                    if answer.startswith(':'):
+                        answer = answer[1:].strip()
+                    break
+            
+            return answer if answer else "I need more information to answer that question accurately."
             
         except Exception as e:
             LOGGER.error(f"Ollama generation failed: {e}")

@@ -264,6 +264,13 @@ class MainWindow(QWidget):
         self.health_widget = HealthScoreWidget()
         self.health_widget.setFixedHeight(100)  # Compact fixed height
         
+        # AI Advisor Chat Widget (Q) - moved to main panel for more space
+        self.ai_advisor_widget = AIAdvisorWidget()
+        self.ai_advisor_widget.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Preferred,
+        )
+        
         self.ai_panel = AIInsightPanel()
         self.ai_panel.setFixedHeight(120)  # Compact fixed height
 
@@ -537,10 +544,12 @@ class MainWindow(QWidget):
         # Column composition
         # ------------------------------------------------------------------
         # Left: primary telemetry stack - use stretch=0 for fixed-size widgets
-        left_column.setSpacing(8)
+        left_column.setSpacing(0)  # No spacing for very tight layout
         left_column.addWidget(self.telemetry_panel, 0)  # Telemetry graphs - fixed height
         left_column.addWidget(self.drag_mode_panel, 0)  # Dodge Charger Drag Mode
         left_column.addWidget(self.health_widget, 0)  # Engine Health
+        # No spacing before AI Advisor - extremely tight
+        left_column.addWidget(self.ai_advisor_widget, 1)  # AI Chat Advisor - more space in main panel
         left_column.addWidget(self.ai_panel, 0)  # AI Insights
         left_column.addWidget(self.gps_track_panel, 0)  # GPS/Map at bottom
         left_column.addStretch(1)  # Push everything up
@@ -556,30 +565,6 @@ class MainWindow(QWidget):
         gauge_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         gauge_layout.addWidget(self.gauge_panel, 0, Qt.AlignmentFlag.AlignCenter)
         right_column.addWidget(gauge_group, 0)
-
-        # 0.25) AI Advisor Chat Widget (Q) - compact version
-        advisor_group = QGroupBox("🤖 Q - AI Advisor")
-        advisor_group.setStyleSheet("""
-            QGroupBox {
-                background-color: #ffffff;
-                border: 1px solid #bdc3c7;
-                border-radius: 8px;
-                font-weight: bold;
-                font-size: 11px;
-                color: #2c3e50;
-            }
-            QGroupBox::title {
-                subcontrol-origin: margin;
-                left: 10px;
-                padding: 0 5px;
-            }
-        """)
-        advisor_group.setFixedHeight(280)
-        advisor_layout = QVBoxLayout(advisor_group)
-        advisor_layout.setContentsMargins(6, 10, 6, 6)
-        self.ai_advisor_widget = AIAdvisorWidget()
-        advisor_layout.addWidget(self.ai_advisor_widget)
-        right_column.addWidget(advisor_group, 0)
 
         # 0.5) Wheel Slip Monitor (drag racing)
         slip_group = QGroupBox("🏁 Wheel Slip Monitor")

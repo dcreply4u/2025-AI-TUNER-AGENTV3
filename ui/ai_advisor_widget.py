@@ -5,10 +5,10 @@ Chat widget for AI advisor that answers questions about the software
 
 from __future__ import annotations
 
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
-from PySide6.QtCore import Qt, QTimer, Signal
-from PySide6.QtGui import QFont, QTextCharFormat, QColor
+from PySide6.QtCore import Qt, QTimer, Signal, QUrl
+from PySide6.QtGui import QFont, QTextCharFormat, QColor, QAction, QKeySequence, QPixmap, QImage
 from PySide6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -20,7 +20,13 @@ from PySide6.QtWidgets import (
     QListWidget,
     QListWidgetItem,
     QSizePolicy,
+    QToolBar,
+    QFileDialog,
+    QMessageBox,
+    QMenu,
 )
+from pathlib import Path
+import logging
 
 from ui.ui_scaling import UIScaler, get_scaled_size, get_scaled_font_size
 from ui.racing_ui_theme import get_racing_stylesheet, RacingColor
@@ -238,9 +244,74 @@ class AIAdvisorWidget(QWidget):
         
         main_layout.addLayout(header_layout)
         
+        # Toolbar with functions
+        toolbar_layout = QHBoxLayout()
+        toolbar_layout.setSpacing(4)
+        
+        # Cut button
+        cut_btn = QPushButton("✂️ Cut")
+        cut_btn.setToolTip("Cut selected text")
+        cut_btn.setStyleSheet(self._get_toolbar_button_style())
+        cut_btn.clicked.connect(self._cut_text)
+        toolbar_layout.addWidget(cut_btn)
+        
+        # Copy button
+        copy_btn = QPushButton("📋 Copy")
+        copy_btn.setToolTip("Copy selected text")
+        copy_btn.setStyleSheet(self._get_toolbar_button_style())
+        copy_btn.clicked.connect(self._copy_text)
+        toolbar_layout.addWidget(copy_btn)
+        
+        # Paste button
+        paste_btn = QPushButton("📄 Paste")
+        paste_btn.setToolTip("Paste text")
+        paste_btn.setStyleSheet(self._get_toolbar_button_style())
+        paste_btn.clicked.connect(self._paste_text)
+        toolbar_layout.addWidget(paste_btn)
+        
+        toolbar_layout.addSpacing(8)
+        
+        # Image button
+        image_btn = QPushButton("🖼️ Image")
+        image_btn.setToolTip("Insert image")
+        image_btn.setStyleSheet(self._get_toolbar_button_style())
+        image_btn.clicked.connect(self._insert_image)
+        toolbar_layout.addWidget(image_btn)
+        
+        # Voice button
+        self.voice_btn = QPushButton("🎤 Voice")
+        self.voice_btn.setToolTip("Voice input")
+        self.voice_btn.setStyleSheet(self._get_toolbar_button_style())
+        self.voice_btn.clicked.connect(self._toggle_voice)
+        self.voice_recording = False
+        toolbar_layout.addWidget(self.voice_btn)
+        
+        # Upload file button
+        upload_btn = QPushButton("📁 Upload")
+        upload_btn.setToolTip("Upload file")
+        upload_btn.setStyleSheet(self._get_toolbar_button_style())
+        upload_btn.clicked.connect(self._upload_file)
+        toolbar_layout.addWidget(upload_btn)
+        
+        toolbar_layout.addSpacing(8)
+        
+        # Search button
+        search_btn = QPushButton("🔍 Search")
+        search_btn.setToolTip("Search in chat")
+        search_btn.setStyleSheet(self._get_toolbar_button_style())
+        search_btn.clicked.connect(self._show_search)
+        toolbar_layout.addWidget(search_btn)
+        
+        toolbar_layout.addStretch()
+        
+        main_layout.addLayout(toolbar_layout)
+        
         # Chat display - light theme (positioned first to ensure it has space)
         self.chat_display = QTextEdit()
-        self.chat_display.setReadOnly(True)
+        self.chat_display.setReadOnly(True)  # Read-only for messages, but allow copy
+        # Add context menu for copy/paste
+        self.chat_display.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.chat_display.customContextMenuRequested.connect(self._show_context_menu)
         self.chat_display.setStyleSheet("""
             QTextEdit {
                 background-color: #f8f9fa;
@@ -297,6 +368,24 @@ class AIAdvisorWidget(QWidget):
         self.suggestions_list.hide()
         # Add with stretch=0 so it doesn't take space when hidden - BELOW chat, above input
         main_layout.addWidget(self.suggestions_list, stretch=0)
+        
+        # Search bar (hidden by default)
+        self.search_bar = QLineEdit()
+        self.search_bar.setPlaceholderText("Search in chat...")
+        self.search_bar.setStyleSheet("""
+            QLineEdit {
+                background-color: #fff9c4;
+                color: #2c3e50;
+                border: 2px solid #f39c12;
+                border-radius: 4px;
+                padding: 4px;
+                font-size: 10px;
+            }
+        """)
+        self.search_bar.hide()
+        self.search_bar.textChanged.connect(self._search_in_chat)
+        self.search_bar.returnPressed.connect(self._search_next)
+        main_layout.addWidget(self.search_bar)
         
         # Input area
         input_layout = QHBoxLayout()
@@ -679,4 +768,317 @@ class AIAdvisorWidget(QWidget):
         """Update advisor context (current tab, etc.)."""
         # Could be used to provide context-aware responses
         pass
+    
+    def _get_toolbar_button_style(self) -> str:
+        """Get style for toolbar buttons."""
+        return """
+            QPushButton {
+                background-color: #ecf0f1;
+                color: #2c3e50;
+                padding: 3px 8px;
+                font-size: 9px;
+                border: 1px solid #bdc3c7;
+                border-radius: 3px;
+            }
+            QPushButton:hover {
+                background-color: #d5dbdb;
+            }
+            QPushButton:pressed {
+                background-color: #bdc3c7;
+            }
+        """
+    
+    def _cut_text(self) -> None:
+        """Cut selected text."""
+        if self.input_field.hasFocus():
+            self.input_field.cut()
+        # Chat display is read-only, so cut doesn't apply
+    
+    def _copy_text(self) -> None:
+        """Copy selected text."""
+        if self.chat_display.hasFocus():
+            self.chat_display.copy()
+        elif self.input_field.hasFocus():
+            self.input_field.copy()
+        else:
+            # Copy from chat display by default
+            self.chat_display.copy()
+    
+    def _paste_text(self) -> None:
+        """Paste text."""
+        if self.input_field.hasFocus():
+            self.input_field.paste()
+        else:
+            # Focus input field and paste
+            self.input_field.setFocus()
+            self.input_field.paste()
+    
+    def _show_context_menu(self, position) -> None:
+        """Show context menu for text operations."""
+        menu = QMenu(self)
+        
+        # Only show cut if input field has focus
+        if self.input_field.hasFocus():
+            cut_action = QAction("Cut", self)
+            cut_action.setShortcut(QKeySequence.StandardKey.Cut)
+            cut_action.triggered.connect(self._cut_text)
+            menu.addAction(cut_action)
+        
+        copy_action = QAction("Copy", self)
+        copy_action.setShortcut(QKeySequence.StandardKey.Copy)
+        copy_action.triggered.connect(self._copy_text)
+        menu.addAction(copy_action)
+        
+        paste_action = QAction("Paste", self)
+        paste_action.setShortcut(QKeySequence.StandardKey.Paste)
+        paste_action.triggered.connect(self._paste_text)
+        menu.addAction(paste_action)
+        
+        menu.addSeparator()
+        
+        select_all_action = QAction("Select All", self)
+        select_all_action.setShortcut(QKeySequence.StandardKey.SelectAll)
+        select_all_action.triggered.connect(self._select_all)
+        menu.addAction(select_all_action)
+        
+        menu.exec(self.chat_display.mapToGlobal(position))
+    
+    def _select_all(self) -> None:
+        """Select all text."""
+        if self.chat_display.hasFocus():
+            self.chat_display.selectAll()
+        elif self.input_field.hasFocus():
+            self.input_field.selectAll()
+    
+    def _insert_image(self) -> None:
+        """Insert image into chat."""
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Select Image",
+            str(Path.home()),
+            "Image Files (*.png *.jpg *.jpeg *.gif *.bmp *.svg);;All Files (*)"
+        )
+        
+        if file_path:
+            try:
+                # Read image
+                pixmap = QPixmap(file_path)
+                if pixmap.isNull():
+                    QMessageBox.warning(self, "Error", "Could not load image file.")
+                    return
+                
+                # Resize if too large
+                if pixmap.width() > 800 or pixmap.height() > 600:
+                    pixmap = pixmap.scaled(800, 600, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                
+                # Insert into chat
+                cursor = self.chat_display.textCursor()
+                cursor.insertHtml(f'<img src="{file_path}" width="{pixmap.width()}" height="{pixmap.height()}" /><br>')
+                self.chat_display.setTextCursor(cursor)
+                
+                # Also add as message
+                self._add_message("You", f"[Image: {Path(file_path).name}]", is_user=True)
+                
+                # Ask AI about the image if advisor supports it
+                if self.advisor and hasattr(self.advisor, 'analyze_image'):
+                    try:
+                        response = self.advisor.analyze_image(file_path)
+                        self._add_message("Q", response, is_user=False)
+                    except Exception as e:
+                        logging.getLogger(__name__).debug(f"Image analysis not supported: {e}")
+                
+            except Exception as e:
+                QMessageBox.warning(self, "Error", f"Failed to insert image: {str(e)}")
+                logging.getLogger(__name__).error(f"Error inserting image: {e}")
+    
+    def _toggle_voice(self) -> None:
+        """Toggle voice input."""
+        if not self.voice_recording:
+            self._start_voice_input()
+        else:
+            self._stop_voice_input()
+    
+    def _start_voice_input(self) -> None:
+        """Start voice input."""
+        try:
+            import speech_recognition as sr
+            
+            self.voice_recording = True
+            self.voice_btn.setText("⏹️ Stop")
+            self.voice_btn.setStyleSheet(self._get_toolbar_button_style().replace("#ecf0f1", "#e74c3c").replace("#2c3e50", "white"))
+            self.status_label.setText("Listening...")
+            self.status_label.setStyleSheet("color: #f39c12; font-size: 9px;")
+            
+            # Start recognition in background
+            QTimer.singleShot(100, self._process_voice_input)
+            
+        except ImportError:
+            QMessageBox.information(
+                self,
+                "Voice Input",
+                "Voice input requires 'speech_recognition' library.\n\n"
+                "Install with: pip install SpeechRecognition\n"
+                "Also install PyAudio for microphone support."
+            )
+            self.voice_recording = False
+            self.voice_btn.setText("🎤 Voice")
+        except Exception as e:
+            logging.getLogger(__name__).error(f"Error starting voice input: {e}")
+            QMessageBox.warning(self, "Error", f"Failed to start voice input: {str(e)}")
+            self.voice_recording = False
+            self.voice_btn.setText("🎤 Voice")
+    
+    def _process_voice_input(self) -> None:
+        """Process voice input."""
+        try:
+            import speech_recognition as sr
+            
+            recognizer = sr.Recognizer()
+            with sr.Microphone() as source:
+                recognizer.adjust_for_ambient_noise(source, duration=0.5)
+                audio = recognizer.listen(source, timeout=5, phrase_time_limit=10)
+            
+            # Recognize speech
+            try:
+                text = recognizer.recognize_google(audio)
+                self.input_field.setText(text)
+                self._add_message("You", f"[Voice: {text}]", is_user=True)
+                # Auto-send if text is recognized
+                QTimer.singleShot(500, lambda: self._send_message())
+            except sr.UnknownValueError:
+                self.status_label.setText("Could not understand audio")
+                self.status_label.setStyleSheet("color: #e74c3c; font-size: 9px;")
+                QTimer.singleShot(2000, lambda: self.status_label.setText("Ready"))
+            except sr.RequestError as e:
+                self.status_label.setText(f"Voice recognition error: {e}")
+                self.status_label.setStyleSheet("color: #e74c3c; font-size: 9px;")
+                QTimer.singleShot(2000, lambda: self.status_label.setText("Ready"))
+            
+        except Exception as e:
+            logging.getLogger(__name__).error(f"Error processing voice: {e}")
+            self.status_label.setText(f"Voice error: {str(e)}")
+            self.status_label.setStyleSheet("color: #e74c3c; font-size: 9px;")
+        
+        finally:
+            self.voice_recording = False
+            self.voice_btn.setText("🎤 Voice")
+            self.voice_btn.setStyleSheet(self._get_toolbar_button_style())
+            if self.status_label.text() == "Listening...":
+                self.status_label.setText("Ready")
+                self.status_label.setStyleSheet("color: #27ae60; font-size: 9px;")
+    
+    def _stop_voice_input(self) -> None:
+        """Stop voice input."""
+        self.voice_recording = False
+        self.voice_btn.setText("🎤 Voice")
+        self.voice_btn.setStyleSheet(self._get_toolbar_button_style())
+        self.status_label.setText("Ready")
+        self.status_label.setStyleSheet("color: #27ae60; font-size: 9px;")
+    
+    def _upload_file(self) -> None:
+        """Upload file and process it."""
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Upload File",
+            str(Path.home()),
+            "All Files (*);;Text Files (*.txt);;PDF Files (*.pdf);;Image Files (*.png *.jpg *.jpeg);;Data Files (*.csv *.json *.log)"
+        )
+        
+        if file_path:
+            try:
+                file_name = Path(file_path).name
+                file_size = Path(file_path).stat().st_size
+                
+                # Add file info to chat
+                self._add_message("You", f"[Uploaded: {file_name} ({file_size} bytes)]", is_user=True)
+                
+                # Process file based on type
+                ext = Path(file_path).suffix.lower()
+                
+                if ext in ['.txt', '.log', '.csv']:
+                    # Read text file
+                    with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                        content = f.read()[:1000]  # First 1000 chars
+                    self._add_message("Q", f"File content preview:\n{content}...", is_user=False)
+                    
+                    # Ask AI to analyze if advisor supports it
+                    if self.advisor:
+                        question = f"Please analyze this file: {file_name}"
+                        QTimer.singleShot(500, lambda: self._get_response(question))
+                
+                elif ext in ['.png', '.jpg', '.jpeg', '.gif']:
+                    # Handle as image
+                    self._insert_image_from_path(file_path)
+                
+                elif ext == '.pdf':
+                    self._add_message("Q", f"PDF file uploaded. I can help analyze it if you ask specific questions about it.", is_user=False)
+                
+                else:
+                    self._add_message("Q", f"File uploaded. How can I help you with {file_name}?", is_user=False)
+                
+                self.status_label.setText(f"File uploaded: {file_name}")
+                QTimer.singleShot(3000, lambda: self.status_label.setText("Ready"))
+                
+            except Exception as e:
+                QMessageBox.warning(self, "Error", f"Failed to upload file: {str(e)}")
+                logging.getLogger(__name__).error(f"Error uploading file: {e}")
+    
+    def _insert_image_from_path(self, file_path: str) -> None:
+        """Insert image from file path."""
+        try:
+            pixmap = QPixmap(file_path)
+            if pixmap.isNull():
+                return
+            
+            if pixmap.width() > 800 or pixmap.height() > 600:
+                pixmap = pixmap.scaled(800, 600, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+            
+            cursor = self.chat_display.textCursor()
+            cursor.insertHtml(f'<img src="{file_path}" width="{pixmap.width()}" height="{pixmap.height()}" /><br>')
+            self.chat_display.setTextCursor(cursor)
+        except Exception as e:
+            logging.getLogger(__name__).error(f"Error inserting image: {e}")
+    
+    def _show_search(self) -> None:
+        """Show/hide search bar."""
+        if self.search_bar.isVisible():
+            self.search_bar.hide()
+            self.search_bar.clear()
+        else:
+            self.search_bar.show()
+            self.search_bar.setFocus()
+    
+    def _search_in_chat(self, text: str) -> None:
+        """Search for text in chat."""
+        if not text:
+            # Clear highlighting
+            self.chat_display.setExtraSelections([])
+            return
+        
+        # Find text in chat
+        cursor = self.chat_display.textCursor()
+        cursor.movePosition(cursor.MoveOperation.Start)
+        self.chat_display.setTextCursor(cursor)
+        
+        extra_selections = []
+        search_text = text
+        while self.chat_display.find(search_text):
+            selection = QTextEdit.ExtraSelection()
+            selection.format.setBackground(QColor("#fff9c4"))
+            selection.cursor = self.chat_display.textCursor()
+            extra_selections.append(selection)
+        
+        self.chat_display.setExtraSelections(extra_selections)
+    
+    def _search_next(self) -> None:
+        """Move to next search result."""
+        if not self.search_bar.text():
+            return
+        
+        if not self.chat_display.find(self.search_bar.text()):
+            # Wrap around
+            cursor = self.chat_display.textCursor()
+            cursor.movePosition(cursor.MoveOperation.Start)
+            self.chat_display.setTextCursor(cursor)
+            self.chat_display.find(self.search_bar.text())
 
