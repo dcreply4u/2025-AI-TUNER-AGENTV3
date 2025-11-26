@@ -30,7 +30,10 @@ class ThemeStyle(Enum):
 
 @dataclass
 class ThemeColors:
-    """Color palette for a theme."""
+    """Color palette for a theme - CSS-like semantic color system.
+    
+    Change colors here to update globally across all widgets.
+    """
 
     # Primary colors
     primary: str = "#00e0ff"
@@ -68,6 +71,39 @@ class ThemeColors:
     chart_line: str = "#00e0ff"
     chart_grid: str = "#1e2839"
     chart_background: str = "#0a0e27"
+    
+    # ============================================================
+    # SEMANTIC COLOR NAMES - Change these to update globally
+    # ============================================================
+    
+    # Title colors (for panel titles, section headers)
+    title: str = "#ff2a2a"  # Red - main panel titles like "LIVE GAUGES"
+    title_secondary: str = "#ff6b00"  # Orange - gauge titles, metric labels
+    title_tertiary: str = "#3498db"  # Blue - secondary headers
+    
+    # Scrollbar colors
+    scrollbar: str = "#3498db"  # Blue - scrollbar handle color
+    scrollbar_background: str = "#e0e0e0"  # Light gray - scrollbar track
+    
+    # Gauge-specific colors
+    gauge_title: str = "#ff6b00"  # Orange - individual gauge titles (e.g., "BOOST PSI")
+    gauge_value: str = "#ffffff"  # White - digital gauge values
+    gauge_border: str = "#ff2a2a"  # Red - gauge value box border
+    gauge_needle: str = "#ff4444"  # Red - gauge needle color
+    
+    # Drag Mode colors (for consistency)
+    drag_mode_title: str = "#ff2a2a"  # Red - Drag Mode panel title
+    drag_mode_metric: str = "#ff6b00"  # Orange - Drag Mode metric titles
+    drag_mode_value: str = "#ffffff"  # White - Drag Mode values
+    
+    # Button/Interactive colors
+    button_primary: str = "#3498db"  # Blue - primary buttons
+    button_hover: str = "#2980b9"  # Darker blue - button hover state
+    
+    # Status colors
+    status_optimal: str = "#27ae60"  # Green
+    status_warning: str = "#f39c12"  # Orange
+    status_danger: str = "#e74c3c"  # Red
 
 
 @dataclass
@@ -597,4 +633,148 @@ class ThemeManager:
         return custom_theme
 
 
-__all__ = ["ThemeManager", "Theme", "ThemeColors", "ThemeStyle"]
+# ============================================================
+# Global Style Accessor - CSS-like semantic color system
+# ============================================================
+# Usage: from ui.theme_manager import Style
+#        color = Style.title  # Gets current theme's title color
+#        Change colors in ThemeColors above to update globally
+# ============================================================
+
+class Style:
+    """
+    Global style accessor - provides CSS-like semantic color access.
+    
+    Change colors in ThemeColors class above to update globally.
+    All widgets should use this instead of hardcoded colors.
+    
+    Example:
+        from ui.theme_manager import Style
+        painter.setPen(QColor(Style.title))  # Uses current theme's title color
+    """
+    
+    _theme_manager: Optional[ThemeManager] = None
+    
+    @classmethod
+    def _get_colors(cls) -> ThemeColors:
+        """Get current theme colors."""
+        if cls._theme_manager is None:
+            # Initialize default theme manager if not set
+            cls._theme_manager = ThemeManager()
+        return cls._theme_manager.current_theme.colors
+    
+    @classmethod
+    def set_theme_manager(cls, manager: ThemeManager) -> None:
+        """Set the theme manager instance (called by main app)."""
+        cls._theme_manager = manager
+    
+    # Primary colors
+    @classmethod
+    def primary(cls) -> str:
+        return cls._get_colors().primary
+    
+    @classmethod
+    def primary_dark(cls) -> str:
+        return cls._get_colors().primary_dark
+    
+    @classmethod
+    def primary_light(cls) -> str:
+        return cls._get_colors().primary_light
+    
+    # Text colors
+    @classmethod
+    def text_primary(cls) -> str:
+        return cls._get_colors().text_primary
+    
+    @classmethod
+    def text_secondary(cls) -> str:
+        return cls._get_colors().text_secondary
+    
+    # Semantic color names - change in ThemeColors to update globally
+    @classmethod
+    def title(cls) -> str:
+        """Main panel titles (e.g., 'LIVE GAUGES') - Red by default."""
+        return cls._get_colors().title
+    
+    @classmethod
+    def title_secondary(cls) -> str:
+        """Secondary titles (e.g., gauge titles, metric labels) - Orange by default."""
+        return cls._get_colors().title_secondary
+    
+    @classmethod
+    def title_tertiary(cls) -> str:
+        """Tertiary titles - Blue by default."""
+        return cls._get_colors().title_tertiary
+    
+    @classmethod
+    def scrollbar(cls) -> str:
+        """Scrollbar handle color - Blue by default."""
+        return cls._get_colors().scrollbar
+    
+    @classmethod
+    def scrollbar_background(cls) -> str:
+        """Scrollbar track color."""
+        return cls._get_colors().scrollbar_background
+    
+    @classmethod
+    def gauge_title(cls) -> str:
+        """Individual gauge titles (e.g., 'BOOST PSI') - Orange by default."""
+        return cls._get_colors().gauge_title
+    
+    @classmethod
+    def gauge_value(cls) -> str:
+        """Digital gauge values - White by default."""
+        return cls._get_colors().gauge_value
+    
+    @classmethod
+    def gauge_border(cls) -> str:
+        """Gauge value box border - Red by default."""
+        return cls._get_colors().gauge_border
+    
+    @classmethod
+    def gauge_needle(cls) -> str:
+        """Gauge needle color - Red by default."""
+        return cls._get_colors().gauge_needle
+    
+    @classmethod
+    def drag_mode_title(cls) -> str:
+        """Drag Mode panel title - Red by default."""
+        return cls._get_colors().drag_mode_title
+    
+    @classmethod
+    def drag_mode_metric(cls) -> str:
+        """Drag Mode metric titles - Orange by default."""
+        return cls._get_colors().drag_mode_metric
+    
+    @classmethod
+    def drag_mode_value(cls) -> str:
+        """Drag Mode values - White by default."""
+        return cls._get_colors().drag_mode_value
+    
+    @classmethod
+    def button_primary(cls) -> str:
+        """Primary button color - Blue by default."""
+        return cls._get_colors().button_primary
+    
+    @classmethod
+    def button_hover(cls) -> str:
+        """Button hover color - Darker blue by default."""
+        return cls._get_colors().button_hover
+    
+    @classmethod
+    def status_optimal(cls) -> str:
+        """Optimal status color - Green by default."""
+        return cls._get_colors().status_optimal
+    
+    @classmethod
+    def status_warning(cls) -> str:
+        """Warning status color - Orange by default."""
+        return cls._get_colors().status_warning
+    
+    @classmethod
+    def status_danger(cls) -> str:
+        """Danger status color - Red by default."""
+        return cls._get_colors().status_danger
+
+
+__all__ = ["ThemeManager", "Theme", "ThemeColors", "ThemeStyle", "Style"]

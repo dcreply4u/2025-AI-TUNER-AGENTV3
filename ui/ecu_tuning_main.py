@@ -150,6 +150,16 @@ class ECUTuningTab(QWidget):
             FuelMapsTab,
         )
         from ui.tune_database_tab import TuneDatabaseTab
+        from ui.motec_advanced_features import (
+            HiLoInjectionTab,
+            MultiPulseInjectionTab,
+            InjectionTimingTab,
+            ColdStartFuelTab,
+            SiteTablesTab,
+            GearChangeIgnitionCutTab,
+            CAMControlTab,
+            ServoMotorControlTab,
+        )
         
         # Tune Database sub-tab (first tab for easy access)
         self.tune_database_tab = TuneDatabaseTab()
@@ -176,6 +186,31 @@ class ECUTuningTab(QWidget):
         self.boost_tab = BoostControlTab()
         self.sub_tabs.addTab(self.boost_tab, "Boost Control")
         
+        # MoTeC Advanced Features
+        self.hi_lo_injection_tab = HiLoInjectionTab()
+        self.sub_tabs.addTab(self.hi_lo_injection_tab, "Hi/Lo Injection")
+        
+        self.multi_pulse_injection_tab = MultiPulseInjectionTab()
+        self.sub_tabs.addTab(self.multi_pulse_injection_tab, "Multi-Pulse Injection")
+        
+        self.injection_timing_tab = InjectionTimingTab()
+        self.sub_tabs.addTab(self.injection_timing_tab, "Injection Timing")
+        
+        self.cold_start_fuel_tab = ColdStartFuelTab()
+        self.sub_tabs.addTab(self.cold_start_fuel_tab, "Cold Start Fuel")
+        
+        self.site_tables_tab = SiteTablesTab()
+        self.sub_tabs.addTab(self.site_tables_tab, "Site Tables")
+        
+        self.gear_change_cut_tab = GearChangeIgnitionCutTab()
+        self.sub_tabs.addTab(self.gear_change_cut_tab, "Gear Change Cut")
+        
+        self.cam_control_tab = CAMControlTab()
+        self.sub_tabs.addTab(self.cam_control_tab, "CAM Control")
+        
+        self.servo_control_tab = ServoMotorControlTab()
+        self.sub_tabs.addTab(self.servo_control_tab, "Servo Control")
+        
         main_layout.addWidget(self.sub_tabs, stretch=1)
         
     def update_telemetry(self, data: Dict[str, float]) -> None:
@@ -186,6 +221,8 @@ class ECUTuningTab(QWidget):
         self.fuel_maps_tab.update_telemetry(data)
         self.idle_tab.update_telemetry(data)
         self.boost_tab.update_telemetry(data)
+        # MoTeC advanced features tabs don't require telemetry updates by default
+        # but can be added if needed
     
     def _on_tune_selected(self, tune_id: str) -> None:
         """Handle tune selection from database."""

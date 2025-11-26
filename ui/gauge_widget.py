@@ -74,7 +74,7 @@ class RacingGauge(QWidget):
         major_ticks: int = 10,
         minor_ticks: int = 5,
         needle_color: str = "#ff4444",
-        accent_color: str = "#00e0ff",
+        accent_color: str = "#3498db",  # Default fallback - actual usage should use Style.scrollbar()
     ) -> None:
         super().__init__(parent)
         
@@ -410,7 +410,7 @@ class RacingGauge(QWidget):
                            inner_radius * 2, inner_radius * 2)
     
     def _draw_value_display(self, painter: QPainter, cx: int, cy: int, radius: int) -> None:
-        """Draw digital value display."""
+        """Draw digital value display - using centralized style system."""
         # Value box
         box_width = 60
         box_height = 20
@@ -419,11 +419,11 @@ class RacingGauge(QWidget):
         
         # Box background
         painter.setBrush(QBrush(QColor("#0a0a0a")))
-        painter.setPen(QPen(QColor(self.accent_color), 1))
+        painter.setPen(QPen(QColor(Style.gauge_border()), 1))  # Uses Style.gauge_border - change in ThemeColors to update globally
         painter.drawRoundedRect(box_x, box_y, box_width, box_height, 3, 3)
         
-        # Value text
-        painter.setPen(QColor(self.accent_color))
+        # Value text - uses centralized style
+        painter.setPen(QColor(Style.gauge_value()))  # Uses Style.gauge_value - change in ThemeColors to update globally
         font = QFont("Consolas", 11, QFont.Weight.Bold)
         painter.setFont(font)
         
@@ -443,8 +443,8 @@ class RacingGauge(QWidget):
         )
     
     def _draw_title(self, painter: QPainter, width: int, height: int) -> None:
-        """Draw gauge title and unit."""
-        painter.setPen(QColor("#aaaaaa"))
+        """Draw gauge title and unit - using centralized style system."""
+        painter.setPen(QColor(Style.gauge_title()))  # Uses Style.gauge_title - change in ThemeColors to update globally
         font = QFont("Arial", 9, QFont.Weight.Bold)
         painter.setFont(font)
         
@@ -489,26 +489,28 @@ class GaugePanel(QWidget):
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         
-        self.setStyleSheet("""
-            QWidget {
+        # Note: Stylesheet uses f-string to inject Style colors
+        # Change colors in ThemeColors to update globally
+        self.setStyleSheet(f"""
+            QWidget {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 #1a1f2e, stop:1 #0f1318);
                 border: 2px solid #2a3040;
                 border-radius: 8px;
-            }
-            QComboBox {
+            }}
+            QComboBox {{
                 background: #2a3040;
-                color: #00e0ff;
+                color: {Style.gauge_title()};
                 border: 1px solid #3a4050;
                 border-radius: 3px;
                 padding: 1px 2px;
                 font-size: 8px;
                 font-weight: bold;
-            }
-            QComboBox:hover { border: 1px solid #00e0ff; }
-            QComboBox::drop-down { border: none; width: 12px; }
-            QComboBox::down-arrow { border-left: 3px solid transparent; border-right: 3px solid transparent; border-top: 4px solid #00e0ff; }
-            QComboBox QAbstractItemView { background: #1a1f2e; color: #fff; selection-background-color: #00e0ff; font-size: 9px; }
+            }}
+            QComboBox:hover {{ border: 1px solid {Style.title()}; }}
+            QComboBox::drop-down {{ border: none; width: 12px; }}
+            QComboBox::down-arrow {{ border-left: 3px solid transparent; border-right: 3px solid transparent; border-top: 4px solid {Style.gauge_title()}; }}
+            QComboBox QAbstractItemView {{ background: #1a1f2e; color: #fff; selection-background-color: {Style.title()}; font-size: 9px; }}
         """)
         
         # Fixed size to prevent jitter
@@ -518,12 +520,13 @@ class GaugePanel(QWidget):
         layout.setContentsMargins(8, 8, 8, 8)
         layout.setSpacing(4)
 
-        # Title
+        # Title - using centralized style system
+        # Change Style.title() in ThemeColors to update globally
         title = QLabel("🏎️ LIVE GAUGES")
-        title.setStyleSheet("""
+        title.setStyleSheet(f"""
             font-size: 14px; 
             font-weight: bold; 
-            color: #00e0ff; 
+            color: {Style.title()}; 
             padding: 2px;
             background: transparent;
             border: none;

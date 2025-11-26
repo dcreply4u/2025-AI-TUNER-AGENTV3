@@ -62,7 +62,7 @@ from ui.streaming_control_panel import StreamingControlPanel
 from ui.system_status_panel import SystemStatusPanel, SubsystemStatus
 from ui.telemetry_panel import TelemetryPanel
 from ui.theme_dialog import ThemeDialog
-from ui.theme_manager import ThemeManager
+from ui.theme_manager import Style, ThemeManager
 from ui.wheel_slip_widget import WheelSlipPanel
 from ui.youtube_stream_widget import YouTubeStreamWidget
 
@@ -178,6 +178,8 @@ class MainWindow(QWidget):
 
         # Initialize theme manager
         self.theme_manager = ThemeManager()
+        # Initialize global Style system for CSS-like color access
+        Style.set_theme_manager(self.theme_manager)
         self._apply_theme()
 
         # Core stream settings (used by data stream + connectivity)
