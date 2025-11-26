@@ -7,7 +7,30 @@ clean imports like `from interfaces import OBDInterface`.  Treat it as the slidi
 between silicon and software.
 """
 
-from .gps_interface import GPSInterface
+from .gps_interface import GPSInterface, GPSFix, GPSOptimization, DGPSMode, SolutionType
+try:
+    from .dual_antenna_gps import DualAntennaGPS, DualAntennaFix, DualAntennaStatus
+except ImportError:  # pragma: no cover
+    DualAntennaGPS = None  # type: ignore
+    DualAntennaFix = None  # type: ignore
+    DualAntennaStatus = None  # type: ignore
+
+try:
+    from .rtk_interface import RTKInterface, NTRIPClient, DGPSMode, SolutionType, RTKStatus
+except ImportError:  # pragma: no cover
+    RTKInterface = None  # type: ignore
+    NTRIPClient = None  # type: ignore
+    DGPSMode = None  # type: ignore
+    SolutionType = None  # type: ignore
+    RTKStatus = None  # type: ignore
+
+try:
+    from .imu_interface import IMUInterface, IMUReading, IMUType, IMUStatus
+except ImportError:  # pragma: no cover
+    IMUInterface = None  # type: ignore
+    IMUReading = None  # type: ignore
+    IMUType = None  # type: ignore
+    IMUStatus = None  # type: ignore
 from .obd_interface import OBDInterface
 from .racecapture_interface import RaceCaptureInterface
 from .sensor_interface import ExternalSensorInterface
@@ -102,6 +125,10 @@ __all__ = [
     "CANStatistics",
     "OptimizedCANInterface",
     "GPSInterface",
+    "GPSFix",
+    "GPSOptimization",
+    "DGPSMode",
+    "SolutionType",
     "OBDInterface",
     "RaceCaptureInterface",
     "ExternalSensorInterface",
@@ -130,3 +157,15 @@ if UnifiedAdapterManager is not None:
     __all__.extend(["UnifiedAdapterManager", "AdapterHealthMonitor", "get_unified_adapter_manager"])
 if CellularModem is not None:
     __all__.extend(["CellularModem", "CellularModemDetector"])
+
+# Add dual antenna GPS if available
+if DualAntennaGPS is not None:
+    __all__.extend(["DualAntennaGPS", "DualAntennaFix", "DualAntennaStatus"])
+
+# Add RTK interface if available
+if RTKInterface is not None:
+    __all__.extend(["RTKInterface", "NTRIPClient", "DGPSMode", "SolutionType", "RTKStatus"])
+
+# Add IMU interface if available
+if IMUInterface is not None:
+    __all__.extend(["IMUInterface", "IMUReading", "IMUType", "IMUStatus"])
