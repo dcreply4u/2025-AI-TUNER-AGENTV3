@@ -88,6 +88,13 @@ except ImportError:
     AUTO_POPULATOR_AVAILABLE = False
     AutoKnowledgePopulator = None
 
+try:
+    from services.race_setup_recommender import RaceSetupRecommender
+    RACE_SETUP_AVAILABLE = True
+except ImportError:
+    RACE_SETUP_AVAILABLE = False
+    RaceSetupRecommender = None
+
 
 @dataclass
 class ChatMessage:
@@ -273,6 +280,14 @@ class RAGAIAdvisor:
                 LOGGER.info("Auto knowledge populator initialized with KB file saving")
             except Exception as e:
                 LOGGER.warning(f"Auto knowledge populator not available: {e}")
+
+        self.race_setup_recommender = None
+        if RACE_SETUP_AVAILABLE:
+            try:
+                self.race_setup_recommender = RaceSetupRecommender()
+                LOGGER.info("Race setup recommender initialized")
+            except Exception as e:
+                LOGGER.debug(f"Race setup recommender unavailable: {e}")
         
         # Enhanced system prompt with advanced reasoning
         self.system_prompt = """You are Q, an expert automotive tuning advisor with deep knowledge of:
@@ -561,7 +576,12 @@ class RAGAIAdvisor:
         # Step 10: Check for warnings
         warnings = self._check_warnings(question, telemetry)
         
-        # Step 11: Validate answer (if reasoning engine available) - after sources are extracted
+        # Step 11: Provide setup insights when relevant
+        setup_hint = self._generate_setup_recommendation(question, telemetry)
+        if setup_hint:
+            answer += f"\n\n🏁 Setup Insight\n{setup_hint}"
+
+        # Step 12: Validate answer (if reasoning engine available) - after sources are extracted
         if self.reasoning_engine:
             try:
                 validation = self.reasoning_engine.validate_answer(
@@ -1044,6 +1064,26 @@ Now provide your answer. Be thorough, technical, and helpful. If you're uncertai
                 warnings.append("⚠️ Very lean AFR - risk of knock")
         
         return warnings
+
+    def _generate_setup_recommendation(
+        self,
+        question: str,
+        telemetry: Optional[Dict[str, float]]
+    ) -> Optional[str]:
+        """Generate supplemental setup guidance for race-specific questions."""
+        if not self.race_setup_recommender:
+            return None
+
+        keywords = ["setup", "handling", "balance", "launch", "traction", "mid corner", "understeer", "oversteer", "drag"]
+        question_lower = question.lower()
+        if not any(kw in question_lower for kw in keywords):
+            return None
+
+        try:
+            return self.race_setup_recommender.get_recommendation(question, telemetry)
+        except Exception as e:
+            LOGGER.debug(f"Setup recommendation failed: {e}")
+            return None
     
     def _perform_web_search(self, question: str) -> Optional[List[Dict[str, Any]]]:
         """Perform web search."""
