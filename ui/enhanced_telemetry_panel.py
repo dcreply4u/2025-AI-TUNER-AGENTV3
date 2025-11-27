@@ -60,6 +60,11 @@ except ImportError:
 
 from ui.sensor_selection_dialog import SensorSelectionDialog
 from ui.sensor_settings_dialog import SensorConfig, SensorSettingsDialog
+from ui.advanced_graph_features import (
+    AdvancedGraphFeaturesDialog,
+    MathChannel,
+    MathChannelDialog,
+)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -96,6 +101,7 @@ class EnhancedTelemetryPanel(QWidget):
         self.max_len = max_len
         self.sensors: Dict[str, SensorData] = {}
         self.available_sensors: Set[str] = set()
+        self.math_channels: Dict[str, MathChannel] = {}  # Custom calculated channels
         self.xdata = deque(maxlen=max_len)
         self.counter = 0
         self.config_file = Path.home() / ".aituner" / "telemetry_config.json"
@@ -159,6 +165,12 @@ class EnhancedTelemetryPanel(QWidget):
         self.export_btn.setToolTip("Export graph data")
         self.export_btn.clicked.connect(self._export_data)
         header_layout.addWidget(self.export_btn)
+        
+        # Advanced features button
+        self.advanced_btn = QPushButton("⚡ Advanced")
+        self.advanced_btn.setToolTip("Advanced features: X-Y plots, FFT, Histograms, Math Channels")
+        self.advanced_btn.clicked.connect(self._show_advanced_features)
+        header_layout.addWidget(self.advanced_btn)
         
         # Time range selector
         time_range_layout = QHBoxLayout()
@@ -259,6 +271,12 @@ class EnhancedTelemetryPanel(QWidget):
         if dialog.exec() == QDialog.DialogCode.Accepted:
             selected = dialog.get_selected_sensors()
             self._update_sensor_selection(selected)
+    
+    def add_math_channel(self, math_channel: MathChannel):
+        """Add a math channel programmatically."""
+        self.math_channels[math_channel.name] = math_channel
+        self._update_legend()
+        self.save_config()
     
     def _update_sensor_selection(self, selected: List[str]):
         """Update which sensors are displayed."""
@@ -493,10 +511,21 @@ class EnhancedTelemetryPanel(QWidget):
             if child.widget():
                 child.widget().deleteLater()
         
-        # Add sensors
-        for name, sensor_data in sorted(self.sensors.items()):
+        # Add sensors (excluding math channels)
+        regular_sensors = [(name, sd) for name, sd in sorted(self.sensors.items()) if name not in self.math_channels]
+        for name, sensor_data in regular_sensors:
             item_widget = self._create_legend_item(name, sensor_data)
             self.legend_layout.addWidget(item_widget)
+        
+        # Add math channels (separate section)
+        if self.math_channels:
+            separator = QLabel("─── Calculated Channels ───")
+            separator.setStyleSheet("color: #999; font-weight: bold; padding: 4px;")
+            self.legend_layout.addWidget(separator)
+            
+            for name, math_channel in sorted(self.math_channels.items()):
+                item_widget = self._create_math_channel_legend_item(name, math_channel)
+                self.legend_layout.addWidget(item_widget)
     
     def _create_legend_item(self, name: str, sensor_data: SensorData) -> QWidget:
         """Create a legend item widget."""
@@ -523,6 +552,53 @@ class EnhancedTelemetryPanel(QWidget):
         layout.addWidget(settings_btn)
         
         return widget
+    
+    def _create_math_channel_legend_item(self, name: str, math_channel: MathChannel) -> QWidget:
+        """Create a legend item for a math channel."""
+        widget = QWidget()
+        layout = QHBoxLayout(widget)
+        layout.setContentsMargins(4, 2, 4, 2)
+        
+        # Color indicator (dashed to distinguish from regular sensors)
+        color_label = QLabel("◊")
+        color_label.setStyleSheet(f"color: {math_channel.color}; font-size: 16px; font-weight: bold;")
+        layout.addWidget(color_label)
+        
+        # Label with formula indicator
+        checkbox = QCheckBox(f"{name} (calc)")
+        checkbox.setChecked(math_channel.enabled)
+        checkbox.stateChanged.connect(lambda state, n=name: self._toggle_math_channel(n, state == Qt.CheckState.Checked.value))
+        layout.addWidget(checkbox)
+        
+        # Settings button
+        settings_btn = QPushButton("⚙")
+        settings_btn.setFixedSize(20, 20)
+        settings_btn.setToolTip(f"Edit {name}")
+        settings_btn.clicked.connect(lambda checked, n=name: self._edit_math_channel(n))
+        layout.addWidget(settings_btn)
+        
+        return widget
+    
+    def _toggle_math_channel(self, name: str, enabled: bool):
+        """Toggle math channel visibility."""
+        if name in self.math_channels:
+            self.math_channels[name].enabled = enabled
+            # Math channels are calculated on-the-fly, so we just need to update display
+            self._update_display_range()
+    
+    def _edit_math_channel(self, name: str):
+        """Edit a math channel."""
+        if name not in self.math_channels:
+            return
+        
+        math_channel = self.math_channels[name]
+        dialog = MathChannelDialog(list(self.available_sensors), math_channel, self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            new_channel = dialog.get_math_channel()
+            if new_channel:
+                self.math_channels[name] = new_channel
+                self._update_legend()
+                self.save_config()
     
     def _toggle_sensor(self, name: str, enabled: bool):
         """Toggle sensor visibility."""
@@ -582,12 +658,15 @@ class EnhancedTelemetryPanel(QWidget):
     
     def _export_csv(self, filename: str):
         """Export data as CSV."""
+        if not self.sensors:
+            raise ValueError("No sensors to export")
+        
         with open(filename, 'w', newline='') as f:
             writer = csv.writer(f)
             # Header
             writer.writerow(['Sample'] + list(self.sensors.keys()))
             # Data
-            max_len = max(len(s.values) for s in self.sensors.values() if s.values)
+            max_len = max((len(s.values) for s in self.sensors.values() if s.values), default=0)
             for i in range(max_len):
                 row = [i]
                 for name in self.sensors.keys():
@@ -647,9 +726,111 @@ class EnhancedTelemetryPanel(QWidget):
                 y = list(sensor_data.values)
                 sensor_data.curve.setData(x, y)
         
+        # Update math channels
+        self._update_math_channels(data)
+        
         # Update status
-        active_count = sum(1 for s in self.sensors.values() if s.config.enabled)
-        self.status_label.setText(f"Graphing {active_count}/{len(self.sensors)} sensors | Sample #{self.counter}")
+        if self.sensors or self.math_channels:
+            active_sensors = sum(1 for s in self.sensors.values() if s.config.enabled and s.name not in self.math_channels)
+            active_math = sum(1 for m in self.math_channels.values() if m.enabled)
+            total = len([s for s in self.sensors.values() if s.name not in self.math_channels]) + len(self.math_channels)
+            active_total = active_sensors + active_math
+            self.status_label.setText(f"Graphing {active_total}/{total} channels ({active_sensors} sensors, {active_math} calculated) | Sample #{self.counter}")
+        else:
+            self.status_label.setText(f"No sensors selected | Sample #{self.counter} | Click 'Add Sensor' to start")
+    
+    def _update_math_channels(self, data: Mapping[str, float]):
+        """Update math channels with current data."""
+        if not self.math_channels:
+            return
+        
+        # Collect sensor data for math channel evaluation
+        sensor_data_dict = {}
+        for name, sensor_data in self.sensors.items():
+            if sensor_data.values and name not in self.math_channels:
+                sensor_data_dict[name] = list(sensor_data.values)
+        
+        # Evaluate each math channel
+        for name, math_channel in self.math_channels.items():
+            if not math_channel.enabled:
+                continue
+            
+            # Evaluate formula
+            result = math_channel.evaluate(sensor_data_dict)
+            if result:
+                # Add or update math channel sensor
+                if name not in self.sensors:
+                    self._add_math_channel_sensor(name, math_channel)
+                
+                # Update values
+                if name in self.sensors:
+                    sensor_data = self.sensors[name]
+                    # Clear and repopulate with new calculated values
+                    sensor_data.values.clear()
+                    for val in result:
+                        sensor_data.values.append(val)
+                    
+                    # Update curve
+                    if sensor_data.curve:
+                        x = list(self.xdata)
+                        y = list(sensor_data.values)
+                        
+                        # Apply time range filter
+                        if self.time_range is not None and len(x) > 0:
+                            start_idx = max(0, len(x) - (self.counter - self.time_range))
+                            x = x[start_idx:]
+                            y = y[start_idx:]
+                        
+                        sensor_data.curve.setData(x, y)
+    
+    def _add_math_channel_sensor(self, name: str, math_channel: MathChannel):
+        """Add a math channel as a sensor for graphing."""
+        if not PG_AVAILABLE or not self.main_plot:
+            return
+        
+        # Create config
+        config = SensorConfig(
+            name=name,
+            enabled=math_channel.enabled,
+            color=math_channel.color,
+            line_width=2,
+            axis=0
+        )
+        
+        # Create sensor data
+        sensor_data = SensorData(
+            name=name,
+            values=deque(maxlen=self.max_len),
+            config=config
+        )
+        
+        # Create curve with dashed line to distinguish from regular sensors
+        pen = pg.mkPen(color=math_channel.color, width=config.line_width, style=Qt.PenStyle.DashLine)
+        curve = self.main_plot.plot([], [], pen=pen, name=f"{name} (calc)")
+        sensor_data.curve = curve
+        
+        self.sensors[name] = sensor_data
+        LOGGER.info(f"Added math channel to graph: {name}")
+    
+    def _show_advanced_features(self):
+        """Show advanced graph features dialog."""
+        # Collect current sensor data
+        sensor_data = {}
+        for name, sensor_data_obj in self.sensors.items():
+            if sensor_data_obj.values and name not in self.math_channels:
+                sensor_data[name] = list(sensor_data_obj.values)
+        
+        # Add math channel data
+        for name, math_channel in self.math_channels.items():
+            if math_channel.enabled and name in self.sensors:
+                sensor_data_obj = self.sensors[name]
+                if sensor_data_obj.values:
+                    sensor_data[name] = list(sensor_data_obj.values)
+        
+        available = list(self.available_sensors) + list(self.math_channels.keys())
+        
+        dialog = AdvancedGraphFeaturesDialog(sensor_data, available, self)
+        dialog.exec()
     
     def _change_time_range(self, text: str):
         """Change the time range displayed."""
@@ -819,6 +1000,12 @@ class EnhancedTelemetryPanel(QWidget):
                     if name in self.sensors:
                         config = SensorConfig(**config_dict)
                         self._apply_sensor_config(name, config)
+            
+            # Load math channels
+            if 'math_channels' in config_data:
+                for name, mc_dict in config_data['math_channels'].items():
+                    math_channel = MathChannel(**mc_dict)
+                    self.math_channels[name] = math_channel
         except Exception as e:
             LOGGER.error(f"Failed to load config: {e}", exc_info=True)
     
