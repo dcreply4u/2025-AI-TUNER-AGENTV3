@@ -7,6 +7,7 @@ Handles digital sensors (switches, relays, on/off sensors) via GPIO.
 from __future__ import annotations
 
 import logging
+import platform
 from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
@@ -86,12 +87,6 @@ class DigitalSensorInterface:
     
     def _init_windows_gpio(self) -> None:
         """Initialize GPIO using Windows hardware adapter."""
-        global WINDOWS_ADAPTER
-        if WINDOWS_ADAPTER is None:
-            LOGGER.warning("Windows hardware adapter not available for sensor %s", self.config.name)
-            self.initialized = False
-            return
-        
         # For Windows, GPIO is handled via adapters (Arduino, USB GPIO, etc.)
         # Pin mapping would be configured separately
         # For now, mark as initialized - actual reading will use adapter
@@ -107,7 +102,7 @@ class DigitalSensorInterface:
             True if sensor is active, False otherwise
         """
         # Try Windows adapter first
-        if platform.system() == "Windows" and WINDOWS_ADAPTER and self.initialized:
+        if platform.system() == "Windows" and self.initialized:
             # Would need adapter configuration to map pin to adapter/port
             # For now, return simulated value
             # TODO: Implement adapter pin mapping
