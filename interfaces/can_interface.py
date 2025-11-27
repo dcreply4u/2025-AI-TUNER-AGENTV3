@@ -243,6 +243,23 @@ class OptimizedCANInterface:
     def connect(self) -> bool:
         """Connect to CAN bus(es)."""
         try:
+            # Verify CAN hardware is available
+            try:
+                from interfaces.can_hardware_detector import get_can_hardware_detector
+                detector = get_can_hardware_detector()
+                is_available, message = detector.verify_interface(self.channel)
+                if not is_available:
+                    LOGGER.warning(f"CAN interface verification: {message}")
+                    # Try to continue anyway - interface might be configured later
+                else:
+                    info = detector.get_interface_info(self.channel)
+                    if info and info.hardware_type:
+                        LOGGER.info(f"Using CAN hardware: {info.hardware_type} on {self.channel}")
+            except ImportError:
+                LOGGER.debug("CAN hardware detector not available")
+            except Exception as e:
+                LOGGER.debug(f"CAN hardware detection error: {e}")
+            
             # Primary channel
             self.bus = can.interface.Bus(
                 channel=self.channel,

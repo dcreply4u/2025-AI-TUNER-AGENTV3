@@ -129,6 +129,21 @@ except ImportError:  # pragma: no cover
     NucleoSensorReading = None  # type: ignore
     NucleoStatus = None  # type: ignore
 
+try:
+    from .can_hardware_detector import (
+        CANHardwareDetector,
+        CANHardwareInfo,
+        get_can_hardware_detector,
+        detect_can_hardware,
+        is_waveshare_can,
+    )
+except ImportError:  # pragma: no cover
+    CANHardwareDetector = None  # type: ignore
+    CANHardwareInfo = None  # type: ignore
+    get_can_hardware_detector = None  # type: ignore
+    detect_can_hardware = None  # type: ignore
+    is_waveshare_can = None  # type: ignore
+
 __all__ = [
     "EMSDataInterface",
     "CameraConfig",
@@ -184,6 +199,16 @@ if NucleoInterface is not None:
         "NucleoSensorConfig",
         "NucleoSensorReading",
         "NucleoStatus",
+    ])
+
+# Add CAN hardware detector if available
+if CANHardwareDetector is not None:
+    __all__.extend([
+        "CANHardwareDetector",
+        "CANHardwareInfo",
+        "get_can_hardware_detector",
+        "detect_can_hardware",
+        "is_waveshare_can",
     ])
 
 # Add dual antenna GPS if available
