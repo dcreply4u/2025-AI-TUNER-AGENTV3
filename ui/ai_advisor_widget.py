@@ -227,26 +227,37 @@ class AIAdvisorWidget(QWidget):
         
         header_layout.addStretch()
         
-        # Clear button with icon
-        clear_btn = QPushButton("×")
+        # Clear button with colorful icon
+        clear_btn = QPushButton("✕")
         clear_btn.setToolTip("Clear chat")
         clear_btn.setFixedSize(24, 24)
-        # Try to use icon if available
+        # Try multiple icon sources for better color support
+        icon = None
         try:
-            icon = QIcon.fromTheme("edit-clear")
+            # Try Qt standard icons first (more colorful)
+            from PySide6.QtWidgets import QStyle
+            style = clear_btn.style()
+            icon = style.standardIcon(QStyle.StandardPixmap.SP_DialogCloseButton)
             if icon.isNull():
-                icon = QIcon.fromTheme("clear")
-            if not icon.isNull():
-                clear_btn.setIcon(icon)
-                clear_btn.setText("")  # Remove text if icon works
-                clear_btn.setIconSize(QSize(16, 16))
+                # Fallback to theme icons
+                icon = QIcon.fromTheme("edit-clear")
+                if icon.isNull():
+                    icon = QIcon.fromTheme("clear")
+                if icon.isNull():
+                    icon = QIcon.fromTheme("edit-delete")
         except Exception:
-            # Keep text fallback if icon fails
             pass
+        
+        if icon and not icon.isNull():
+            clear_btn.setIcon(icon)
+            clear_btn.setText("")  # Remove text if icon works
+            clear_btn.setIconSize(QSize(16, 16))
+        
+        # Colorful styling for clear button
         clear_btn.setStyleSheet("""
             QPushButton {
                 background-color: transparent;
-                color: #666;
+                color: #e74c3c;
                 font-size: 16px;
                 font-weight: bold;
                 border: none;
@@ -254,11 +265,11 @@ class AIAdvisorWidget(QWidget):
                 padding: 2px;
             }
             QPushButton:hover {
-                background-color: #f0f0f0;
-                color: #333;
+                background-color: #fee;
+                color: #c0392b;
             }
             QPushButton:pressed {
-                background-color: #e0e0e0;
+                background-color: #fcc;
             }
         """)
         clear_btn.clicked.connect(self._clear_chat)
@@ -367,22 +378,31 @@ class AIAdvisorWidget(QWidget):
         self.input_field.textChanged.connect(self._on_input_changed)
         input_layout.addWidget(self.input_field, stretch=1)
         
-        # Send button with icon
+        # Send button with colorful icon
         send_btn = QPushButton("→")
         send_btn.setToolTip("Send message (Enter)")
         send_btn.setFixedSize(40, 40)
-        # Try to use icon if available
+        # Try multiple icon sources for better color support
+        icon = None
         try:
-            icon = QIcon.fromTheme("mail-send")
+            # Try Qt standard icons first (more colorful)
+            from PySide6.QtWidgets import QStyle
+            style = send_btn.style()
+            icon = style.standardIcon(QStyle.StandardPixmap.SP_ArrowForward)
             if icon.isNull():
-                icon = QIcon.fromTheme("document-send")
-            if not icon.isNull():
-                send_btn.setIcon(icon)
-                send_btn.setText("")  # Remove text if icon works
-                send_btn.setIconSize(QSize(20, 20))
+                # Fallback to theme icons
+                icon = QIcon.fromTheme("mail-send")
+                if icon.isNull():
+                    icon = QIcon.fromTheme("document-send")
+                if icon.isNull():
+                    icon = QIcon.fromTheme("go-next")
         except Exception:
-            # Keep text fallback if icon fails
             pass
+        
+        if icon and not icon.isNull():
+            send_btn.setIcon(icon)
+            send_btn.setText("")  # Remove text if icon works
+            send_btn.setIconSize(QSize(20, 20))
         
         # Set stylesheet
         send_btn.setStyleSheet("""
@@ -406,6 +426,155 @@ class AIAdvisorWidget(QWidget):
         input_layout.addWidget(send_btn)
         
         main_layout.addLayout(input_layout)
+        
+        # Toolbar with feature buttons (copy, paste, file upload, voice, image)
+        toolbar_layout = QHBoxLayout()
+        toolbar_layout.setContentsMargins(0, 4, 0, 0)
+        toolbar_layout.setSpacing(3)
+        
+        # Neutral, compact button style - more visible
+        button_style = """
+            QPushButton {
+                background-color: #e8e8e8;
+                color: #333;
+                border: 1px solid #bbb;
+                border-radius: 4px;
+                padding: 3px;
+                min-width: 24px;
+                min-height: 24px;
+            }
+            QPushButton:hover {
+                background-color: #d0d0d0;
+                border-color: #999;
+            }
+            QPushButton:pressed {
+                background-color: #bbb;
+            }
+        """
+        
+        # Copy button
+        copy_btn = QPushButton()
+        copy_btn.setToolTip("Copy")
+        copy_btn.setFixedSize(24, 24)
+        copy_icon = None
+        try:
+            from PySide6.QtWidgets import QStyle
+            style = copy_btn.style()
+            copy_icon = style.standardIcon(QStyle.StandardPixmap.SP_DialogCopyButton)
+            if copy_icon.isNull():
+                copy_icon = QIcon.fromTheme("edit-copy")
+        except Exception:
+            pass
+        if copy_icon and not copy_icon.isNull():
+            copy_btn.setIcon(copy_icon)
+            copy_btn.setIconSize(QSize(12, 12))
+        else:
+            copy_btn.setText("📋")
+            copy_btn.setStyleSheet(button_style + "font-size: 10px;")
+        if copy_icon and not copy_icon.isNull():
+            copy_btn.setStyleSheet(button_style)
+        copy_btn.clicked.connect(self._copy_text)
+        toolbar_layout.addWidget(copy_btn)
+        
+        # Paste button
+        paste_btn = QPushButton()
+        paste_btn.setToolTip("Paste")
+        paste_btn.setFixedSize(24, 24)
+        paste_icon = None
+        try:
+            from PySide6.QtWidgets import QStyle
+            style = paste_btn.style()
+            paste_icon = style.standardIcon(QStyle.StandardPixmap.SP_DialogApplyButton)
+            if paste_icon.isNull():
+                paste_icon = QIcon.fromTheme("edit-paste")
+        except Exception:
+            pass
+        if paste_icon and not paste_icon.isNull():
+            paste_btn.setIcon(paste_icon)
+            paste_btn.setIconSize(QSize(12, 12))
+        else:
+            paste_btn.setText("📄")
+            paste_btn.setStyleSheet(button_style + "font-size: 10px;")
+        if paste_icon and not paste_icon.isNull():
+            paste_btn.setStyleSheet(button_style)
+        paste_btn.clicked.connect(self._paste_text)
+        toolbar_layout.addWidget(paste_btn)
+        
+        # File upload button
+        upload_btn = QPushButton()
+        upload_btn.setToolTip("Upload File")
+        upload_btn.setFixedSize(24, 24)
+        upload_icon = None
+        try:
+            from PySide6.QtWidgets import QStyle
+            style = upload_btn.style()
+            upload_icon = style.standardIcon(QStyle.StandardPixmap.SP_FileDialogNewFolder)
+            if upload_icon.isNull():
+                upload_icon = QIcon.fromTheme("document-open")
+        except Exception:
+            pass
+        if upload_icon and not upload_icon.isNull():
+            upload_btn.setIcon(upload_icon)
+            upload_btn.setIconSize(QSize(12, 12))
+        else:
+            upload_btn.setText("📁")
+            upload_btn.setStyleSheet(button_style + "font-size: 10px;")
+        if upload_icon and not upload_icon.isNull():
+            upload_btn.setStyleSheet(button_style)
+        upload_btn.clicked.connect(self._upload_file)
+        toolbar_layout.addWidget(upload_btn)
+        
+        # Image upload button
+        image_btn = QPushButton()
+        image_btn.setToolTip("Insert Image")
+        image_btn.setFixedSize(24, 24)
+        image_icon = None
+        try:
+            from PySide6.QtWidgets import QStyle
+            style = image_btn.style()
+            image_icon = style.standardIcon(QStyle.StandardPixmap.SP_FileDialogDetailedView)
+            if image_icon.isNull():
+                image_icon = QIcon.fromTheme("image-x-generic")
+        except Exception:
+            pass
+        if image_icon and not image_icon.isNull():
+            image_btn.setIcon(image_icon)
+            image_btn.setIconSize(QSize(12, 12))
+        else:
+            image_btn.setText("🖼️")
+            image_btn.setStyleSheet(button_style + "font-size: 10px;")
+        if image_icon and not image_icon.isNull():
+            image_btn.setStyleSheet(button_style)
+        image_btn.clicked.connect(self._insert_image)
+        toolbar_layout.addWidget(image_btn)
+        
+        # Voice button
+        self.voice_btn = QPushButton()
+        self.voice_btn.setToolTip("Voice Input")
+        self.voice_btn.setFixedSize(24, 24)
+        self.voice_recording = False
+        voice_icon = None
+        try:
+            from PySide6.QtWidgets import QStyle
+            style = self.voice_btn.style()
+            voice_icon = style.standardIcon(QStyle.StandardPixmap.SP_MediaPlay)
+            if voice_icon.isNull():
+                voice_icon = QIcon.fromTheme("audio-input-microphone")
+        except Exception:
+            pass
+        if voice_icon and not voice_icon.isNull():
+            self.voice_btn.setIcon(voice_icon)
+            self.voice_btn.setIconSize(QSize(12, 12))
+        else:
+            self.voice_btn.setText("🎤")
+            self.voice_btn.setStyleSheet(button_style + "font-size: 10px;")
+        if voice_icon and not voice_icon.isNull():
+            self.voice_btn.setStyleSheet(button_style)
+        self.voice_btn.clicked.connect(self._toggle_voice)
+        toolbar_layout.addWidget(self.voice_btn)
+        
+        toolbar_layout.addStretch()
+        main_layout.addLayout(toolbar_layout)
         
         # Status - minimal, at bottom
         self.status_label = QLabel("")
@@ -838,11 +1007,33 @@ class AIAdvisorWidget(QWidget):
         
         copy_action = QAction("Copy", self)
         copy_action.setShortcut(QKeySequence.StandardKey.Copy)
+        copy_icon = None
+        try:
+            from PySide6.QtWidgets import QStyle
+            style = self.style()
+            copy_icon = style.standardIcon(QStyle.StandardPixmap.SP_DialogCopyButton)
+            if copy_icon.isNull():
+                copy_icon = QIcon.fromTheme("edit-copy")
+        except Exception:
+            pass
+        if copy_icon and not copy_icon.isNull():
+            copy_action.setIcon(copy_icon)
         copy_action.triggered.connect(self._copy_text)
         menu.addAction(copy_action)
         
         paste_action = QAction("Paste", self)
         paste_action.setShortcut(QKeySequence.StandardKey.Paste)
+        paste_icon = None
+        try:
+            from PySide6.QtWidgets import QStyle
+            style = self.style()
+            paste_icon = style.standardIcon(QStyle.StandardPixmap.SP_DialogApplyButton)
+            if paste_icon.isNull():
+                paste_icon = QIcon.fromTheme("edit-paste")
+        except Exception:
+            pass
+        if paste_icon and not paste_icon.isNull():
+            paste_action.setIcon(paste_icon)
         paste_action.triggered.connect(self._paste_text)
         menu.addAction(paste_action)
         

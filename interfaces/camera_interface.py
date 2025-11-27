@@ -186,32 +186,72 @@ class CameraAutoDetector:
                     continue
 
                 dev_idx = int(match.group(1))
+                
+                # Skip if it's a metadata device (videoX usually has videoX and videoXmeta)
+                # Only check the main video device, not metadata
+                if "meta" in str(video_dev).lower():
+                    continue
+                
                 # Suppress OpenCV errors during detection
                 import sys
                 import os
                 old_stderr = sys.stderr
+                cap = None
                 try:
                     sys.stderr = open(os.devnull, 'w')
-                    cap = cv2.VideoCapture(dev_idx)
+                    # Try opening with different backends for better compatibility
+                    cap = cv2.VideoCapture(dev_idx, cv2.CAP_V4L2)
+                    if not cap.isOpened():
+                        # Try without specifying backend
+                        cap.release()
+                        cap = cv2.VideoCapture(dev_idx)
+                    
                     if not cap.isOpened():
                         sys.stderr.close()
                         sys.stderr = old_stderr
                         continue
+                    
+                    # Try to read a frame to verify camera is actually working
+                    ret, _ = cap.read()
+                    if not ret:
+                        # Camera opened but can't read frames - might be a metadata device
+                        cap.release()
+                        sys.stderr.close()
+                        sys.stderr = old_stderr
+                        continue
+                    
                     sys.stderr.close()
                     sys.stderr = old_stderr
-                except Exception:
+                except Exception as e:
+                    if cap:
+                        try:
+                            cap.release()
+                        except Exception:
+                            pass
                     if sys.stderr != old_stderr:
                         try:
                             sys.stderr.close()
                         except Exception:
                             pass
                     sys.stderr = old_stderr
+                    LOGGER.debug("Error testing camera device %s: %s", video_dev, e)
                     continue
 
                 # Get capabilities
                 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)) or 1920
                 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) or 1080
                 fps = int(cap.get(cv2.CAP_PROP_FPS)) or 30
+                
+                # If dimensions are 0, try to set and get a common resolution
+                if width == 0 or height == 0:
+                    for test_w, test_h in [(1920, 1080), (1280, 720), (640, 480)]:
+                        cap.set(cv2.CAP_PROP_FRAME_WIDTH, test_w)
+                        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, test_h)
+                        actual_w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+                        actual_h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                        if actual_w > 0 and actual_h > 0:
+                            width, height = actual_w, actual_h
+                            break
 
                 # Try to get device name from udev
                 device_name = CameraAutoDetector._get_device_name(video_dev)
@@ -224,9 +264,9 @@ class CameraAutoDetector:
                         name=device_name or f"USB Camera {dev_idx}",
                         camera_type=CameraType.USB,
                         source=str(dev_idx),
-                        width=width,
-                        height=height,
-                        fps=fps,
+                        width=width or 1920,
+                        height=height or 1080,
+                        fps=fps or 30,
                         position=position,
                         capabilities={
                             "device_path": str(video_dev),

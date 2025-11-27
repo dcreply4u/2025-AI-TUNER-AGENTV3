@@ -1,0 +1,1056 @@
+
+=== PAGE 1 ===
+VBOX 3i Dual Antenna (v5) with Firmware Version 2.8 - User Guide
+•01 Getting Started
+•02 Front Panel
+•03 LED Behaviour
+•04 Installing VBOX 3i Dual Antenna (v5) Units
+•4.1 IMU Integration
+•4.2 DGPS/RTK
+•4.3 CAN
+•4.4 Bluetooth Pairing
+•4.5 Voice Tagging
+•05 Setup
+•5.1 General Menu
+•5.2 Channels Menu
+•5.3 Logging Menu
+•5.4 GPS Menu
+•5.5 IMU Menu
+•5.6 ADAS Menu
+•5.7 CAN Menu
+•5.8 Output Menu
+•CAN Output – VBOX 3i With Firmware v2.8
+•Inputs/Outputs – VBOX 3i Dual Antenna (v5)
+•Pinouts – VBOX 3i Dual Antenna (v5)
+•Technical Specifications – VBOX 3i Dual Antenna (v5)
+1
+=== PAGE 2 ===
+01 Getting Started
+This page covers handy information for when you initially receive your VBOX 3i Dual Antenna (v5) unit and what you
+need to know before using it.
+Registration
+Please register your VBOX unitso that Racelogic can
+continue to provide you with notifications about the latest
+software releases and firmware upgrades for your
+Racelogic product, and offer technical support.
+Register your device here .
+What is in the box?
+When you purchase a VBOX 3i Dual Antenna, you will find the following items when you open the box:
+Product Code Quantity Description
+VB3iSL-V5/VB3iD-V5/VB3iD-V5a 1 VBOX 3i Dual Antenna unit
+RLVBACS020 1 Mains Power Supply
+RLACS156 2GPS/Glonass antenna - Primary
+Antenna
+RLCAB071-4 2 Antenna cable (4 m)
+RLACS098 1 4 GB Compact Flash Card
+RLCAB001 1 VBOX Serial PC cable (5-way
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/01_Getting_Started
+2
+=== PAGE 3 ===
+Product Code Quantity Description
+LEMO to 9-way D-type serial cable
+– 2 m)
+RLACS119 1 VBOX 3i Bluetooth Antenna
+RLACS120 1 VBOX 3i Audio Headset
+ADC25IPCON 1 25-way D-type connector
+RLCAB066-2 1USB ‘A’ to Mini ‘B’ 2-m cable (USB
+Configuration)
+RLCAB010LE 12-way LEMO power lead to 12V
+cigar lighter – 2m
+RLACS163 1 USB multi card reader
+VBFMAN 1 VBOX File Manager unit
+RLCAB005-C 1VBOX to VBOX Module power cable
+(5-Way LEMO to 5-Way LEMO) –
+2m
+ANTLOCSTKRL1 2 Antenna Location Sticker
+RLVBACS013 1VBOX Padded carry case with foam
+spacer
+RLACS091 1 VBOX Tape Measure
+RLCALUKAS 1Certificate of Calibration – UKAS
+Accredited
+Power Supply
+WARNING
+You can connect your VBOX 3i to other Racelogic input modules, including the ADC03 ,ADC02 ,TC8,FIM02 /3
+and multifunction displays. The voltage supply to Racelogic modules connected to the VBOX unit will be at the
+same level as the VBOX unit's power input. Therefore, when you are using any of the Racelogic peripherals with
+VBOX 3i units, the input voltage must not exceed 15 V. If you input a higher voltage, you can damage the module
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/01_Getting_Started
+3
+=== PAGE 4 ===
+and possibly the VBOX unit.
+The primary source of power to VBOX 3i units is the Power Supply - LEMO 2-way Plug . This is terminated in a
+2-way connector and mates with the 2-way PWR socket on the VBOX unit.
+VBOX 3i units can, however, be powered from a wide range of voltage sources. If you are considering batteries as a
+power source, note that the minimum operating voltage of a VBOX 3i unit is 7 V and that the maximum operating
+voltage input must not exceed 30 V DC. If you use voltages that are outside these ranges, you can damage the
+VBOX unit.
+If you are running the VBOX 3i unit from a battery pack, the unit will sound a warning tone to indicate when the
+battery voltage is reaching the minimum operating voltage level. You must recharge or replace the battery pack when
+you hear this tone.
+The VBOX 3i units have been designed to generate as little heat as possible and have a wide operating temperature
+range. However, it is good practice to mount your VBOX unit in a position where it has sufficient airflow around the
+case.
+Note: You must connect the GNSS antenna to the VBOX unit before you connect the power. The VBOX unit will look
+for a connected GNSS antenna on power-up and will automatically adjust its gain for optimum performance.
+External RACELOGIC modules operate from a 12 V vehicle supply. Therefore, the VBOX supply must not exceed 15
+V DC when you are using external modules.
+Compact Flash Memory Cards (CF Cards)
+The VBOX units will store logged data onto CF cards. The CF cards that are available from Racelogic are already
+optimised for use with the VBOX units, and as such, they do not need to be formatted before use.
+Should the CF card need formatting due to card errors, and the card is smaller than 32 GB, you can do this through
+Windows. If the card is larger than 32 GB, you must use third-party applications to reformat them. You can find more
+information about how to format a large Flash card in FAT32 here .
+Note: You can purchase CF cards directly from Racelogic and our distributors ,or you can contact us to confirm
+card compatibility.
+IMPORTANT
+Do not remove the CF card or power down the VBOX unit while the unit is logging (CF LED is flashing). This can
+lead to data loss or corruption. Press the LOG button to stop the logging first.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/01_Getting_Started
+4
+=== PAGE 5 ===
+USB
+VBOX 3i units have a USB 2.0 connector that you can use to configure your VBOX unit and output real-time serial
+data at the full 100 Hz data rate.
+Before you connect your VBOX unit to your computer, you must make sure that you have downloaded and installed
+theVBOX Setup software . This will install the required USB drivers on your computer.
+The software installation will place the VBOX USB drivers in the following location on your computer. C:\Program
+Files\Racelogic\Drivers.
+When you connect a powered-up VBOX 3i to your computer with the supplied USB lead, your PC will recognise the
+presence of new hardware and open the typical Windows install window for new hardware. Follow the on-screen
+prompts and point the Windows installation to the location of your drivers.
+You can also download USB drivers forVBOX 3ifrom the Drivers and Utilities section onvboxautomotive.co.uk.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/01_Getting_Started
+5
+=== PAGE 6 ===
+02 Front Panel
+Connectors
+You can find more information about the different inputs and outputs here .
+BLUETOOTHVBOX 3i units come equipped with a Bluetooth radio
+allowing configuration of the VBOX unit remotely along
+with the remote output of real-time VBOX serial data, at
+the full 100 Hz data rate, to any Bluetooth capable PC or
+data logger.
+A INThis is the analogue input connector. Each of the four
+analogue input channels on a VBOX 3i unit has a
+dedicated analogue converter. Data is recorded from
+each channel simultaneously. The analogue input
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/02_Front_Panel
+6
+=== PAGE 7 ===
+connector also provides two power outputs that may be
+used for driving sensors.
+PWRThis is the power connector. VBOX 3i units can accept a
+supply voltage between 7 and 30 V DC.
+AD1The AD1 port has 1 analogue voltage and 1 digital
+output. The digital output is a simple on/off state output
+thatcan be associated with any of the data channels
+being logged by the VBOX. You can set a threshold
+level for the selected data channel, where a true
+condition gives a 5 V output and a false condition gives
+a 0 V output. You can also associate hysteresis and
+tolerance values with this condition. The default function
+of this digital output is to indicate the current logging
+status of the VBOX.
+AD2The AD2 port has 1 analogue voltage and 1 digital
+output. The digital output is a frequency/pulse output
+that corresponds to velocity. You can adjust the pulse
+per metre range in the software. The voltage range of
+the analogue output is 0 to 5 V DC.
+D INThe ‘D IN’ connector contains the two digital inputs for
+the VBOX 3i RTK.
+•Theevent marker/brake trigger input is connected
+to an event capture input on the GNSS engine. This
+captures precisely the trigger event time (10 ns
+resolution). A handheld event marker is also
+available so that you can record marker events in
+thedata file.
+•A remote logging on/off switch is also available for
+ease of use and in situations when the front panel
+switch is not easily accessible.
+CAN*The secondary RS232 port is used for connection to a
+Telemetry Radio module allowing the reception of
+Differential GPS (DGPS) data for local correction from a
+Racelogic Local DGPS base station, or Moving Base
+solution. The secondary RS232 port is located in the
+connector marked CAN on the VBOX 3i front panel.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/02_Front_Panel
+7
+=== PAGE 8 ===
+SER*The primary RS232 port is used for all communication
+between the VBOX 3i unit and a laptop PC. The primary
+port is marked SER on the front panel.
+Note: Due to the max bandwidth being 115200, live data
+transfer of all channels is limited to 20 Hz. 50 Hz should
+only be used to transmit standard GPS channels and
+Solution Type, and 100 Hz can only transmit Sats, Time,
+Speed, and Trigger Event Time. Logging too many
+channels at too high a rate will cause drop-outs and loss
+of data. For maximum accuracy, you should log tests
+performed at a GPS sample rate above 20 Hz to
+compact flash and do a post-process analysis.
+AUDIOVBOX 3i units can record audio tags synched with a set
+GNSS timestamp, with an accuracy of 0.5 seconds.
+USBVBOX 3i units include a USB 2.0 connection that you
+can use to configure your VBOX unit and output real-
+time serial data at the full 100 Hz data rate.
+ANTENNA A The primary antenna connector.
+ANTENNA B The secondary antenna connector.
+*You can configure the function of the CAN and SER ports with VBOX Setup and swap the Racelogic Bus profile. The
+Racelogic CAN bus is used for connected Racelogic modules or displays. The Vehicle CAN bus (VCI) is for use by third-
+party CAN equipment, whether you are logging to or from the VBOX. For dual use of RS232 and CAN from one of the
+sockets you will need to use a 5-way Lemo splitter (RLVBACS024).
+IMPORTANT
+Power supplied to external Racelogic CAN modules through the CAN or SER cables is at the same voltage as the
+input power supply. When you are using Racelogic external CAN modules (eg; MFD or ADC03), you must make sure
+that the VBOX 3i supply voltage does not exceed 15 V DC.
+LEDs
+CFIndicates that the unit is writing to the Compact Flash
+card.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/02_Front_Panel
+8
+=== PAGE 9 ===
+LOGIndicates that the unit is capturing data to the CF card
+andthe current logging rate.
+SATS Indicates the number of satellites being tracked.
+DUALIndicates whether dual antenna mode is enabled/
+disabled and that the antenna lock is fixed.
+DIFF Indicates the DGPS status.
+IMU Indicates the IMU integration and initialisation status.
+BLUETOOTHIndicates that communication has been initialised and
+that Bluetooth connection has been confirmed.
+PWRIndicates whether the unit is powered and ready to use
+or not.
+D IN Indicates activated/triggered event marker input.
+CANIndicates that expected incoming CAN data has been
+decoded properly and is being logged.
+SERIndicates incoming serial traffic and that incoming CAN
+data has been decoded and is being logged.
+You can find the full description of the different behaviours of the LEDs here .
+Compact Flash
+This is the CF Card slot on the front panel of the VBOX 3i unit. It accepts Type I compact flash cards to log data.
+Buttons
+VBOX 3i units has two membrane buttons on the front panel, LOG andFUNC .LOG is used to start and stop logging
+to the compact flash card, and FUNC is used to switch between two sample rates, 100 Hz and 20 Hz.
+LOG
+TheLOG button will override any of the automatic logging thresholds set in the VBOX unit. For example, if you have
+set the VBOX unit to log all the time, the LOG button will toggle logging on and off. If you have set the VBOX unit to
+’log only when moving ’ and you are moving, pressing the LOG button will stop the VBOX unit logging and close the
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/02_Front_Panel
+9
+=== PAGE 10 ===
+file on the compact flash card. Logging will now not continue, even if you are moving, until you press the LOG button
+again or you remove the compact flash card and reinsert it. The VBOX unit will then continue to log only when
+moving.
+Notes:
+•If the VBOX unit is using ‘ log only when moving ’ log mode, and the vehicle has been stationary from power-up,
+theLOG button will not initiate logging. Ifyou want the VBOX unit to log in this situation, you have to use VBOX
+Manager orVBOX Setup tochange the log mode to ‘ Log Continuous ’.
+•Every time the logging is toggled with the LOG button, a new file is created.
+•When the VBOX unit is logging, the green LOG LED will be solid and theblue CF light will flash.
+Coldstart
+Press and hold the LOG button for 5 seconds to initiate a coldstart .
+IMPORTANT
+Do not remove the CF card or power down the unit while the CF LED is flashing. If you need to remove the
+card or power down the unit and the CF LED is flashing, you must press the LOG button first to manually
+stop the VBOX unit from logging. If you don't do this you can lose the data or corrupt the card.
+FUNC
+Pressing the FUNC button briefly flashes the LOG LED and beeps to indicate the current sample rate. A slow flash
+(once per second) indicates 20 Hz, and rapid flash (5 times a second) indicates a 100 Hz sample rate. Pressing and
+holding the FUNC button for 5 seconds toggles the log rate between 20 Hz and 100 Hz. The sample rate can also be
+set using VBOX Manager or VBOX Setup.
+Default Setup
+You can restore the default factory settings on VBOX 3i unit by pressing and holding the FUNC andLOG buttons
+simultaneously for 10 seconds. This will trigger the reset process. There will be an audible notification beep and tune
+playing when the process has completed.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/02_Front_Panel
+10
+=== PAGE 11 ===
+03 LED Behaviour
+This page covers the different LEDs on the VBOX 3i Dual Antenna (v5) units with firmware version 2.8 and the meaning
+of their behaviours.
+PWR
+Solid green indicates that a suitable
+power source is connected, unit is
+fully booted and ready to use.
+Solid redindicates that the VBOX is
+not ready to operate, either because
+it is still booting up, settings are
+being written to the unit or because
+there is an error condition.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/03_LED_Behaviour
+11
+=== PAGE 12 ===
+D IN
+Solid green indicates that the event
+marker input has been activated/
+triggered.
+CAN
+Flashing green indicates that
+expected incoming CAN data has
+been decoded properly and is being
+logged.
+SER
+Flashing yellow indicates that there
+is incoming Serial traffic through this
+port.
+BLUETOOTH
+V2 Bluetooth module – Flashing
+blue indicates Bluetooth is
+initialising communications with a
+Bluetooth device.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/03_LED_Behaviour
+12
+=== PAGE 13 ===
+Solid blue indicates the
+VBOX unithas a Bluetooth
+connection with another Bluetooth
+device.
+CF
+Flashes blue when data is being
+written to the card.
+LOG
+Solid green when the VBOX is
+capturing data to the CF card.
+SATS
+Flashing redindicates no satellites
+in view.
+A flashing orange sequence
+indicates the number of
+GLONASS satellites currently being
+tracked. Each flash indicates a
+satellite with a short pause between
+each sequence.
+Sequence showing 3 Satellites
+A flashing green sequence indicates
+the number of GPS satellites
+currently being tracked. Each flash
+indicates a satellite with a short
+pause between each sequence.
+Sequence showing 4 Satellites
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/03_LED_Behaviour
+13
+=== PAGE 14 ===
+DIFF/DGPS
+Flashing orange indicates DGPS is
+set but not locked (either 2 cm RTK,
+40 cm local DGPS or NTRIP).
+Solid orange indicates a
+Float RTK status (either 2
+cmRTK or NTRIP) or a
+Fixed DGPS lock (40 cm local
+DGPS or SBAS).
+Solid green indicates a Fixed RTK
+lock (either 2 cm RTK or NTRIP).
+DUAL
+Solid orange indicates that dual
+antenna mode is enabled.
+Solid green indicates dual antenna
+lock is fixed.
+IMU
+Solid orange indicates that the IMU
+integration is enabled but that no
+IMU is connected or that the
+detected IMU is invalid.
+When using an IMU04, you must
+make sure that it is:
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/03_LED_Behaviour
+14
+=== PAGE 15 ===
+•connected using an RLCAB119
+to the 25-way D connector
+•is set to Racelogic CAN mode
+•isrunning the latest release
+firmware
+Flashing orange shows IMU is
+connected and integration
+initialisation is running. This will not
+be completed until the VBOX unit
+has had a satellite lock while being
+stationary for 30 seconds.
+Flashing green indicates that the
+integration Initialisation is complete
+but that it has not detected
+movement yet.
+Solid green indicates that it has
+detected movement – the IMU
+integration is working.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/03_LED_Behaviour
+15
+=== PAGE 16 ===
+04 Installing VBOX 3i Dual Antenna (v5) Units
+This page has information about installation of the VBOX 3i Dual Antenna (v5) hardware with firmware version 2.8 and
+the placement of the GNSS antennas.
+Best practise is to make sure that you have all the necessary equipment ready before you start installing systems on
+vehicles.
+Required Equipment to set up VBOX 3i Dual Antenna
+•VBOX unit
+•Power cable
+•USB cable
+•Antenna(s)
+•Antenna cable(s)
+•Laptop
+•VBOX Setup
+Modules and accessories
+This is a list of peripherals that you can use with your VBOX 3i unit. Click on the product name to see the kit you need to
+use it.
+►IMU
+•IMU unit
+•IMU cable (RLCAB119)
+►NTRIP modem
+•NTRIP Modem
+•Supplied NTRIP antenna
+•SIM card/Mobile Phone
+•NTRIP to VBOX Cable (RLCAB170)
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units
+16
+=== PAGE 17 ===
+•Laptop/mobile device for configuration
+•Network information (if using SIM Card and internal modem)
+►Base Station
+•Base Station Unit
+•Pole/Mast
+•Antenna (ACS279)
+•Antenna Cable (RLCAB101-3)
+•Base Station Radio (RTM24MBS)
+•Radio Antenna (RLACS218)
+•Cable (RLCAB105)
+►DGPS Radios
+•Radio Unit (RTM24MBC)
+•Radio Antenna (RLACS218)
+•Cable (RLCAB005)
+►ADAS Radios
+•Radio Unit (RTMXB2)
+•Radio Antenna (RLACS218)
+•Cable (RLCAB005)
+►VBOX Manager
+•VBOX Manager Unit
+•Power cable (RLCAB005-C)
+►Survey Pole
+•Survey Pole
+•Survey Antenna (RLACS320)
+•Survey antenna cable (RLCAB067)
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units
+17
+=== PAGE 18 ===
+►Survey Trolley
+•Survey Trolley kit
+◦TNC-to-SMA cable
+◦Surveying rucksack
+◦Telescopic pole
+◦Li-ion battery pack
+◦Stainless Steel Offset Bracket
+◦5/8" stainless steel nut
+◦Rover wheel
+◦Telescopic handle
+◦Extension cable (SMA)
+◦Telemetry antenna
+◦Telemetry antenna bracket with nut
+•Ground plane antenna
+•TNC-to-SMA antenna cable
+►CAN Hub
+•CAN Hub unit
+•CAN Hub power cable (2 x RLCAB005-18)
+Setup
+IMPORTANT
+Connect the Antenna(s) to the VBOX unit before you connect the power.
+VBOX 3i Dual Antenna
+1.Connect one end of an antenna cable to the connector on the antenna(s).
+2.Place the antenna(s) on the roof of the vehicle.
+You can read more about how and where to place the GNSS antennas here .
+3.Connect the antenna(s) to the antenna port(s) on the VBOX 3i unit.
+Note : The primary antenna is Antenna A and the secondary antenna is Antenna B. You can find more information
+about best practices for antenna placement here .
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units
+18
+=== PAGE 19 ===
+4.Connect the power cable to the PWR port on the VBOX 3i unit.
+5.Connect the Tablet/Laptop to the USB port on the VBOX 3i unit with the USB cable (RLCAB066-2).
+6.Secure the VBOX unit in the vehicle.
+You can, for example, place it in the foam insert in the carry case and secure the carry case in the back seat of
+the vehicle with the seat belt.
+DGPS/RTK
+Differential GPS (DGPS), or Differential GNSS (DGNSS) as it is also known, is a system that provides positional
+corrections to GNSS signals. DGNSS uses a fixed, known position to adjust real-time GNSS signals to eliminate
+pseudorange errors. You can set up your own base station, use an already set up base station or use an NTRIP modem
+to provide these correctional messages to your VBOX unit.
+►Connect to Base Station via radio link
+Note: If you need information about how to set up your Base Station, you can find it here .
+1.Connect the Radio Antenna to the DGPS Client Radio.
+2.Place the Radio Antenna on the vehicle roof.
+Note: The Radio antenna must be at least 50 cm away from any other radio antenna.
+3.Connect one end of an RLCAB005 cable to the port on the Radio unit.
+4.Connect the other end of the cable to the CAN port on VBOX 3i Dual Antenna.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units
+19
+=== PAGE 20 ===
+►Connecting to Configured NTRIP Modem
+Note : If you need to Configure your NTRIP Modem, you can find the instructions here .
+Using SIM Card Using Wi-Fi Connection
+1.Attach the supplied antenna (ANTMSTUBSMAM)
+to the SMA connector on the top of the unit .
+2.Connect the Hirose end of the RLCAB170 to the
+Hirose connector at the bottom of the NTRIP
+modem.
+3.Connect the other end of the RLCAB170 cable to
+theCAN port on the VBOX 3i Dual Antenna.
+This cable provides power to the modem from
+the VBOX unit.
+4.When it has connected to the network provider,
+the unit will briefly display a Connected (mobile
+data supplier) message.1.Attach the supplied antenna (ANTMSTUBSMAM)
+to the SMA connector on the top of the unit .
+2.Connect the Hirose end of the RLCAB170 to the
+Hirose connector at the bottom of the NTRIP
+modem.
+3.Connect the other end of the RLCAB170 cable to
+theCAN port on the VBOX 3i Dual Antenna.
+This cable provides power to the modem from
+the VBOX unit.
+4.The modem will power up and connect. When it
+is connected, the unit will briefly display “Wi-Fi
+Connected”.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units
+20
+=== PAGE 21 ===
+The NTRIP modem will reboot and attempt to
+connect to the internal modem you have
+configured.
+5.When it has connected to the NTRIP server, the
+unitwill briefly display the RTCM Streaming
+message.
+6.Check that the DIFF LED on the VBOX unit is
+solid green, indicating that it is receiving DGPS
+corrections.If it cannot connect to the configured Wi-Fi
+hotspot on power up, it will automatically restart
+andbecome a configuration access point. See
+the instructions for configuring the NTRIP
+modem for the first time for the steps to
+configure the Wi-Fi hotspot again.
+5.When it has connected to the NTRIP server, the
+unitwill briefly display the RTCM Streaming
+message.
+6.Check that the DIFF LED on the VBOX unitis
+solid green, indicating that it is receiving DGPS
+corrections.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units
+21
+=== PAGE 22 ===
+Inertial Measurements
+►IMU
+Racelogic's Inertial Measurement Unit (RLVBIMU04) provides highly accurate measurements of pitch, roll, and
+yaw rate using three rate gyros, as well as x, y, and z acceleration via three accelerometers.
+1.Mount the IMU in the test vehicle (use the appropriate method based on your IMU variant , mounting
+accessories and test scenario)
+2.Connect the Lemo connector of the RLCAB119 cable to the CAN/KF port on the IMU unit.
+3.Connect the analogue connector on the other end of the cable to the A IN port on the front panel of the
+VBOX 3i Dual Antenna.
+4.Apply power to the VBOX unit.
+IMPORTANT
+If you are using IMU Integration, you must disable it before you set any vehicle or line reference points. You can
+enable it again after you have finished setting the points.
+Integration
+When you have connected the IMU to the VBOX unit, you must configure the IMU integration in VBOX Setup .
+Initialisation
+When using IMU integration, an initialisation phase is required .This will happen when the IMU is connected to
+the VBOX unit after being set up. The initialisation process will automatically run after the VBOX unit has
+successfully gained satellite lock. When the initialisation process is complete, the IMU LED on the front panel of
+the VBOX unit will start flashing green.
+Kalman Filter Calibration
+When using an IMU filter it is important to perform the full calibration procedure before meaningful testing
+commences. The calibration procedure is a series of specific manoeuvres that should be performed that help the
+Kalman filter characterise the outputs from the IMU.
+Click here to see the Kalman filter calibration information.
+If you have enabled IMU Integration, you must perform the full calibration procedure before you can start to
+produce meaningful test results. The calibration procedure is a series of specific manoeuvres that you
+should perform tohelp the Kalman Filter characterise the outputs from the IMU.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units
+22
+=== PAGE 23 ===
+If you do not perform the calibration procedure, the Kalman Filter will still function. It may, however, not
+produce a high level of accuracy until after you have performed dynamic manoeuvres in the X and Y plane
+(i.e. left and right-hand turns, braking and accelerating) which could take several minutes of driving.
+Recommended procedure
+1.Park the vehicle in an open area where the GNSS antenna has a clear view of the sky.
+2.Make sure that you have RTK fix.
+3.Remain static and wait for the IMU to complete the 30-second stationary initialization.
+Note : If the IMU detects movement before the initialisation finishes, the 30-second process will restart
+when the vehicle is stationary again.
+4.When the LED on the front panel of the IMU changes from flashing orange to flashing green,
+drive forward to complete the initialisation of the IMU.
+5.Continue to an open area to perform the calibration procedure.
+6.Drive in a figure of eight at least twice. The vehicle should be at a speed of more than 5 km/h during this
+procedure to generate sufficient force for the calibration process.
+Note: If you cannot do figure of eights, you can perform left/right slalom-type manouvres to achieve a similar
+effect.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units
+23
+=== PAGE 24 ===
+7.Accelerate hard from a standstill to 50 km/h or above. Perform a brake stop with a deceleration force of
+at least 0.5 g. You must perform this step twice.
+Re-running the calibration
+The Kalman Filter is constantly adapting its calibration depending on the information it receives from
+theGNSS receiver and the IMU. Therefore, if the vehicle is left stationary for a long time, or if an External
+IMU is moved from its mounting position, you should repeat the calibration procedure.
+The calibration should also be repeated if there has been a communication break between the VBOX unitand
+the External IMU, such as:
+•You power cycle either the VBOX unit or the External IMU.
+•You change the VBOX IMU settings.
+•You use the VBOX Setup Software to read the VBOX unit's settings.
+•You use the VBOX Setup Software to read the External IMU settings.
+•You perform a GNSS Coldstart.
+What happens if you do not carry out this procedure?
+If you cannot carry out this procedure as above, the speed accuracy will be reduced, especially for the first
+few minutes, until the Kalman Filter is able to calibrate itself.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units
+24
+=== PAGE 25 ===
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units
+25
+=== PAGE 26 ===
+Radios
+►ADAS Radios
+1.Connect the Radio antenna to the Radio unit.
+2.Place the antenna on the car roof.
+Note: The Radio antenna must be at least 50 cm away from any other radio antenna.
+3.Connect one end of an RLCAB005 cable to the port on the Radio unit.
+4.Connect the other end of the cable to the SER port on the VBOX 3i Dual Antenna.
+CAN
+►CAN Hub
+1.Connect one end of an RLVBCAB005-018 to the VB CAN port on the CAN Hub.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units
+26
+=== PAGE 27 ===
+2.Connect the other end of the cable to the CAN port on the VBOX 3i Dual Antenna.
+3.Connect one end of a second RLVBCAB005-18 to the VB SER port.
+4.Connect the other end of the second cable to the SER port on the VBOX 3i Dual Antenna.
+Displays
+►MFD Touch
+1.Connect the RLCAB005-C cable to the bottom port on the right-hand side of the MFD Touch.
+2.Connect the other end of the cable to the CAN port on the VBOX 3i Dual Antenna.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units
+27
+=== PAGE 28 ===
+►VBOX Manager
+1.Connect the RLCAB005-C cable to one of the two ports on the left-hand side of the VBOX Manager. You
+can use either connector for this functionality.
+2.Connect the other end of the cable to the CAN port on the VBOX 3i Dual Antenna.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units
+28
+=== PAGE 29 ===
+Survey Equipment
+►Survey Pole
+1.Assemble the pole by screwing the two pole halves together.
+2.Attach the survey antenna (RLACS320) to the threaded top of the pole.
+3.Connect the antenna cable ( RLCAB067) to the port on the survey antenna.
+4.Connect the other end of the antenna cable to the primary antenna port ( A) on VBOX 3i Dual Antenna.
+►Survey Trolley
+Connect
+1.Connect one end of a 5-pin LEMO cable (RLCAB005) to the port on the VBOX Telemetry Radio.
+2.Connect the other end of the cable to the SER port on VBOX 3i Dual Antenna.
+3.Connect the Li-ion battery pack to the PWR port on the VBOX 3i Dual Antenna.
+4.Connect the TNC connector on the TNC-to-SMA cable to the connector on the GPS ground plane antenna.
+5.Connect the SMA connector to the primary antenna connector ( A) on the VBOX 3i Dual Antenna.
+6.Make sure that you secure all connected units in the surveying rucksack and that you tie the antenna cables
+to the telescopic pole with the supplied velcro wraps.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units
+29
+=== PAGE 30 ===
+Common system configurations - connection diagrams
+▼VBOX 3i Dual Antenna with NTRIP
+▼VBOX 3i Dual Antenna with NTRIP and IMU
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units
+30
+=== PAGE 31 ===
+▼VBOX 3i Dual Antenna with Base Station
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units
+31
+=== PAGE 32 ===
+▼VBOX 3i Dual Antenna with Base Station and IMU
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units
+32
+=== PAGE 33 ===
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units
+33
+=== PAGE 34 ===
+4.1 IMU Integration
+This page covers an overview and explanation of IMU integration with VBOX 3i Dual Antenna (v5) units with firmware
+version 2.8.
+Roof Mounting
+When using the IMU roof mount, the user has the option to translate the data from the roof to another point on the
+vehicle. By default, when the roof mount is enabled, a 1 m Z offset is added, translating the filtered speed down in to the
+vehicle, towards the centre of gravity.
+If the Kalman Filter data is required relative to an alternate or more precise location on the vehicle, then measurements
+should be made from the centre of the IMU to the desired location. As the IMU is housed within the enclosure, precise
+measurements are not easy to make. So a Z measurement can be taken from the centre of the GPS antenna, provided
+3 cm is subtracted from the physical measurement. Translation measurements need to be made in all 3 axis, X, Y and
+Z.
+Required equipment
+•VB3i unit (IMU04 ready)
+•IMU04
+•RLCAB119 VBOX –IMU connecting cable
+•RLCAB001 /RLCAB066-2 –VB3i PC connection cable
+•VBOX Setup Software
+•VBOX Manager (optional)
+Setup
+Hardware
+Important note: IMU04 must be connected to VB3i before power is applied to ensure data is correctly synchronised.
+1.Fit the VBOX 3i into the test vehicle, and mount the IMU roof mount on the vehicle roof .
+2.Connect antenna from IMU roof mount to the primary antenna of the VB3i (antenna A).
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.1_IMU_Integration
+34
+=== PAGE 35 ===
+3.Connect RLCAB119 cable from left hand port on roof mount IMU (CAN/KF) to VBOX 3i V5 25W D analogue input
+port.
+4.Take data translation measurements in X, Y and Z axis from centre of IMU, if required. Default 1 m under IMU.
+5.After IMU is connected, apply power to VBOX 3i.
+6.Enable IMU integration using VBOX Setup or VBOX Manager.
+VBOX 3i V5 and IMU04
+Configuration
+VBOX Setup Software
+1.Ensure IMU04 is connected via RLCAB119, and the VBOX 3i is powered on.
+2.Connect VBOX 3i to a computer either via Bluetooth, an RLCAB001 cable to the 'SER'input and the computer's
+serial port ( usb-serial adapter may be required) , or via an RLCAB066-2 cable to one of the computer's USB ports.
+3.Open VBOX Setup and connect to VBOX 3i by selecting COM Port .
+4.Select the ' GPS ' menu and the ' Settings ' tab, ensure that ' GPS Optimisation 'is set to 'High dynamics '.
+5.Select the 'Logging ' menu and ensure that ' Log rate ' is set to ' 100 Hz '.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.1_IMU_Integration
+35
+=== PAGE 36 ===
+6.Select the 'IMU' menu and tick ' Enable IMU integration '. Once VBOX Setup has completed the initial enabling,
+tick the ' Roof mount ' box.
+7.If required, enter distances to translate the IMU location to another point within the vehicle, more information on
+this can be found here .An automatic 1 m z offset is added, translating the filtered speed down in to the
+vehicle towards the centre of gravity.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.1_IMU_Integration
+36
+=== PAGE 37 ===
+8.TheInternal IMU Attitude channels ( Head_imu ,Pitch_imu, Roll_imu, Pos.Qual., Lng_Jerk, Lat_Jerk and
+Head_imu2 ) will automatically be set to log. If IMU Attitude data is required to be displayed as a Live Serial data
+display then the user must tick the channels for ' Send over serial '.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.1_IMU_Integration
+37
+=== PAGE 38 ===
+9.Serial IMU channels ( x accel, y accel, z accel, temp, pitch rate, roll rate and yaw rate ) will also automatically
+be set to log. If Serial IMU data is required to be displayed as a Live Serial data display then the user must tick
+the channels for ' Send over serial '.
+10. Select ' Write to unit 'to upload settings to VB3i.
+11. Perform initialisation and full calibration procedure before commencing testing.
+VBOX Manager
+1.Ensure IMU04 is connected via RLCAB119, and the VBOX 3i is powered on.
+2.Connect VBOX Manager to the VBOX.
+3.Enter the ' SETUP ' menu of VBOX Manager.
+4.Select ' IMU-INS ' and then click on the ' IMU Integration ' menu.
+5.Scroll to ' Enable ' and select. Once the ' OK'confirmation screen has cleared, ' Enabled 'will be displayed.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.1_IMU_Integration
+38
+=== PAGE 39 ===
+6.Scroll to the ' Roof Mount ' menu and select.
+7.Choose 'Enable ' and select. Once the ' OK'confirmation screen has cleared, ' Enabled 'will be displayed.
+8.If required, select ' IMU to Ref. Offset ' and enter distances to translate the IMU location to another point within the
+vehicle, more information on this can be found here .An automatic 1 m z offset is added, translating the filtered
+speed down in to the vehicle towards the centre of gravity.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.1_IMU_Integration
+39
+=== PAGE 40 ===
+9.Internal IMU Attitude channels (Head_imu, Pitch_imu, Roll_imu, Pos.Qual., Lng_Jerk, Lat_Jerk and Head_imu2)
+will automatically be set to log. If IMU Attitude data is required to be displayed as a Live Serial data display (with
+VBOX Test Suite), then the user must enter VBOX Setup Software and tick the channels for ' Send over serial '.
+10. Perform initialisation and full calibration procedure before commencing testing.
+11. If the IMU is not mounted on a flat surface, perform ' Pitch/Roll Offset 'calibration.
+This will zero the Pitch_imu andRoll_imu channels. Angle offsets calibration must be performed after the
+IMU kalman filter calibration has been completed, and the vehicle is static on a level surface.
+12. If ADAS testing is being conducted, ensure the ADAS Mode menu shows 'Enabled '.
+This setting changes the rate at which the kalman filter takes a GPS positional sample to improve the positional
+performance of the filter. Whilst this is beneficial to ADAS testing, it slightly decreases the accuracy of the filtered
+speed and therefore shouldn't be selected when undertaking speed based testing such as brake stops.
+Note: Option not available with IMU03.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.1_IMU_Integration
+40
+=== PAGE 41 ===
+Important notes
+1.To use IMU04 integration, you must use an IMU04 enabled VBOX 3i unit.
+2.IMU04 cannot be used with IMU integration if it is connected to a VBOX via CAN (RLCAB120 / RLCAB005-CS).
+This method of connection will only allow standard IMU channels to be logged. See using IMU as CAN
+module section for details.
+3.The IMU04 standard channels can also be logged when the IMU04 is connected via KF port with cable
+RLCAB119, without enabling IMU integration
+4.The IMU04 must be in a Racelogic CAN mode to be used for IMU Kalman Filter.
+5.NBADAS -When using IMU Integration, the user cannot use Set Points functionality to define contact points in
+single or multi target ADAS modes.
+In-Vehicle Mounted
+Required equipment
+IMU04
+•VB3i (IMU ready)
+•IMU unit
+•RLCAB119 – VBOX -IMU connecting cable
+•RLCAB001 /RLCAB066-2 -VB3i PC connection cable
+•VBOX Setup
+•VBOX Manager (optional)
+•RLCAB069L / RLCAB015L / RLACS182L - vehicle CAN bus cable (optional for wheel speeds)
+IMU03
+•VB3i (works with all VB3i units)
+•IMU03
+•RLCAB005-CS – VBOX - IMU connecting cable
+•RLCAB001 /RLCAB066-2 –VB3i PC connection cable
+•VBOX Setup
+•VBOX Manager (optional)
+•RLCAB069L / RLCAB015L / RLACS182L - vehicle CAN bus cable (optional for wheel speeds)
+Setup
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.1_IMU_Integration
+41
+=== PAGE 42 ===
+Hardware
+Important note: IMU04 must be connected to VB3i before power is applied to ensure data is correctly synchronised.
+1.Fit the VBOX 3i into the test vehicle, and mount the IMU as described here .
+2.Fit VBOX 3i GPS, GPS/GLONASS antenna to centre of vehicles roof. Connect antenna to VBOX 3i.
+3.Measure the relative position from the top centre of the GPS antenna* to the top centre of the IMU (see mounting
+section for more detail) and enter these distances in the highlighted box below. Measurements need to be made in
+all 3-axis, X, Y and Z.
+*When using a twin antenna system, these measurements must be taken from the main antenna (A).
+4.IMU04 –Connect CAN/KF port to VBOX 3i V5 25W D analogue input port using RLCAB119 cable.
+IMU03 –Connect either port on IMU to VBOX RL CAN port using RLCAB005-CS cable.
+5.After IMU is connected, apply power to VB3i.
+6.Enable IMU integration using either VBOX Manager or VBOX Setup.
+VBOX 3i and IMU03
+ VBOX 3i V5 and IMU04
+Configuration
+VBOX Setup Software
+1.Ensure IMU04 is connected via RLCAB119, and the VBOX 3i is powered on.
+2.Connect VBOX 3i to PC using RLCAB001 or RLCAB066-2 cable (RS232 or USB).
+3.Open VBOX Setup and connect to VBOX 3i by selecting COM Port .
+4.Select the ' GPS ' menu and the ' Settings ' tab, ensure that ' GPS Optimisation 'is set to 'High dynamics '.
+5.Select the 'Logging ' menu and ensure that ' Log rate ' is set to ' 100 Hz '.
+6.Select the 'IMU' menu and tick ' Enable IMU integration '.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.1_IMU_Integration
+42
+=== PAGE 43 ===
+7.Enter the distances measured between the IMU and antenna A, more information on this can be found here .
+8.If you would like to translate the data from the IMU location to another point on the vehicle where all
+measurements will be made, enter the x,y,z offset values from the required translation point to the IMU, more
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.1_IMU_Integration
+43
+=== PAGE 44 ===
+information on this can be found here .
+9.If using IMU04, Internal IMU Attitude channels ( Head_imu ,Pitch_imu, Roll_imu, Pos.Qual., Lng_Jerk,
+Lat_Jerk and Head_imu2 ) will automatically be set to log. If IMU Attitude data is required to be displayed as a
+Live Serial data display then the user must tick the channels for ' Send over serial '.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.1_IMU_Integration
+44
+=== PAGE 45 ===
+10. If using IMU04, Serial IMU channels ( x accel, y accel, z accel, temp, pitch rate, roll rate and yaw rate ) will also
+automatically be set to log. If Serial IMU data is required to be displayed as a Live Serial data display then the
+user must tick the channels for ' Send over serial '.
+11. Select ' Write to unit 'to upload settings to VB3i.
+12. Perform initialisation and full calibration procedure before commencing testing.
+VBOX Manager
+1.Ensure IMU04/03 is connected, and the VBOX 3i is powered on.
+2.Connect VBOX Manager to the VBOX.
+3.Enter the ' SETUP ' menu of VBOX Manager.
+4.Select ' IMU-INS ' and then click on the ' IMU Integration ' menu.
+5.Scroll to ' Enable ' and select. Once the ' OK'confirmation screen has cleared, ' Enabled 'will be displayed.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.1_IMU_Integration
+45
+=== PAGE 46 ===
+6.Scroll to the 'Roof Mount ' menu and ensure it is 'Disabled '.
+7.Select ' Ant to IMU Offset ' and enter the distances measured between the IMU and antenna A, more information
+on this can be found here .
+8.If you would like to translate the data from the IMU location to another point on the vehicle where all
+measurements will be made, Select ' IMU to Ref. Offset ' and enter the distances measured between the required
+translation point and the IMU, more information on this can be found here .
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.1_IMU_Integration
+46
+=== PAGE 47 ===
+9.Internal IMU Attitude channels (Head_imu, Pitch_imu, Roll_imu, Pos.Qual., Lng_Jerk, Lat_Jerk and Head_imu2)
+will automatically be set to log. If IMU Attitude data is required to be displayed as a Live Serial data display (with
+VBOX Test Suite), then the user must enter VBOX Setup Software and tick the channels for ' Send over serial '.
+10. Perform initialisation and full calibration procedure before commencing testing.
+11. If the IMU is not mounted on a flat surface, perform ' Pitch/Roll Offset 'calibration.
+This will zero the Pitch_imu andRoll_imu channels. Angle offsets calibration must be performed after the
+IMU kalman filter calibration has been completed, and the vehicle is static on a level surface.
+12. If ADAS testing is being conducted, ensure the ' ADAS Mode ' menu shows 'Enabled '.
+This setting changes the rate at which the kalman filter takes a GPS positional sample to improve the positional
+performance of the filter. Whilst this is beneficial to ADAS testing, it slightly decreases the accuracy of the filtered
+speed and therefore shouldn't be selected when undertaking speed based testing such as brake stops.
+Note: Option not available with IMU03.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.1_IMU_Integration
+47
+=== PAGE 48 ===
+Important notes
+1.To use IMU04 integration, you must use an IMU04 enabled VBOX 3i unit.
+2.IMU04 cannot be used with IMU integration if it is connected to a VBOX via CAN (RLCAB120 / RLCAB005-CS).
+This method of connection will only allow standard IMU channels to be logged. See using IMU as CAN module
+section for details.
+3.The IMU04 standard channels can also be logged when the IMU04 is connected via KF port with cable
+RLCAB119, without enabling IMU integration.
+4.The IMU04 must be in a Racelogic CAN mode to be used for IMU Kalman Filter.
+5.NBADAS -If using IMU Integration with an ADAS mode, the GPS antenna and IMU should be co-located (roof
+mount) or positioned so there is no relative X or Y offset between them. If there is a difference, manual contact
+points should reference the IMU location, rather than the GPS antenna.
+6.NBADAS -When using IMU Integration, the user cannot use Set Points functionality to define contact points in
+single or multi target ADAS modes.
+Wheel Speed Inputs
+Vehicle speed data can be combined with inertial IMU data to provide increased data accuracy in environments that
+have poor satellite reception, such as areas with trees, buildings, bridges or tunnels. M ore information on this can be
+found here .
+In order to obtain the wheel speed information, the best solution is to use the sensors already fitted to the vehicle by
+connecting to the vehicle’s CAN bus by using an RLCAB069L, RLCAB015L or RLACS182L cable. Before testing
+commences, ensure that the VB3i unit is correctly connected to either the speed sensors or to the vehicle CAN bus.
+Wheel speed input needs to be 'Enabled ' and configured, this can be done via the VBOX Setup Software or using the
+VBOX Manager . However, wheel speed CAN inputs can only be configured using VBOX Setup Software.
+VBOX Setup Software
+1.Ensure IMU04 is connected via RLCAB119, and the VBOX 3i is powered on.
+2.Connect VBOX 3i to a computer either via Bluetooth, an RLCAB001 cable to the 'SER'input and the computer's
+serial port ( usb-serial adapter may be required) , or via an RLCAB066-2 cable to one of the computer's USB ports.
+3.Open VBOX Setup and connect to VBOX 3i by selecting COM Port .
+4.Select the ' IMU' menu and then the 'Wheel speed input ' tab.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.1_IMU_Integration
+48
+=== PAGE 49 ===
+5.Select ' Enabled ' within the'Wheel speed input ' section.
+6.Enter the Antenna to wheel reference point offsets , these are the x,y,z distances (m) between wheel speed
+reference point and the antenna. The reference point is the centre point between the rear wheels, as shown in the
+image below.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.1_IMU_Integration
+49
+=== PAGE 50 ===
+7.Use the Wheel speed 1 and 2 ' Configure ' buttons to open up the CAN setup area where you can load in a .dbc file
+or manually set up the CAN parameters by selecting the ' User ' option. Alternatively, selecting 'Vehicle
+database 'enables you to browse the Racelogic Vehicle CAN database within the software and select your
+vehicle. Once selected, CAN channels specific to your vehicle will appear on the left. If available, CAN
+connection information for the vehicle will also appear on the right of the window. Click on a wheel speed channel
+and select ' OK' to save the configuration. Repeat for the other wheel speed channel.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.1_IMU_Integration
+50

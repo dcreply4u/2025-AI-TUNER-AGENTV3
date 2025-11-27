@@ -40,15 +40,24 @@ class CameraManager:
             voice_feedback: Voice feedback service for announcements
             live_streamer: Live streaming service for YouTube/RTMP
         """
-        # Disable auto-detection to prevent camera errors on startup
-        LOGGER.info("Initializing CameraManager (auto_detect=False to prevent startup errors)")
+        # Auto-detect USB cameras (but skip network cameras to prevent startup delays)
+        LOGGER.info("Initializing CameraManager (auto-detecting USB cameras only)")
         import os
         is_demo_mode = os.environ.get("AITUNER_DEMO_MODE", "false").lower() == "true"
         if is_demo_mode:
             LOGGER.info("Demo mode detected - network cameras will be skipped")
         
-        self.camera_manager = CameraInterfaceManager(auto_detect=False)
-        LOGGER.debug("CameraInterfaceManager created")
+        # Auto-detect USB and CSI cameras (fast), but skip network cameras (slow)
+        self.camera_manager = CameraInterfaceManager(auto_detect=True, include_network=False)
+        LOGGER.debug("CameraInterfaceManager created with USB/CSI auto-detection")
+        
+        # Log detected cameras
+        if self.camera_manager.cameras:
+            LOGGER.info("Auto-detected %d camera(s): %s", 
+                       len(self.camera_manager.cameras),
+                       ", ".join(self.camera_manager.cameras.keys()))
+        else:
+            LOGGER.info("No cameras auto-detected (this is normal if no camera is connected)")
         
         self.video_logger = video_logger or VideoLogger()
         LOGGER.debug("VideoLogger initialized")
@@ -243,6 +252,34 @@ class CameraManager:
         """Stop streaming a camera."""
         if camera_name in self.streaming_cameras:
             del self.streaming_cameras[camera_name]
+
+    def auto_detect_and_add_cameras(self, include_network: bool = False) -> list[str]:
+        """
+        Manually trigger camera auto-detection and add detected cameras.
+        
+        This is useful if a camera is connected after initialization.
+        
+        Args:
+            include_network: If True, also scan for network cameras (slow)
+            
+        Returns:
+            List of camera names that were successfully added
+        """
+        LOGGER.info("Manually triggering camera auto-detection (include_network=%s)", include_network)
+        added = self.camera_manager.auto_detect_and_add_all(include_network=include_network)
+        
+        if added:
+            LOGGER.info("Auto-detected and added %d camera(s): %s", len(added), ", ".join(added))
+            # Start recording for newly added cameras if recording is active
+            if self.recording:
+                for name in added:
+                    camera = self.camera_manager.get_camera(name)
+                    if camera:
+                        self._start_camera_recording(camera)
+        else:
+            LOGGER.info("No new cameras detected")
+        
+        return added
 
     def stop_all(self) -> None:
         """Stop all cameras and recording."""

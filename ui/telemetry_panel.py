@@ -33,6 +33,7 @@ class TelemetryPanel(QWidget):
     PRIMARY_CHANNELS = ("RPM", "Speed", "Throttle", "Boost")
     SECONDARY_CHANNELS = ("CoolantTemp", "OilPressure", "BrakePressure", "BatteryVoltage")
     GFORCE_CHANNELS = ("GForce_Lateral", "GForce_Longitudinal")
+    GPS_CHANNELS = ("GPS_Speed", "GPS_Heading", "GPS_Altitude")
     CHANNEL_COLORS = {
         "RPM": "#ff6b6b",
         "Speed": "#4ecdc4",
@@ -44,6 +45,9 @@ class TelemetryPanel(QWidget):
         "BatteryVoltage": "#63e6be",
         "GForce_Lateral": "#ff922b",
         "GForce_Longitudinal": "#fab005",
+        "GPS_Speed": "#10b981",
+        "GPS_Heading": "#3b82f6",
+        "GPS_Altitude": "#8b5cf6",
     }
 
     def __init__(self, parent: QWidget | None = None, max_len: int = 400) -> None:
@@ -57,10 +61,10 @@ class TelemetryPanel(QWidget):
             scaled_spacing(8), scaled_spacing(8)
         )
         
-        # Allow panel to expand for 3 stacked graphs
-        # 3 graphs x 90px = 270px + header (~30px) + spacing (~20px) = ~320px
-        self.setMinimumHeight(320)  # Increased to accommodate taller graphs
-        self.setMaximumHeight(350)  # Cap max height
+        # Allow panel to expand for 4 stacked graphs
+        # 4 graphs x 90px = 360px + header (~30px) + spacing (~30px) = ~420px
+        self.setMinimumHeight(420)  # Increased to accommodate GPS graph
+        self.setMaximumHeight(450)  # Cap max height
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)  # Ensure it takes space
         
         header = QLabel("Live Telemetry Overview", alignment=Qt.AlignLeft)
@@ -76,6 +80,7 @@ class TelemetryPanel(QWidget):
             **{k: deque(maxlen=self.max_len) for k in self.PRIMARY_CHANNELS},
             **{k: deque(maxlen=self.max_len) for k in self.SECONDARY_CHANNELS},
             **{k: deque(maxlen=self.max_len) for k in self.GFORCE_CHANNELS},
+            **{k: deque(maxlen=self.max_len) for k in self.GPS_CHANNELS},
         }
         self.xdata = deque(maxlen=self.max_len)
         self.counter = 0
@@ -123,6 +128,18 @@ class TelemetryPanel(QWidget):
                 get_responsive_manager().configure_graph_responsive(self.plots["gforce"])
             layout.addWidget(self.plots["gforce"])
 
+            # GPS graph (Row 4) - Add GPS data graph
+            self.plots["gps"] = pg.PlotWidget(title="GPS Data")
+            self.plots["gps"].setBackground("w")
+            self.plots["gps"].setFixedHeight(GRAPH_HEIGHT)
+            self.plots["gps"].setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+            self.plots["gps"].getAxis("left").setPen(pg.mkPen(color="#2c3e50"))
+            self.plots["gps"].getAxis("bottom").setPen(pg.mkPen(color="#2c3e50"))
+            self._configure_plot(self.plots["gps"], "Time", "Value")
+            if RESPONSIVE_AVAILABLE:
+                get_responsive_manager().configure_graph_responsive(self.plots["gps"])
+            layout.addWidget(self.plots["gps"])
+
             for channel in self.PRIMARY_CHANNELS:
                 self.curves[channel] = self.plots["primary"].plot(
                     pen=pg.mkPen(self.CHANNEL_COLORS.get(channel, "#3498db"), width=2),
@@ -135,6 +152,11 @@ class TelemetryPanel(QWidget):
                 )
             for channel in self.GFORCE_CHANNELS:
                 self.curves[channel] = self.plots["gforce"].plot(
+                    pen=pg.mkPen(self.CHANNEL_COLORS.get(channel, "#3498db"), width=2),
+                    name=channel.replace("_", " "),
+                )
+            for channel in self.GPS_CHANNELS:
+                self.curves[channel] = self.plots["gps"].plot(
                     pen=pg.mkPen(self.CHANNEL_COLORS.get(channel, "#3498db"), width=2),
                     name=channel.replace("_", " "),
                 )
@@ -232,6 +254,9 @@ class TelemetryPanel(QWidget):
                 "BatteryVoltage": "Battery_Voltage",
                 "GForce_Lateral": ("GForce_Lateral", "LatG", "GForce_X", "Lateral_G"),
                 "GForce_Longitudinal": ("GForce_Longitudinal", "LongG", "GForce_Y", "Longitudinal_G"),
+                "GPS_Speed": ("GPS_Speed", "gps_speed", "GPS_Speed_mps", "speed_mps"),
+                "GPS_Heading": ("GPS_Heading", "gps_heading", "heading", "GPS_Heading_deg"),
+                "GPS_Altitude": ("GPS_Altitude", "gps_altitude", "altitude_m", "GPS_Altitude_m"),
             }
             lookup_key = key
             # Handle tuple aliases (for G-forces)

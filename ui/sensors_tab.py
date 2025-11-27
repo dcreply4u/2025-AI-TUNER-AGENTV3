@@ -734,16 +734,22 @@ class SensorsTab(QWidget):
             from ui.gpio_interface_tab import GPIOInterfaceTab
             gpio_tab = GPIOInterfaceTab(self)
             self.sensor_tabs.insertTab(0, gpio_tab, "🔌 GPIO Interface")
+            print(f"[INFO] GPIO Interface tab added successfully")
         except Exception as e:
+            import traceback
             print(f"[WARN] Could not create GPIO Interface tab: {e}")
+            traceback.print_exc()
         
         # Add CAN Interface tab (special handling)
         try:
             from ui.can_interface_tab import CANInterfaceTab
             can_tab = CANInterfaceTab(self)
             self.sensor_tabs.insertTab(1, can_tab, "🚗 CAN Bus Interface")
+            print(f"[INFO] CAN Bus Interface tab added successfully")
         except Exception as e:
+            import traceback
             print(f"[WARN] Could not create CAN Bus Interface tab: {e}")
+            traceback.print_exc()
         
         # Add other sensor tabs
         for name, tab_class in sensors:

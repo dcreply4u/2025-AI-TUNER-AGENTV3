@@ -1,0 +1,1491 @@
+
+=== PAGE 1 ===
+8.Select 'Write to unit' to save the settings.
+VBOX Manager
+1.Ensure IMU04 is connected via RLCAB119, and the VBOX 3i is powered on.
+2.Connect VBOX Manager to the VBOX.
+3.Enter the ' SETUP ' menu of VBOX Manager.
+4.Select ' IMU-INS ' and then click on the ' IMU Integration ' menu.
+6.Scroll to the ' Wheel Speed ' menu and select.
+7.Choose 'Enable ' and select. Once the ' OK'confirmation screen has cleared, ' Enabled 'will be displayed.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.1_IMU_Integration
+51
+=== PAGE 2 ===
+8.Scroll to the 'Antto Wheel 'menu and enter the distances measured between thewheel speed reference point and
+the antenna. The reference point is the centre point between the rear wheels, as shown in the image above.
+Note: Before testing commences, ensure that the wheel speed CAN inputs have been configured through VBOX Setup
+Software .
+Initialisation
+When using IMU integration, an initialisation phase is required when the IMU is first connected to the VBOX after
+being set up. This will be run through automatically after the VBOX has successfully gained satellite lock. When the IMU
+LED on VB3i front panel has turned a flashing green, the initialisation is complete.
+Note: Ifyou are using a VB3i-V1, which has no IMU LED, read the LED indicators section below for LED behaviour.
+LED Indicators VBOX 3i (v5) and IMU04
+VBOX 3i LED Colour Description
+Solid Orange IMU enabled, no IMU connected.
+Flashing OrangeSAT lock OK. 30 second stationary initialisation in
+progress. If vehicle moves, LED will continue to flash
+until 30 seconds stationary completed.
+Flashing Green Initialisation complete – movement not yet detected.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.1_IMU_Integration
+52
+=== PAGE 3 ===
+VBOX 3i LED Colour Description
+Solid Green Movement detected – IMU integration working OK.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.1_IMU_Integration
+53
+=== PAGE 4 ===
+IMU04 LED Colour Power Coms
+Red Initial boot up phase No coms
+OrangeTemperature checks. If temperature
+outside optimum operation range,
+LED will remain orange.Using IMU integration, inertial data
+being sent to host VBOX via RS232.
+Green Fully operational.Inertial data being sent to host
+system via CAN.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.1_IMU_Integration
+54
+=== PAGE 5 ===
+4.2 DGPS/RTK
+This page covers the DGPS/RTK information for VBOX 3i Dual Antenna (v5) units with firmware version 2.8.
+VBOX 3i units must have the correct DGPS mode enabled (via the VBOX Setup Software or using the VBOX
+Manager )before it is capable of receiving and using the DGPS correction information transmitted by a Local Base
+Station or an NTRIP service.
+NTRIP
+NTRIP is disabled by default but you can enable it in the VBOX Setup Software.
+Setup using VBOX Setup
+1.Run the latest VBOX Setup software.
+2.Select the correct COM Port and go to the GPS menu.
+3.Go to the DGPS/ RTK option and select the correct DGPS mode and baud settings from the available options.
+4.Select Write to unit to upload the new settings to the VBOX 3i unit.
+Note: Make sure that DGPS/RTK is assigned to the CAN port in the CAN menu.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.2_DGPS%2F%2FRTK
+55
+=== PAGE 6 ===
+Setup using VBOX Manager
+1.Enter the SETUP menu, enter the VBOX settings and navigate to the DGPS Mode settings.
+2.Select the correct DGPS mode from the available options.
+3.Select Back and navigate to the DGPS Rate settings in the VBOX menu.
+4.Choose the correct DGPS baud rate from the available options.
+5.Select Back to return to the VBOX settings.
+6.Select Exit to return to main menu.
+Using with Local DGNSS Base Station
+When you use your VBOX 3i unit with a local DGNSS Base Station the positional accuracy will be improved from the
+standard 3 m 95% CEP.
+There are two available Base Station options:
+40 cm positional accuracy:
+If you use a VBOX 3i unit with an RTCM v2-enabled Base Station, the positional accuracy will be 40 cm 95% CEP with a
+height accuracy of 1 m95% CEP.
+2 cm positional accuracy:
+If you use it with a RLVBBS4RG or RLVBBS5, the positional accuracy will become 2 cm.
+•CMR: 2 cm correction (Trimble standard message type)
+•RTCM v3: 2 cm correction (RTCM standard message type) RECOMMENDED
+Notes:
+•RTCM v3 is recommended as the default RTK 2 cm correction type. This message format is a globally recognised
+type and more resilient to data loss caused by radio errors.
+•VBOX 3i RTK units have a maximum log rate of 100 Hz when in RTK mode.
+•If the VBOX 3i unit is issued a coldstart command (from front panel, software, or VBOX Manager) all DGPS
+settings will be disabled.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.2_DGPS%2F%2FRTK
+56
+=== PAGE 7 ===
+4.3 CAN
+This page covers CAN information for the VBOX 3i Dual Antenna (v5) units with firmware version 2.8.
+Racelogic CAN Bus
+TheRacelogic CAN bus connection ( CAN port by default) can be used to connect Racelogic modules (i.e. TC8, FIM03
+etc), and displays such as VBOX Manager and Multi-Function Display. This port will allow the VBOX 3i to log up to a
+maximum of 32 Racelogic module channels.
+Note: For the Racelogic CAN port, it is recommended that the CAN Termination resistor is on.
+Note: VBOX 3i has an additional channel limit of 64. Additional channels consist of VCI channels (up to 16), RL CAN
+channels (up to 32) and any other channels that fall outside the channels on the Standard tabin VBOX Setup, such as
+AD inputs, IMU KF channels, Twin antennas channels, ADAS channels and so on.
+Channel selection is controlled using VBOX Setup. Additional channels can be logged by the VBOX 3i up until the point
+the Log channel usage is maxed (100%)
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.3_CAN
+57
+=== PAGE 8 ===
+Channel usage
+The log channel usage is influenced by what operational mode the VBOX 3i is in. For example, if the IMU filter is
+enabled, the number of channels available to log will be reduced.
+CAN channel availability – Multi-Function Display
+A Multi-Function Display (RLDSP03) can display any channel that is present on the Racelogic CAN bus, and in the first
+32 CAN channel ordering.
+First 32 CAN channel ordering priority goes to any external data source. Therefore if there are 32 external channels set
+to log by the VBOX 3i, no internal module channel will be present for selection on the MFD.
+CAN channel availability – send over serial
+Same as the MFD, a data channel must be in the first 32 CAN channel ordering for the VBOX 3i to send out data over
+serial to a ‘live data window’ on VBOX Test Suite.
+First 32 CAN channel ordering priority goes to any external data source. Therefore if there are 32 external channels set
+to log by the VBOX 3i, no internal module channel will be present for selection on the MFD.
+VCI Input (Vehicle CAN Interface)
+TheVehicle CAN bus (VCI) connection ( SER port by default) can be used to connect to a vehicle CAN or a sensor
+CAN bus. This port will allow VBOX 3i to log up to a maximum of 16 channels.
+Note: For the VCI CAN port, it is recommended that the CAN Termination resistor is off when connected to a vehicle's
+CAN bus.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.3_CAN
+58
+=== PAGE 9 ===
+Configuration is performed using the Internal CAN Input tab in the Channels menu within VBOX Setup software. CAN
+signal parameters can be entered manually by the user or imported directly from a CAN database (.dbc) file if available.
+Racelogic Vehicle CAN Database
+Racelogic supplies a free, encrypted vehicle CAN database, giving the user the ability to log basic CAN data from a
+large number of current vehicles from a broad selection of manufacturers.
+All of the CAN database files for vehicles we have reverse engineered can be downloaded from our website .
+Please note to access these downloads you will need a username and password - to retrieve this, please register (or
+re-register) your VBOX unit.
+VB3i CAN Pass Through
+It is possible to output channel data from the Racelogic CAN bus (i.e. Racelogic modules such as TC8) on the isolated
+customer VCI bus. The user can configure output data (in VBOX Setup) using channels from the available channels
+dropdown list, and configure the identifier as required.
+Example application: Racelogic IMU connected to the Racelogic CAN bus to use IMU yaw rate for improved dual
+antenna slip translation data. Same IMU data being transmitted from the customer VCI bus to be logged by third party
+CAN logging equipment.
+The VBOX 3i can output up to 6 user configured CAN messages, and 12 CAN channels over the customer VCI bus.
+Be aware of checking CAN pass through channel selection when re-entering VBOX Setup. If the VBOX has many
+external CAN channels being logged, then the dropdown channel selection can re-adjust. When VBOX Setup is then
+exited, the adjusted CAN channels will be applied.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.3_CAN
+59
+=== PAGE 10 ===
+Note: If you are loading VB3i configuration settings from a previously saved .RCF file and external modules were
+connected during the save, selected CAN pass through channels may not be reloaded correctly. Please check and
+directly configure the channels through VBOX Setup.
+Note: These output CAN channels will be in a 32 bit IEEE float format. 29 bit extended identifiers optional.
+VB3i CANVEL
+If an input channel is given the name ' CANVEL ', then the VBOX will translate the data of this channel directly through to
+the GPS speed channel under the following criteria.
+•IMU integration is not enabled
+•The VBOX cannot calculate speed, i.e. no satellite signal (complete satellite drop out)
+The VBOX will scale the input channel to the default speed output format of km/h according to what units have been
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.3_CAN
+60
+=== PAGE 11 ===
+assigned to the substitution speed channel. VBOX will recognise the following unit names: MPH, KM/H, Knots, m/s, and
+ms-1.
+Note: If no UNITS have been assigned to the input channel then VBOX will assume that it is KM/H.
+This function is useful while testing around built up areas or driving under large bridges.
+VB3i CAN Termination
+TheVBOX 3i contains an active termination between 0 Ohms and 120 Ohms, the active terminations are selectable
+viaVBOX Setup as shown below.
+Note: When the Usage of the CAN ports is swapped from one output socket to the other the termination resistor setting
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.3_CAN
+61
+=== PAGE 12 ===
+does not follow. So you should check that the Termination is correctly set for the output socket that you are then using.
+VB3i CAN Delay
+When to Use the Fixed CAN Delay?
+‘Fixed CAN Delay’ is recommended for use when using an external event marker or trigger, or for other external CAN
+devices that require precisely timed CAN outputs. This is the default setting.
+‘Fixed’ and ‘Minimum’ CAN Delay
+When CAN Delay is set to ‘Fixed’, the speed delay is 15.5 ms and the position delay is 20 ms. When CAN delay is set to
+‘Minimum’, the speed delay is 4 ms (±1 ms) and the position delay is 8.5 ms (±1.5 ms). The data comes out faster in the
+‘Minimum’ setting, but the delay is unpredictable.
+Note: Do not use Minimum CAN Delay mode if you are using a lot of Racelogic input modules connected to the CAN
+bus as the variability of the output could cause loss of samples from the modules.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.3_CAN
+62
+=== PAGE 13 ===
+Fixed CAN Delay Example
+Minimum CAN Delay Example
+CAN Delay with IMU Integration
+When IMU Integration, the CAN Delay is automatically set to ‘Fixed’; the speed and position delay is 20 ms.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.3_CAN
+63
+=== PAGE 14 ===
+IMU Integration CAN Delay Example
+ADAS Modes
+The ADAS modes will add the following delays to the standard CAN output (20 ms if you are using Fixed delay ):
+•1 Target Mode (no Moving Base) = 50 ms
+•1 Target Mode (Moving Base) = 60 ms
+•2 Target Mode (no Moving Base) = 50 ms
+•2 Target Mode (Moving Base) = 60 ms
+•3 Target Mode (Moving Base or no moving base) = 80 ms
+•Static Point = 0 ms
+•Lane Departure = 0 ms
+•Multi static point = 0 ms
+Note: The above numbers are for v2.8 Firmware on VBOX 3i.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.3_CAN
+64
+=== PAGE 15 ===
+4.4 Bluetooth Pairing
+Information on how to perform Bluetooth pairing with your VBOX 3i Dual Antenna (v5) unit with firmware version 2.8.
+The VBOX 3i units come equipped with a Bluetooth radio that lets you configure the VBOX unit remotely, along with the
+remote output of real-time VBOX serial data at the full 100 Hz data rate, to any Bluetooth-capable PC or data logger.
+•The VBOX unitwill need the Bluetooth antenna connected and the computer will require a Bluetooth module or
+dongle to establish a virtual connection.
+•The VBOX unitwill connect to the computer via SPP (serial port profile). You can do this as a secured or
+unsecured connection.
+Note: The pairing code for a secure connection is 1234.
+You can find notes on how to connect to a Windows 8 PC here .
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.4_Bluetooth_Pairing
+65
+=== PAGE 16 ===
+4.5 Voice Tagging
+This page covers the information on how to perform Voice Tagging with VBOX 3i Dual Antenna (v5) units with firmware
+version 2.8.
+VBOX 3i units have the ability to record audio tags synched with a set GNSS timestamp (with an accuracy of 0.5
+seconds), along with the .VBB data file. You can record voice notes regarding test conditions or erroneous runs, which
+can be replayed simultaneously when you are viewing logged files in the VBOX Test Suite software.
+You will see a .wav file recorded onto the CF card along with the normal VBOX data file.
+The supplied headset/microphone includes a switch, which you can useto start and stop the recording of an audio tag.
+Recording a Sound WAV
+1.Press the headset switch once. You will hear a beep through the headset confirming that the recording of
+the.wav file has begun.
+2.Press the switch again to stop recording. A second beep through the headset confirms that the recording has
+stopped.
+Note :If the switch has been pressed once to start the recording the VBOX unitwill record for 30 seconds and then
+automatically stop recording.
+Replaying Voice Tags in VBOX Test Suite
+When you load a logged VBOX data file (.vbb)
+intoVBOX Test Suite and displayed it in the
+Chart Screen , any associated .wav audio voice tag files
+will appear below the speed data trace as speaker
+icons and a vertical line will indicate the exact location
+where the recording started.
+You can play the audio files by clicking on the speaker
+icons. The icon will animate to indicate that the audio file
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.5_Voice_Tagging
+66
+=== PAGE 17 ===
+is being played.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+04_Installing_VBOX_3i_Dual_Antenna_(v5)_Units/4.5_Voice_Tagging
+67
+=== PAGE 18 ===
+05 Setup
+An overview of the VBOX Setup software connected to a VBOX 3i Dual Antenna (v5) units with firmware version 2.8.
+From this page you can find links to more information about the individual menus available in the Setup software.
+Introduction
+VBOX Setup Software can be used to configure VB3i and provides greater functionality in comparison to using aVBOX
+Manager .
+Connection
+To configure VB3i , the VBOX needs to be connected to a power source and a PC.
+Configuration can be performed using VBOX Setup software, which can be downloaded here . You can connect to a
+computer via Bluetooth, an RLCAB001 cable to the 'SER'input and the computer's serial port ( USB-serial adapter may
+be required) , or via an RLCAB066-2 cable to one of the computer's USB ports.
+IMPORTANT
+•Ensure that the VB3i USB-COM port drivers are installed to enable communication between the VBOX
+and the software, available to download from here . If a USB-serial adapter is being used, the RS232 to
+USB Converter driver is required.
+•Microsoft Windows 7 SP1 or newer is required (must be compatible with .Net Framework 4.7.1).
+For ADAS applications, connection between the VB3i and computer should be made via USB or Bluetooth to
+ensure optimum performance.
+Once physically connected and powered, open the software and use the drop down list to select the correct COM port
+that the VB3i is connected to. VBOX Setup automatically connects to the selected device and enters the VB3i setup
+screen.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup
+68
+=== PAGE 19 ===
+Note: An auto detect message may appear if the baud rate has been changed from the default value – select ‘Yes’ to
+allow the different baud rates to be scanned.
+Software Overview
+1.Menu - The side bar allows selection between the different settings menus. Click the buttons to change.
+2.Current menu - Displays the currently selected menu.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup
+69
+=== PAGE 20 ===
+3.Help - Depending on which menu is open, selecting thequestion mark icon will open up the corresponding User
+Guide page within the Racelogic Support Centre.
+4.Bus usage - View serial and CAN channel usage.
+5.Language - Select an operating language.
+6.Settings area - This area contains all the settings options dependent on which menu is selected.
+7.Write to unit -After making changes to setup, the write to unit button should be selected to ensure the settings
+have been uploaded.
+8.Close - Closes the software, if changes have not been saved to the unit, you will be prompted to save the settings.
+Settings Menus
+The side bar enables you to switch between the different settings menus; General, Channels, Logging, GPS, IMU,
+ADAS, CAN and Output . Click on the menus below to view more information.
+General Menu
+ Channels Menu
+ Logging Menu
+GPS Menu
+ IMU Menu
+ ADAS Menu
+CAN Menu Output Menu
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup
+70
+=== PAGE 21 ===
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup
+71
+=== PAGE 22 ===
+5.1 General Menu
+This page covers the General menu in VBOX Setup connected to a VBOX 3i Dual Antenna (v5) unit with firmware
+version 2.8.
+The General menu contains configuration, connection, VBOX and time information, as well as recent configuration
+changes.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.1_General_Menu
+72
+=== PAGE 23 ===
+1.Configuration
+Load/Save settings from/into a .rcf file, allowing setups to be kept for future use. When saved, all presented VBOX
+Setup configurations are saved along with connected modules andMulti-Function Display/DSP03 configurations. When
+loaded, any incompatible settings will be notified to the user.
+This area also displays current configured Logging, Dual antenna if applicable) IMU, DGPS and ADAS settings applied
+within the unit, enabling you to view a quick overview of the the current configuration of the unit without having to click
+through each menu tab.
+2.Connection
+Displays the selected com port and includes refresh and disconnect buttons. A green light will be shown
+when connected.
+3.VBOX Information
+Displays the serial number and installed firmware version of connected unit, as well the current software version and
+hardware code. Clicking on the Information Icon
+will take you to the Engineering Diagnostics tab of the GPS menu where a full list of VBOX and GPS information is
+displayed.
+4.Time (Snapshot)
+Syncs the VB3i time to match the PC time, used for the top line of a .vbo file to show the time and date when the file was
+created .
+5.Recent Configurations
+Displays the recent configuration changes applied to the unit.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.1_General_Menu
+73
+=== PAGE 24 ===
+5.2 Channels Menu
+This page covers the Channel Configuration menu in VBOX Setup connected to VBOX 3i Dual Antenna (v5) unit with
+firmware version 2.8.
+The Channels menu changes depending on what is connected. If a module is connected when VBOX Setup is already
+running, clicking ‘ Rescan modules ’ performs a rescan and anything new connected will show up (and anything
+disconnected will disappear).
+Note: It is not possible to configure a connected MFD Touch unit.
+Standard
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.2_Channels_Menu
+74
+=== PAGE 25 ===
+1.Channel
+List of standard channels logged by VB3i.
+2.Log to Memory Card
+Select to log channel to memory card.
+3.Send Over Serial
+Select to send channel over serial.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.2_Channels_Menu
+75
+=== PAGE 26 ===
+Internal A/D
+1.Channel
+List of internal A/D channels logged by VB3i. VB3i has 4
+A/D inputs, these are on the 25 way D type connector.
+Pin outs can be found here .
+Clicking on any channel box will display a live data
+reading.
+2.Log to Memory Card
+Select to log channel to memory card.
+3.Send Over Serial
+Select to send channel over serial.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.2_Channels_Menu
+76
+=== PAGE 27 ===
+Internal CAN Input
+1.Channel
+List of internal CAN input channels logged by VB3i. The serial number and firmware version is shown at the top of the
+tab.
+A maximum of 16 channels are available and are set up by clicking on any channel box. This brings up a new window,
+where a CAN database file (.dbc/.ref/.vci) can be loaded, or the channel can be manually defined.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.2_Channels_Menu
+77
+=== PAGE 28 ===
+2.Log to Memory Card
+Select to log channel to memory card.
+3.Send Over Serial
+Select to send channel over serial.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.2_Channels_Menu
+78
+=== PAGE 29 ===
+Internal Slip/Dual Antenna
+Note: This menu only appears with VBOX 3i Dual Antenna (VB3i SL).
+1.Channel
+List of internal slip/ dual antenna channels logged by VB3i. Clicking on any channel box will display a live data reading.
+2.Log to Memory Card
+Select to log channel to memory card.
+3.Send Over Serial
+Select to send channel over serial.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.2_Channels_Menu
+79
+=== PAGE 30 ===
+ADAS 1
+Note: This menu only appears when an ADAS mode is enabled and will vary dependent on the specific mode
+(screenshots based on ' 2 Target ' mode ).
+1.Channel
+List of ADAS 1 channels logged by VB3i. Clicking on any channel box will display a live data reading.
+2.Log to Memory Card
+Select to log channel to memory card.
+3.Send Over Serial
+Select to send channel over serial.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.2_Channels_Menu
+80
+=== PAGE 31 ===
+ADAS 2
+Note: This menu only appears when an ADAS mode is enabled and will vary dependent on the specific mode
+(screenshots based on ' 2 Target ' mode ).
+1.Channel
+List of ADAS 2 channels logged by VB3i. Clicking on any channel box will display a live data reading.
+2.Log to Memory Card
+Select to log channel to memory card.
+3.Send Over Serial
+Select to send channel over serial.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.2_Channels_Menu
+81
+=== PAGE 32 ===
+5.3 Logging Menu
+This page covers the Logging menu in VBOX Setup connected to a VBOX 3i Dual Antenna (v5) unit with firmware
+version 2.8.
+The Logging menu allows you to change the method of logging, logging rate, stop logging delay duration and serial
+output rate.
+1.Log Condition
+Select whether the VBOX will commence logging when moving, continuously or using advanced conditions.
+•Only when moving : Logging will begin when speed is greater than 0.5 km/h and stop when under this value.
+•Continuously : Logging will begin automatically whenever media is inserted. After insertion of media, logging can
+be controlled manually from LOG button or from VBOX Manager .
+•Advanced :This option opens a 'Custom log condition ' option which allows the setting of up to 8 logging
+conditions.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.3_Logging_Menu
+82
+=== PAGE 33 ===
+2.Log Rate
+Choose between 6 log rate options: 1 Hz, 5 Hz, 10 Hz, 20 Hz, 50 Hz and 100 Hz (100 Hz should be used for normal
+operation). Enable or disable internal analog/ digital inputs 500 Hz logging.
+3.Stop Logging Delay
+Select the stop logging delay, available between 0-10 seconds.
+Note: Not available if 'Continuously' logging is selected.
+4.Serial Output
+Choose between 4 serial output options: 5 Hz, 20 Hz, 50 Hz and 100 Hz.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.3_Logging_Menu
+83
+=== PAGE 34 ===
+5.4 GPS Menu
+This page covers the GPS menu in VBOX Setup connected to a VBOX 3i Dual Antenna (v5) with firmware version 2.8.
+The GPS menu contains GPS receiver information and provides the ability to set the dynamic mode, DGPS mode, leap
+second, elevation mask, perform a GPS coldstart, configure dual antenna offsets and view/send engineering
+diagnostic information.
+Settings
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.4_GPS_Menu
+84
+=== PAGE 35 ===
+1.GPS Information
+View information about the GPS receiver andperform a GPS coldstart, more information on this is available here .
+Note: If you are performing a GPS coldstart, VBOX Setup will need to be closed before the device will detect satellites
+again.
+2.GPS Settings
+Leap Second
+The leap second value can be changed if required. This
+was increased to 18 seconds as of December 2016 -
+more information on this is available here .
+Elevation Mask
+Allows you to change the elevation mask, selectable
+from 10 – 25° (10° by default). If the testing area has
+nearby trees or buildings, you may benefit from
+increasing this value to reduce the effect of multipath.
+More information on this is available here .
+Note: Increasing this value will reduce the number of
+satellites the VBOX will be able to use.
+3.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.4_GPS_Menu
+85
+=== PAGE 36 ===
+GPS Optimisation
+This option allows you to change the sensitivity of the GPS engine.
+•High dynamics (default) -For high dynamic applications such as brake stop testing.
+•Medium dynamics - Suitable for all other testing.
+•Low dynamics -For less dynamic applications, such as steady state speed measurement or coast down
+testing.
+4.DGPS / RTK
+This gives the option to select whether the VB3i uses differential GPS. Use the dropdown menus to select the desired
+mode and baud rate.
+•Mode
+◦None (default) -Differential GPS is off.
+◦CMR (2 cm RTK): 2 cm correction (Trimble standard message type).
+Only selectable with VB3i RTK variant.
+◦RTCMv3 (2 cm RTK): 2 cm correction (RTCM standard message type) RECOMMENDED.
+Only selectable with VB3i RTK variant.
+◦NTRIP: Internet based subscription service, more information can be found here .
+Only selectable with VB3i RTK variant.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.4_GPS_Menu
+86
+=== PAGE 37 ===
+◦MB-Base: Mode for use in Moving Base ADAS applications.
+Only selectable with VB3i RTK variant.
+◦MB-Rover: Mode for use in Moving Base ADAS applications.
+Only selectable with VB3i RTK variant.
+◦RTCM (40 cm): RTCM corrections are received by the VB3i via a Racelogic telemetry module and a locally
+placed Base station. Contact Racelogic or your local agent for more details.
+◦SBAS: SBAS differential corrections are received from the nearest Geo-stationary GPS-SBAS satellite.
+•RS232 baud rate –Sets the DGPS serial rate. To ensure that the VBOX receives the DGPS correction signal,
+the correct RS232 rate must be set. All Racelogic blue boxed radios use 115200 kbit/s, Satel grey boxed radios
+use either 19200 kbit/s or 38400 kbit/s .
+GPS Filter (not available with firmware V2.6 and above)
+This option is removed when IMU kalman filter is enabled.
+Adjust the level of filtering applied to the position and speed data in real time, selectable from 0 to 4. Once the filter is
+turned on, it remains on until it is manually turned off or a GPS Cold Start is performed, even if the VBOX is
+disconnected from its power supply.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.4_GPS_Menu
+87
+=== PAGE 38 ===
+Dual Antenna
+Note: This menu only appears with VBOX 3i Dual Antenna (VB3i SL).
+1.Dual antenna
+Enable or disable twin antenna mode.
+2.Antenna separation
+Applies an antenna separation distance.
+3.Orientation
+Gives the ability to separately test roll and pitch measurements during testing.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.4_GPS_Menu
+88
+=== PAGE 39 ===
+4.Slip angle settings
+Configure slip translation channel offsets relative to the GPS antenna.
+Engineering Diagnostics
+1.Send Engineering Code to GPS Board
+This area is used to set non-standard settings in the GPS engine. This Should only be used on advice from a VBOX
+support technician.
+2.VBOX Information
+Displays numerous VBOX information including the unit type, serial number, firmware/ hardware versions
+andhardware code.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.4_GPS_Menu
+89
+=== PAGE 40 ===
+3.GPS Information
+Displays the GPS engine type, revision and internal battery voltage information.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.4_GPS_Menu
+90
+=== PAGE 41 ===
+5.5 IMU Menu
+This page covers the IMU menu in VBOX Setup connected to a VBOX 3i Dual Antenna (v5) with firmware version 2.8.
+The IMU menu provides the ability to configure the IMU integration, location, robot blend, ADAS mode and offset
+position, as well as the wheel speed inputs.
+Settings
+Configure the IMU integration, location, robot blend, ADAS mode and offset position.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.5_IMU_Menu
+91
+=== PAGE 42 ===
+1.IMU Integration
+This option turns on IMU integration. When enabled, the other IMU options are presented and GPS Optimisation is set
+to 'High'.
+2.Roof Mount
+Specifies whether the Racelogic roof mounted IMU will be used or not. When 'Enabled', an automatic 1 m z offset is
+added within the 'IMU to reference point' options, translating the filtered speed down in to the vehicle towards the centre
+of gravity and the 'Antenna to IMU offset' options will be greyed out.
+3.Robot Blend
+This option is a safety feature that should be utilised when using robot control. It prevents sudden position corrections,
+providing smooth return of position and heading.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.5_IMU_Menu
+92
+=== PAGE 43 ===
+4.ADAS Mode
+Select between the ‘ADAS Mode Disabled’ Kalman Filter, used for Brake Stops and general speed/attitude performance,
+and the ‘ADAS Mode Enabled’ Kalman Filter that is used for high accurate position. Itis selected by default when an
+ADAS mode is activated within the ' ADAS ' menu.
+5.Antenna to IMU Offset
+•When Roof Mount is 'Disabled' - Enter the x,y,z offset values from the IMU to the antenna, these are required for
+the Kalman Filter algorithm.
+•When Roof Mount is 'Enabled' - 'Antenna to IMU offset' becomes greyed out and you can no longer enter any
+values, enter values in IMU to reference point instead. 6.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.5_IMU_Menu
+93
+=== PAGE 44 ===
+IMU to Reference Point (Output Translation)
+This option allows you to enter the x,y,z offset values from the nominated reference point to the IMU. This will translate
+the data from the IMU location to another point on the vehicle where all measurements will be made. When Roof Mount
+'Enabled', an automatic 1 m z offset is added, translating the filtered speed down in to the vehicle towards the centre of
+gravity.
+Wheel Speed Input
+Note: This tab is only presented when IMU integration is 'Enabled' and firmware version 2.7 or later is being used.
+The wheel speed input options can be used to configure the wheel speed input channels and reference location.
+Combining wheel speed information within the Kalman Filter can improve positioning in locations subject to obstacles. In
+areas where there is no view of the sky at all, such as tunnels, inertial sensors and wheel-speeds can fill in the gaps for
+periods of up to 5 minutes.
+IMPORTANT - Wheel speeds should not be used when conducting brake stops!
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.5_IMU_Menu
+94
+=== PAGE 45 ===
+1.Enable Wheel Speed Input
+Enables the wheel speeds to be passed into the Kalman Filter.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.5_IMU_Menu
+95
+=== PAGE 46 ===
+2.Antenna to Wheel Reference Point
+Specifies the x,y,z distances (m) between the wheel speed reference point and the antenna . The reference point is
+thecentre point between the rear wheels, as shown in the image below.
+3.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.5_IMU_Menu
+96
+=== PAGE 47 ===
+Configure Inputs
+Wheel speed 1 and 2 ' Configure ' buttons open up the CAN setup area where you can load in a .dbc file or manually set
+up the CAN parameters by selecting the ' User ' option. Alternatively, selecting 'Vehicle database 'enables you to browse
+the Racelogic Vehicle CAN database within the software and select your vehicle. Once selected, CAN channels specific
+to your vehicle will appear on the left. If available, CAN connection information for the vehicle will also appear on the
+right of the window. Click on a wheel speed channel and select ' OK' to save the configuration. Repeat for the other
+wheel speed channel. To remove a wheel speed channel, select the ' Clear ' button.
+Note: If wheel speed input has been enabled, however the channels have not been configured, you will be reminded to
+configure the inputs.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.5_IMU_Menu
+97
+=== PAGE 48 ===
+5.6 ADAS Menu
+This page covers the ADAS menu in VBOX Setup connected to a VBOX 3i Dual Antenna (v5) with firmware version 2.8.
+You can use the ADAS menu to select if VBOX 3i will be used as a Target Vehicle or the Subject Vehicle in either 1
+Target, 2 Target or 3 Target mode in ADAS applications.
+ADAS Mode
+Use the dropdown menus to select the desired ADAS mode andSubmode .
+•Off:ADAS mode is off. Submode is not selectable.
+•1 Target: Configures the VBOX for 1 target mode. Subject and Target submodes available. When you select
+Subject , you will see a Data at target checkbox appear which enables vehicle separation parameters to be
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.6_ADAS_Menu
+98
+=== PAGE 49 ===
+calculated at the Target Vehicle as well as the Subject Vehicle. When this is enabled, the total operating range of
+the units may be reduced. You can find more information on this here .
+•2 Target: Configures the VBOX for 2-target mode. Subject ,Target 1 andTarget 2 submodes available.
+•3 Target: Configures the VBOX for 3-target mode. Subject ,Target 1 ,Target 2 andTarget 3 submodes available.
+•Static point: Configures the VBOX for static point mode. Submode is not selectable.
+•Lane departure: Configures the VBOX for lane departure mode. Lane 1 ,Lane 2 andLane 3 submodes are
+available.
+•Multi static point: Configures the VBOX for multi-static point mode. Submode is not selectable.
+ADAS Smoothing
+Set a speed threshold to lock the heading to the last value above the set speed and a smoothing distance over which
+the heading is calculated. The higher the distance the more accurate the value, however it will change slower when the
+heading changes. Note: Smoothing is only applied in single antenna operation.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.6_ADAS_Menu
+99
+=== PAGE 50 ===
+5.7 CAN Menu
+This page covers the CAN menu in VBOX Setup connected to a VBOX 3i Dual Antenna (v5) with firmware version 2.8.
+The CAN menu provides the ability to configure the CAN Bus (VCI) baud rate, termination, CAN delay, CAN port and
+export settings, as well as set the transmitted identifiers.
+Settings
+Configure the vehicle CAN Bus (VCI) baud rate, termination, CAN delay, CAN port and export the channel information
+as a .dbc file.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.7_CAN_Menu
+100
+=== PAGE 51 ===
+1.Vehicle CAN Bus (VCI) Baud Rate
+The software has four baud rate input values: 1000 kbit/
+s, 500 kbit/s (default) , 250 kbit/s or 125 kbit/s .A custom
+option is also available where you can select a specific
+setting.
+2.DBC File Export
+Create a Racelogic VCIfile of the current VB3i channels.
+3.CAN Termination
+Select to Enable/ Disable CAN input termination.
+4.CAN Delay
+Select between fixed (default) and minimum CAN delay.
+5.CAN/RS232 Ports
+Select which port is used for Racelogic CAN, and which
+is used for vehicle CAN (VCI). By default, Racelogic is
+on the CAN port and VCI on RS232.
+Custom baud rate window
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.7_CAN_Menu
+101
+=== PAGE 52 ===
+Transmitted Identifiers
+Select which CAN output identifiers you would like transmitted. The top table contains Motorola format CAN messages,
+the bottom table contains Intel format CAN messages which are for use with Stahle robot systems. More information on
+VBOX 3i CAN outputs can be found here .
+1.Send
+To switch a CAN message on/off, tick or untick the box for the corresponding message.
+2.Default / Actual ID
+This allows the modification of the CAN IDs transmitted by the VBOX. Default values are the Racelogic standard ID’s of
+0x301, 0x302 …. 0x307.
+3.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.7_CAN_Menu
+102
+=== PAGE 53 ===
+Xtd
+To change the identifier format from standard 11 bit to extended 29 bit, tick the 'Xtd' box in the corresponding column.
+4.Data Bytes
+Shows which channels will be sent out in each message.
+Transmitted ADAS Identifiers
+Select which ADAS CAN output identifiers you would like transmitted.
+Note: This tab is only presented when the ADAS mode is 'Enabled'.
+1.Send
+To switch an ADAS CAN message on/off, tick or untick the box for the corresponding message.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.7_CAN_Menu
+103
+=== PAGE 54 ===
+2.Default / Actual ID
+This allows the modification of the ADAS CAN IDs transmitted by the VBOX. Default values are the Racelogic standard
+ID’s of 0x30A, 0x30B …. 0x30F.
+3.Xtd
+To change the identifier format from standard 11 bit to extended 29 bit, tick the 'Xtd' box in the corresponding column.
+4.Data Bytes
+Shows which channels will be sent out in each message.
+Can Pass Through
+Select which CAN output identifiers you would like transmitted over the customer VCI bus, more information on this is
+available here .
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.7_CAN_Menu
+104
+=== PAGE 55 ===
+1.Send
+To switch a CAN message on/off, tick or untick the box for the corresponding message.
+2.ID Hex
+Input the required custom CAN ID's transmitted by the VBOX .
+3.Extended
+To change the identifier format from standard 11 bit to extended 29 bit, tick the ' Extended' box in the corresponding
+column.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.7_CAN_Menu
+105
+=== PAGE 56 ===
+4.Bytes
+Select which channels are sent out in each message, the 8-byte CAN message can contain any 2 parameters from the
+drop-down menus .
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.7_CAN_Menu
+106
+=== PAGE 57 ===
+5.8 Output Menu
+This page covers the Advanced menu in VBOX Setup connected to a VBOX 3i Dual Antenna (v5) with firmware version
+2.8.
+The Output menu can be used to configure the VB3i digital and analog output signals.
+1.Digital 1
+Configure the digital signal on the AD1 output, select from a range of source channels and enter a condition. D igital 1 is
+an on/off signal, giving 5 V when the condition is met, and 0 Vwhen it is not.
+2.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.8_Output_Menu
+107
+=== PAGE 58 ===
+Analog 1
+Configure the analog signal on the AD1 output, it gives a linear 0–5 V output over a configurable range from any source
+(standard VB3i channels and A/D inputs).
+3.Digital 2 (Frequency)
+Configure the digital signal on the AD2 output, select from a range of source channels and enter a number of pulses per
+metre and a maximum speed.
+4.Analog 2
+Configure the analog signal on the AD2 output, it gives a linear 0–5 V output over a configurable range from any source
+(standard VB3i channels and A/D inputs).
+5.Output Test
+Set a source value and test the output connected to a device.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/05_Setup/5.8_Output_Menu
+108
+=== PAGE 59 ===
+CAN Output – VBOX 3i With Firmware v2.8
+TheVBOX 3i has a CAN output which is present on the 5-way connector output.
+Note: Channels highlighted in BLUE are present on Dual Antenna systems only.
+The CAN outputs for ADAS Modes are available here .
+Motorola Format
+Data format: Motorola
+Baud rate: 500 kbit /s
+Channel definitions are available here .
+ID*Data Bytes
+1 2 3 4 5 6 7 8
+0x301(1)
+Satellites(2) Time_Since_Midnight _UTC (3)Position_Latitude
+0x302 (4) Position_Longitude (5) Speed (kts) (6) Heading (°)
+0x303 (7) Altitude (m)(8) Vertical_Velocity
+(ms)Unused(9)
+Status_1(10)
+Status_2
+0x304 (11) Trigger_Distance (m)(12)
+Longitudinal_Acceleration
+(g)(13)
+Lateral_Acceleration
+(g)
+0x305 (14) Distance (m) (15) Trigger_Time(16)
+Trigger_Speed (kts)
+0x306(17)
+Speed_Quality (km/h)(18) True_Heading (°) (19) Slip_Angle (°) (20) Pitch_Angle (°)
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/06_Technical_Properties/
+CAN_Output_%E2%80%93_VBOX_3i_With_Firmware_v2.8
+109
+=== PAGE 60 ===
+ID*Data Bytes
+1 2 3 4 5 6 7 8
+0x307(21)
+Lateral_Velocity (km/h)(22) Yaw_Rate (°/s) (23) Roll_Angle (°)(24)
+Longitudinal_Velocity
+(km/h)
+0x308 (25) Position_Latitude_48bit(26)
+Position
+Quality(27)
+Solution
+Type
+0x309 (28) Position_Longitude_48bit(29)
+Speed_Robot_Nav (kts)
+0x313(30)
+Slip_Angle_Front_Left (°)(31)
+Slip_Angle_Front_Right (°)(32)
+Slip_Angle_Rear_Left (°)(33)
+Slip_Angle_Rear_Right (°)
+0x314(34)
+Slip_Angle_COG (°)(35)
+Robot
+Nav
+Satellites(36) Time Since Midnight GPS(37)
+RobotHead_Robot_Nav (°)
+0x322 (38) Trigger_Event_UTC_Part_1 (39) Trigger_Event_UTC_Part_2
+0x323** (40) Heading_IMU (°) (41) Roll_Ang_IMU (°)(42)
+Pitch_Ang_IMU (°)(43) Status KF
+0x324(44)
+Dant_Mode(45)MP_Type_Number Unused (46) FW_Version
+0x329 (47) X_Position (48) Y_Position
+0x32A(49)
+RobotHead_Vehico (°)(50)
+Speed_Vehico (km/h)(51)
+Position_
+Quality_Vehico(52)
+Solution_
+Type_VehicoUnused
+0x32B(53)
+GPSDayH(54)
+GPSDayL(55)
+Diff_AgeUnused (56) Serial_Number(57)
+VBOX_TypeUnused
+*Default Identifiers. The identifier values can be changed using the configuration software.
+**When IMU integration is enabled via VBOX Manager, ID 0x323 will not be selected to transmit.
+***Update rate depends on GPS update rate .10 ms Update rate shown corresponds to 100 Hz GPS setting.
+1.If Satellites in view < 3 then only Identifier 0x301 transmitted and bytes 2 to 8 are set to 0x00.
+2.Time since midnight. This is a count of 10 ms intervals since midnight UTC. (5383690 = 53836.90 seconds since
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/06_Technical_Properties/
+CAN_Output_%E2%80%93_VBOX_3i_With_Firmware_v2.8
+110
+=== PAGE 61 ===
+midnight or 14 hours, 57 minutes and 16.90 seconds).
+3.Position, Latitude in minutes * 100,000 (311924579 = 51 Degrees, 59.24579 Minutes North). This is a true 32
+bitsigned integer, North being positive.
+4.Position, Longitude in minutes * 100,000 (11882246 = 1 Degrees, 58.82246 Minutes West). This is a true 32
+bitsigned integer, West being positive.
+5.Velocity, 0.01 kts per bit.
+6.Heading, 0.01° per bit.
+7.Altitude above mean sea level based on the WGS 84 model of the earth, 0.01 m per bit, signed.
+8.Vertical Velocity, 0.01 m/s per bit, signed.
+9.Status. 8 bit unsigned char. Bit 0 = VBOX Lite, Bit 1 = Open or Closed CAN Bus (1=open), 2 = VBOX3, Bit 3 =
+Logging Status.
+10. Status is an 8 bit unsigned char. Bit 0 = Always set, Bit 2 = Brake test started, Bit 3 = Brake trigger active, Bit
+4=DGPS active, Bit 5 = Dual Lock.
+11. Distance, 0.000078125 m per bit, unsigned. Corrected to trigger point.
+12. Longitudinal Acceleration, 0.01 g per bit, signed.
+13. Lateral Acceleration, 0.01 g per bit, signed.
+14. Distance travelled since VBOX reset, 0.000078125 m per bit, unsigned.
+15. Time from last brake trigger event, 0.01 seconds per bit.
+16. Velocity at brake trigger point, 0.01 kts per bit, interpolated between samples.
+17. Velocity Quality, 0.01 km/h per bit.
+18. True Heading of vehicle, 16 bit signed integer, 0.01° per bit.
+19. Slip Angle, 16 bit signed integer 0.01° per bit.
+20. Pitch Angle, 16 bit signed integer 0.01° per bit.
+21. Lateral Velocity, 16 bit signed integer 0.01 km/h per bit.
+22. Yaw Rate, 16 bit signed integer 0.01°/s per bit.
+23. Roll Angle, 16 bit signed integer 0.01° per bit.
+24. Longitudinal Velocity, 16 bit signed integer 0.01 km/h per bit.
+25. Position, Latitude 48 bit signed integer, Latitude * 10,000,000 (minutes). North being positive.
+26. Position Quality, 8 bit unsigned integer.
+27. Solution Type, 8 bit unsigned integer, 0 = None, 1 = GNSS only, 2 = GNSS DGPS, 3 = RTK Float, 4 = RTK Fixed,
+5 = Fixed position, 6 = IMU Coast.
+28. Position, Longitude 48 bit signed integer, Longitude *10,000,000 (minutes). East being positive.
+29. Velocity, 16 bit signed integer 0.01 ktsper bit (not delayed when ADAS mode enabled).
+30. Slip Angle Front Left, 16 bit signed integer 0.01° per bit.
+31. Slip Angle Front Right, 16 bit signed integer 0.01° per bit.
+32. Slip Angle Rear Left, 16 bit signed integer 0.01° per bit.
+33. Slip Angle Rear Right, 16 bit signed integer 0.01° per bit.
+34. Slip Angle COG, 16 bit signed integer 0.01° per bit.
+35. Robot Navigation Satellites.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/06_Technical_Properties/
+CAN_Output_%E2%80%93_VBOX_3i_With_Firmware_v2.8
+111
+=== PAGE 62 ===
+36. Time since midnight. This is a count of 10 ms intervals since midnight GPS. (5383690 = 53836.90 seconds since
+midnight or 14 hours, 57 minutes and 16.90 seconds) (not delayed when ADAS enabled).
+37. Robot heading, 16 bit unsigned integer 0.01° per bit (not delayed when ADAS enabled).
+38. Trigger event UTC time - milliseconds since midnight UTC (part 1 of 2 part message), unsigned.
+39. Trigger event UTC time - nanoseconds since midnight UTC (part 2 of 2 part message), unsigned.
+40. Heading derived from the Kalman Filter (activated when IMU integration is enabled).
+41. Roll Angle derived from Kalman Filter (activated when IMU integration is enabled).
+42. Pitch Angle derived from Kalman Filter (activated when IMU integration is enabled).
+43. Kalman filter status, 12 bit unsigned integer. SeeVBOX 3i Kalman Filter Status for details.
+44. Dual antenna mode on or off, 1 for on, 0 for off (used by ABD robot systems).
+45. Motion pack type number, outputted as 6 (used by ABD robot systems).
+46. VBOX FW version, 32 bit unsigned.
+*can be split into Major (8 bit), Minor (8 bit) and build number (16 bit).
+47. X position in metres from the origin, the origin and direction can be set when in Vehico Robot Mode, other wise the
+origin is the first valid sample and the X direction is East. 32 bit float (not delayed when ADAS is enabled, used by
+Vehico robot systems).
+48. Y position in metres from the origin, the origin and direction can be set when in Vehico Robot Mode, other wise the
+origin is the first valid sample and the Y direction is North. 32 bit float (not delayed when ADAS is enabled, used by
+Vehico robot systems).
+49. Robot heading translated to Vehico Coordinate frame (not delayed when ADAS is enabled, used by Vehico robot
+systems).
+50. Speed, 0.01 knots per bit (not delayed when ADAS is enabled, used by Vehico robot systems).
+51. Position quality, 8 bit (used by Vehico robot systems).
+52. Solution type, 8 bit (used by Vehico robot systems).
+53. GPS Day High, unsigned char, most significant byte day number since 6th Jan 1980.
+54. GPS Day Low, unsigned char, least significant byte day number since 6th Jan 1980.
+55. Differential Age - unsigned char, (s) differential age (0xFF = invalid).
+56. Serial Number - 20 bit, VBOX serial number.
+57. VBOX Type - VB3i = 1, VB3iS = 2, VBOX Omega = 3.
+Intel Format
+These channels are for use with Stahle robot systems.
+Data format: Intel
+Baud rate: 500 kbit /s
+Channel definitions are available here .
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/06_Technical_Properties/
+CAN_Output_%E2%80%93_VBOX_3i_With_Firmware_v2.8
+112
+=== PAGE 63 ===
+ID*Data Bytes
+1 2 3 4 5 6 7 8
+0x066 (1)Velocity (km/h) Unused
+0x06B (2)IMU_roll_rate (°/s) (3)IMU_pitch_rate (°/s) (4) IMU_yaw_rate (°/s) Unused
+0x075 (5)Long_acc (g) (6)Lat_acc (g) (7)IMU_Z_accel (g) Unused
+0x083 (8)Inverse_path_radius (9)Slip_angle Unused
+0x095 (10)Roll_imu (11)Pitch_imu (12)Robot_head_Stahle (13) Heading
+0x09C (14)Time_since_midnight_UTC Unused
+0x09F (15)Latitude (16)Longitude
+0x0AF (17)X_velocity (18)Y_velocity Unused
+*Default Identifiers. The identifier values can be changed using the configuration software.
+1.Velocity, 32 bit signed integer.
+2.Roll rate, 16 bit signed integer 0.01°/s per bit.
+3.Pitch rate, 16 bit signed integer 0.01°/s per bit.
+4.Yaw rate, 16 bit signed integer 0.01°/s per bit.
+5.Longitudinal Acceleration, 16 bit signed integer 0.0004 gper bit.
+6.Lateral Acceleration, 16 bit signed integer 0.0004 gper bit.
+7.Z Acceleration, 16 bit signed integer 0.0004 gper bit.
+8.Inverse Path Radius, 16 bit signed integer 0.01°/s per bit. Inverse Path Radius = 1/(Speed (m/s)/yaw rate (rad/s)).
+9.Slip Angle, 16 bit signed integer 0.01° per bit.
+10. Roll Angle derived from Kalman Filter (activated when IMU integration is enabled), 16 bit signed integer 0.01° per
+bit.
+11. Pitch Angle derived from Kalman Filter (activated when IMU integration is enabled), 16 bit signed integer 0.01° per
+bit.
+12. Robot_head_Stahle (360 - Robot_head), 16 bit unsigned integer 0.01° per bit (not delayed when ADAS enabled).
+13. Heading, 16 bit unsigned integer 0.01° per bit.
+14. Time since midnight. This is a count of 10 ms intervals since midnight UTC. (5383690 = 53836.90 seconds since
+midnight or 14 hours, 57 minutes and 16.90 seconds).
+15. Position, Latitude in degrees. This is a true 32 bit signed integer, North being positive,, 1e^-7 per bit.
+16. Position, Position, Longitude in degrees. This is a true 32 bit signed integer, East being positive, 1e^-7 per bit.
+17. X Velocity (car frame), 16 bit signed integer 0.005 m/s per bit. X Velocity = Speed(m/s) * Cos(slip angle).
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/06_Technical_Properties/
+CAN_Output_%E2%80%93_VBOX_3i_With_Firmware_v2.8
+113
+=== PAGE 64 ===
+18. Y Velocity (car frame), 16 bit signed integer 0.005 m/s per bit. X Velocity = Speed(m/s) * Cos(slip angle).
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/06_Technical_Properties/
+CAN_Output_%E2%80%93_VBOX_3i_With_Firmware_v2.8
+114
+=== PAGE 65 ===
+Inputs/Outputs – VBOX 3i Dual Antenna (v5)
+An overview and explanation of the inputs and outputs on the VBOX 3i Dual Antenna (v5) unit with firmware version 2.8.
+Analogue Inputs
+For PIN outs of the Analogue Input Connector click here .
+The VBOX 3i contains four differential 24 bit analogue input channels with a maximum sample rate of 500 Hz. Each
+channel has its own dedicated analogue to digital (A/D) converter with all four channels being sampled synchronously to
+each other. The voltage range of the input channels is ±50 V. Note that, unlike the ADC03 module, the analogue
+channels in the VBOX 3i are not electrically isolated from each other.
+The analogue input connector also contains voltage outputs that can be used to power external sensors. These are a
+Vbatt connection which is equal to the VBOX input voltage level and a 5 V DC out connection which is equal to 5 V ±2%.
+The 5 V out connection is electrically isolated, allowing for up to 120 mA of current to be drawn.
+The Vbatt connection is internally protected by a thermal fuse at 300 mA
+A screw-terminal connector block is available as an option for easy connection of signal pins.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/06_Technical_Properties/
+Inputs%2F%2FOutputs_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)
+115
+=== PAGE 66 ===
+Note: A 25 W D-sub to 4 W BNC adaptor block is available through your VBOX distributor, part number RLVBACS054
+Using VBOX Setup software, logging of the analogue channel data can be switched on or off. It is also possible to
+change the name of each input channel and configure scale and offset values for calibration of sensors. A scale value of
+1 and offset of 0 correspond to a channel reading in V DC. This means that the value stored on the compact flash card
+for the channel will also be in volts. When using a sensor such as a load cell, it may be desirable to store a reading in
+kg. In this case, changing the scale and offset to suit the sensor data sheet allows the data stored onto the compact
+flash to be in kg. When changing settings for an analogue channel using VBOX Setup software, a live data view of the
+current channel is shown. The value shown is the value after scale and offset is applied and can therefore be used to aid
+sensor calibration.
+Note: The 5 V regulated output on pin16 is only good for VBOX power supply voltages >8.5 V
+AD channel properties
+500 Hz logging
+VB3i has the ability to log 4x analogue channels at 500 Hz. With this feature enabled, the file sizes will increase as a
+result.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/06_Technical_Properties/
+Inputs%2F%2FOutputs_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)
+116
+=== PAGE 67 ===
+The 500 Hz analogue logging functionality is only fully supported when Fixed CAN timing is used.
+When loading the VBO file into VBOX Test Suite, ensure you are running the very latest version as older versions are
+not compatible with 500 Hz data.
+Within VBOX Setup ,the 500 Hz option is available within the'Logging ' settings, as shown below.
+VBOX Setup A/D 500 Hz
+Digital Inputs
+The ‘D IN’ connector contains the two digital inputs for the VBOX 3i. Digital input 1 is also referred to as the brake trigger
+input. This input is connected to an event capture input on the GPS engine. This captures precisely the trigger event
+time (10 ns resolution) for use in brake distance calculation. The trigger event time is logged and used to correct the
+measured brake stop distance to the exact point at which the trigger was pressed.
+A hand-held event marker is also available to allow the user to record marker events in the VBOX 3i data file.
+A remote logging on/off switch is also available for ease of use and when the front panel switch is not accessible.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/06_Technical_Properties/
+Inputs%2F%2FOutputs_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)
+117
+=== PAGE 68 ===
+Two digital inputs devices can be connected to the VBOX 3iwith the use of an additional splitter box, as shown in the
+image below.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/06_Technical_Properties/
+Inputs%2F%2FOutputs_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)
+118
+=== PAGE 69 ===
+Analogue and Digital Outputs
+The AD1 and AD2 connectors each have 1 analogue voltage and 1 digital output. The digital output on connector AD2 is
+a frequency/pulse output corresponding to velocity. The pulse per meter range is adjustable in software. The digital
+output on connector AD1 is a simple on/off state output. This digital output can be associated with any of the data
+channels being logged by the VBOX. A threshold level can be set for the selected data channel where a true condition
+gives a 5 V output and a false condition gives a 0 V.
+i.e. Data channel –Speed, threshold 40 km/h. When speed is >40 output = 5 V, speed, 40 output = 0 V.
+A hysteresis and tolerance value can also be associated to this condition.
+The default function of this digital output is to indicate the current logging status of the VBOX.
+The analogue outputs on connectors AD1 and AD2 are both user configurable. For example, analogue output 1 could be
+configured to output velocity while analogue output 2 might be configured to output lateral acceleration. The voltage
+range of both analogue outputs is 0 to 5 V DC.
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/06_Technical_Properties/
+Inputs%2F%2FOutputs_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)
+119
+=== PAGE 70 ===
+Pinouts – VBOX 3i Dual Antenna (v5)
+Connector 1 - POWER (2-pin Lemo)
+PIN I/O Function Connector
+1 I Power +
+2 I Ground
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/06_Technical_Properties/
+Pinouts_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)
+120
+=== PAGE 71 ===
+Connector 2 - AD1 (3-pin Lemo)
+PIN I/O Function Connector
+1 OIsolated Analogue Out 1
+(0 to 5 V)
+2 O Digital Out 1 (0 to 5 V)
+3 O Isolated Analogue Ground
+Shell O Digital Ground
+Connector 3 - AD2 (3-pin Lemo)
+PIN I/O Function Connector
+1 OIsolated Analogue Out 2
+(0 to 5 V)
+2 O Digital Out 2 (0 to 5 V)
+3 O Isolated Analogue Ground
+Shell O Digital Ground
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/06_Technical_Properties/
+Pinouts_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)
+121
+=== PAGE 72 ===
+Connector 4 - D IN (3-pin Lemo)
+PIN I/O Function Connector
+1 I Ground
+2 IDigital Input 2 - Logging
+on/off (0 to 5 V - 14
+Vtolerant)
+3 IDigital Input 1 - Brake
+Trigger (0 to 5 V - 14
+Vtolerant)
+Connector 5 - CAN (5-pin Lemo)
+PIN I/O Function Connector
+1 ORS232 Tx - PORT
+A(±12 V)
+2 IRS232 Rx - PORT A (±12
+V)
+3 I/O CAN High - PORT B
+4 I/O CAN Low - PORT B
+5 O+V Power (Same as
+Power +)
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/06_Technical_Properties/
+Pinouts_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)
+122
+=== PAGE 73 ===
+Connector 6 - SERIAL (5-pin Lemo)
+PIN I/O Function Connector
+1 ORS232 Tx - PORT
+A(±12 V)
+2 IRS232 Rx - PORT A (±12
+V)
+3 I/O CAN High - PORT B
+4 I/O CAN Low - PORT B
+5 O+V Power (Same as
+Power +)
+Connector 7 - Antenna A
+PIN I/O Function Connector
+Center N/ARF Signal/Power for
+active antenna
+Chassis N/A Ground
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/06_Technical_Properties/
+Pinouts_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)
+123
+=== PAGE 74 ===
+Connector 8 - Antenna B
+PIN I/O Function Connector
+Center N/ARF Signal/Power for
+active antenna
+Chassis N/A Ground
+Connector 9 - Analogue Input Connector
+PIN I/O Function Connector
+1 IIsolated Channel 1 + (1.8
+M Ohms input
+impedance)
+2 IIsolated Channel 1 – (1.8
+M Ohms input
+impedance)
+3 IIsolated Channel 2 + (1.8
+M Ohms input
+impedance)
+4 IIsolated Channel 2 –(1.8
+M Ohms input
+impedance)
+5 IIsolated Channel 3 + (1.8
+M Ohms input
+impedance)
+6 IIsolated Channel 3 –(1.8
+M Ohms input
+impedance)
+7 IIsolated Channel 4 + (1.8
+M Ohms input
+impedance)
+8 I Isolated Channel 4 –(1.8
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/06_Technical_Properties/
+Pinouts_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)
+124
+=== PAGE 75 ===
+PIN I/O Function Connector
+M Ohms input
+impedance)
+9/10 N/C N/A
+11 O 1PPS Output (-IMU04)
+12 O RS232 TxD (-IMU04)
+13 I RS232 RxD (-IMU04)
+14 OVbatt (Equal to Input
+Voltage. 300 mA)
+15 O Ground
+16 O5 V Out (Isolated 5 V
+±2%. 120 mA)
+17 O Ground
+18 O Isolated Ground
+19-25 N/C N/A
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/06_Technical_Properties/
+Pinouts_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)
+125
+=== PAGE 76 ===
+Technical Specifications – VBOX 3i Dual Antenna (v5)
+Definitions
+*Specifications will vary depending on the number of
+satellites used, obstructions, satellite geometry (PDOP),
+multipath effects, and atmospheric conditions.
+For maximum system accuracy, always follow best
+practices for GNSS data collection.
+**Not using DGPS and crossing the start/finish line at 100
+km/h.
+***Approximately 29 MB per hour used when logging GPS
+data at 100 Hz; Approx. 182 MB per hour total logging
+capacity.
+GPS Specifications
+Velocity
+Accuracy 0.1 km/h (averaged over 4 samples)
+Units km/h or mph
+Update Rate 100 Hz
+Maximum Velocity 1000 mph
+Minimum Velocity 0.1 km/h
+Resolution 0.01 km/h
+Latency•Minimum: 4 ms/ 8.5 ms (±1 ms)
+•Fixed, no IMU integration: 15.5 ms/ 20 ms
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/06_Technical_Properties/
+Technical_Specifications_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)
+126
+=== PAGE 77 ===
+Velocity
+•Fixed, with IMU integration: 20 ms
+Distance
+Accuracy 0.05 % (< 50 cm per km)
+Units m/ft
+Update rate 100 Hz
+Resolution 1 cm
+Absolute Positioning (RMS)
+Accuracy* (Standalone) V: 1.8 m; H: 1.2 m
+Accuracy* with SBAS V: 1.2 m; H: 0.8 m
+Accuracy* with DGPS V: 0.5 m; H: 0.3 m
+Accuracy* with RTK V: 10 mm; H: 5 mm
+Update rate 100 Hz
+Resolution 1.8 mm
+Accuracy* (Standalone) V: 1.8 m; H: 1.2 m
+Time
+Accel/Brake Test (MFD/VBOX Test Suite) Lap Timing (MFD/VBOX Test Suite)
+Resolution 0.01 s Resolution 0.01 s
+Accuracy 0.01 s Accuracy 0.01 s**
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/06_Technical_Properties/
+Technical_Specifications_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)
+127
+=== PAGE 78 ===
+Acceleration
+Accuracy 0.5%
+Maximum 20 g
+Resolution 0.01 g
+Update rate 100 Hz
+Heading
+Resolution 0.01°
+Accuracy 0.1°
+Memory
+Compact Flash Type I
+Recording Time Dependent on flash card capacity***
+Brake Stop Accuracy
+Accuracy ± 1.8 cm
+Slip, Pitch and Roll Angle Accuracies
+Antenna Separation Slip Angle (RMS) Pitch / Roll Angle (RMS)
+0.5 m < 0.2° < 0.14°
+1.0 m < 0.1° < 0.07°
+1.5 m < 0.067° < 0.047°
+2.0 m < 0.05° < 0.035°
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/06_Technical_Properties/
+Technical_Specifications_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)
+128
+=== PAGE 79 ===
+Antenna Separation Slip Angle (RMS) Pitch / Roll Angle (RMS)
+2.5 m < 0.04° < 0.028°
+IMU Attitude Accuracies
+Channels available when an external IMU has been integrated with a VBOX 3i RTK v5.
+IMU04
+Attitude Accuracy (RMS)
+Pitch Angle 0.06°
+Roll Angle 0.06°
+Yaw Angle 0.5°
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/06_Technical_Properties/
+Technical_Specifications_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)
+129
+=== PAGE 80 ===
+Outputs
+CAN Bus
+BitrateSelectable baud rate:
+•125 kbit/s
+•250 kbit/s
+•500kbit/s
+•1 Mbit/s
+Identifier type Standard 11 bit 2.0 A
+Data available•Satellites in View
+•Latitude
+•Longitude
+•Velocity
+•Heading
+•Altitude
+•Vertical Velocity
+•Distance
+•Longitudinal Acceleration
+•Lateral Acceleration
+•Distance from Trigger
+•Trigger Time
+•Trigger Velocity
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/06_Technical_Properties/
+Technical_Specifications_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)
+130
+=== PAGE 81 ===
+Analogue
+Voltage range 0to 5 V DC
+Default setting
+(The range settings can be adjusted by the user in
+VBOX Tools Software)Velocity
+0.0125 Volts per km/h (0 to 400 km/h)
+Accuracy 0.1 km/h
+Update rate 100 Hz
+Digital
+Frequency range DC to 44.4 kHz
+Default setting
+(The range settings can be adjusted by the user in
+VBOX Tools Software)Velocity
+(25 Hz per km/h (0 to 400 km/h)
+90 pulses per metre
+Accuracy 0.1 km/h
+Update rate 100 Hz
+Inputs
+CAN Bus
+RACELOGIC modulesUp to 32 channels from any combination of Racelogic
+modules, such as TC8 and FIM03
+External CAN BusUp to 16 channels of user-definable CAN signal from
+external bus, such as Vehicle CAN bus Can load signal
+data from an industry standard DBC database file
+Other channelsChannels that fall outside of the standard channel
+tabin VBOX Setup, such as AD inputs, IMU KF
+channels, twin antennas channels and ADAS channels
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/06_Technical_Properties/
+Technical_Specifications_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)
+131
+=== PAGE 82 ===
+Analogue
+Number of channels 4
+Input range ± 50 V
+Channel sample order Synchronous
+DC accuracy ± 2 mV (calibrated at 23° C)
+Digital
+Brake event trigger DC to 44.4 kHz
+On/Off logging control Remote log control from hand-held switch
+Environmental and Physical
+Input Voltage 7to30 V DC
+Power 5.5 W (maximum)
+Size 170mm x 121 mm x 41 mm
+Operating Temperature – 20° C to + 60° C
+Weight 900 g (approximate)
+Storage Temperature – 30° C to + 80° C
+https://en.racelogic.support//Product_Info/VBOX_Data_Loggers/VBOX_3i_Product_Range/VBOX_3i_Dual_Antenna/
+VBOX_3i_Dual_Antenna_(v5)/VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/
+User_Guide_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)_with_Firmware_Version_2.8/06_Technical_Properties/
+Technical_Specifications_%E2%80%93_VBOX_3i_Dual_Antenna_(v5)
+132

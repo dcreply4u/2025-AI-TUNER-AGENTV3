@@ -292,9 +292,82 @@ class DataStreamController(QObject):
             "run_max_speed": 0.0,
         }
 
+        # Advanced Algorithm Integration (correlation analysis, anomaly detection, limit monitoring)
+        self.advanced_algorithms = None
+        try:
+            from services.advanced_algorithm_integration import AdvancedAlgorithmIntegration
+            self.advanced_algorithms = AdvancedAlgorithmIntegration()
+            LOGGER.info("Advanced Algorithm Integration initialized (correlation, anomaly detection, limit monitoring)")
+        except Exception as e:
+            LOGGER.warning("Advanced Algorithm Integration not available: %s", e)
+
+        # IMU Interface (optional - for accelerometer, gyroscope, magnetometer)
+        # Supports: MPU6050, MPU9250, BNO085, Sense HAT (AstroPi), IMU04
+        self.imu_interface = None
+        try:
+            from interfaces.imu_interface import IMUInterface, IMUType
+            # Auto-detect IMU (will detect Sense HAT/AstroPi on Pi 5)
+            self.imu_interface = IMUInterface(imu_type=IMUType.AUTO_DETECT)
+            if self.imu_interface.is_connected():
+                LOGGER.info(f"IMU Interface initialized: {self.imu_interface.imu_type.value} (connected)")
+            else:
+                LOGGER.info(f"IMU Interface initialized: {self.imu_interface.imu_type.value} (not connected yet)")
+        except Exception as e:
+            LOGGER.debug("IMU Interface not available: %s", e)
+
+        # Kalman Filter (GPS/IMU fusion - requires both GPS and IMU)
+        self.kalman_filter = None
+        if self.gps_interface and self.imu_interface:
+            try:
+                from services.kalman_filter import KalmanFilter
+                # Initialize with default offsets (can be configured)
+                self.kalman_filter = KalmanFilter(
+                    antenna_to_imu_offset=(0.0, 0.0, 0.0),  # X, Y, Z meters
+                    imu_to_reference_offset=(0.0, 0.0, 0.0),  # X, Y, Z meters
+                    roof_mount=False,
+                    adas_mode=False,
+                )
+                LOGGER.info("Kalman Filter initialized (GPS/IMU fusion enabled)")
+            except Exception as e:
+                LOGGER.warning("Kalman Filter not available: %s", e)
+
+        # Dual Antenna GPS (optional - for slip angle, roll, pitch)
+        self.dual_antenna_gps = None
+        try:
+            from interfaces.dual_antenna_gps import DualAntennaGPS
+            # Only initialize if dual antenna GPS is configured
+            # For now, we'll leave it None until explicitly configured
+            LOGGER.debug("Dual Antenna GPS available but not configured")
+        except Exception as e:
+            LOGGER.debug("Dual Antenna GPS not available: %s", e)
+
         # Set up telemetry sync for cameras
         if self.camera_manager:
             self.camera_manager.set_telemetry_sync(self._get_current_telemetry)
+            # Auto-detect and add any USB cameras that weren't detected at startup
+            # This allows cameras connected after initialization to be detected
+            try:
+                added_cameras = self.camera_manager.auto_detect_and_add_cameras(include_network=False)
+                if added_cameras:
+                    LOGGER.info("Detected %d additional camera(s) after initialization: %s", 
+                               len(added_cameras), ", ".join(added_cameras))
+            except Exception as e:
+                LOGGER.debug("Camera auto-detection check failed (non-critical): %s", e)
+        
+        # HDD Manager (for hard drive storage and sync)
+        self.hdd_manager = None
+        try:
+            from services.hdd_manager import HDDManager
+            self.hdd_manager = HDDManager()
+            if self.hdd_manager.is_mounted():
+                LOGGER.info("Hard drive detected and mounted: %s", self.hdd_manager.mount_point)
+                project_path = self.hdd_manager.get_project_path()
+                if project_path:
+                    LOGGER.info("Project available on HDD: %s", project_path)
+            else:
+                LOGGER.debug("Hard drive not mounted (running from USB/local)")
+        except Exception as e:
+            LOGGER.debug("HDD Manager not available: %s", e)
 
     def configure(self, **kwargs) -> None:
         for key, value in kwargs.items():
@@ -466,13 +539,14 @@ class DataStreamController(QObject):
         self._update_status("Streaming Data")
         LOGGER.info("Data stream started: source=%s, interval=%dms, timer_active=%s", 
                    self.settings.source, interval_ms, self.timer.isActive())
-        print(f"[DATA STREAM] Started: source={self.settings.source}, interval={interval_ms}ms, active={self.timer.isActive()}")
+        LOGGER.info("Telemetry panel available: %s", self.telemetry_panel is not None)
         
         # Force first poll immediately to get data flowing
         QTimer.singleShot(100, self._on_poll)
-        print("[DATA STREAM] First poll scheduled in 100ms")
+        LOGGER.info("First poll scheduled in 100ms - data should start flowing soon")
 
     def stop(self) -> None:
+        """Stop data stream and clean up all resources."""
         if self.timer.isActive():
             self.timer.stop()
         if self.health_timer.isActive():
@@ -483,9 +557,42 @@ class DataStreamController(QObject):
         LOGGER.info("Data stream stopped.")
         self.performance_tracker.reset_session()
         self._stop_cameras(announce=True)
+        
         # Close CAN vendor detector
         if self.can_vendor_detector:
-            self.can_vendor_detector.close()
+            try:
+                self.can_vendor_detector.close()
+            except Exception as e:
+                LOGGER.warning("Error closing CAN vendor detector: %s", e)
+        
+        # Close IMU interface
+        if self.imu_interface:
+            try:
+                if self.imu_interface.is_connected():
+                    self.imu_interface.close()
+                    LOGGER.debug("IMU interface closed")
+            except Exception as e:
+                LOGGER.warning("Error closing IMU interface: %s", e)
+        
+        # Close GPS interface (if it has a close method)
+        if self.gps_interface and hasattr(self.gps_interface, 'close'):
+            try:
+                self.gps_interface.close()
+                LOGGER.debug("GPS interface closed")
+            except Exception as e:
+                LOGGER.warning("Error closing GPS interface: %s", e)
+        
+        # Clear advanced algorithms buffer
+        if self.advanced_algorithms:
+            try:
+                self.advanced_algorithms.log_buffer.clear()
+                LOGGER.debug("Advanced algorithms buffer cleared")
+            except Exception as e:
+                LOGGER.warning("Error clearing algorithms buffer: %s", e)
+        
+        # Reset Kalman filter state (optional - keeps state for next session)
+        # if self.kalman_filter:
+        #     self.kalman_filter.status = KalmanFilterStatus.NOT_INITIALIZED
 
     def _prepare_replay(self) -> None:
         if not self.settings.replay_file:
@@ -762,30 +869,43 @@ class DataStreamController(QObject):
         # Store latest sample for other methods
         self._latest_sample = data
         
-        # Normalize data keys for telemetry panel
+        # Normalize data keys for telemetry panel (optimized with reverse lookup)
         normalized_data = {}
-        aliases = {
-            "RPM": ("Engine_RPM", "RPM", "rpm"),
-            "Throttle": ("Throttle_Position", "Throttle", "throttle"),
-            "CoolantTemp": ("Coolant_Temp", "CoolantTemp", "coolant_temp"),
-            "Speed": ("Vehicle_Speed", "Speed", "speed"),
-            "Boost": ("Boost_Pressure", "Boost", "MAP"),
-            "OilPressure": ("Oil_Pressure", "OilPressure"),
-            "BrakePressure": ("Brake_Pressure", "BrakePressure"),
-            "BatteryVoltage": ("Battery_Voltage", "BatteryVoltage"),
-            "GForce_Lateral": ("GForce_Lateral", "LatG"),
-            "GForce_Longitudinal": ("GForce_Longitudinal", "LongG"),
-        }
-
-        for canonical, keys in aliases.items():
-            for key in keys:
-                if key in data:
-                    normalized_data[canonical] = float(data[key])
-                    break
-
-        # Keep originals for other consumers
+        
+        # Build reverse lookup map if not already built (optimization - O(n*m) -> O(n))
+        if not hasattr(self, '_key_to_canonical'):
+            self._key_to_canonical = {}
+            aliases = {
+                "RPM": ("Engine_RPM", "RPM", "rpm"),
+                "Throttle": ("Throttle_Position", "Throttle", "throttle"),
+                "CoolantTemp": ("Coolant_Temp", "CoolantTemp", "coolant_temp"),
+                "Speed": ("Vehicle_Speed", "Speed", "speed"),
+                "Boost": ("Boost_Pressure", "Boost", "MAP"),
+                "OilPressure": ("Oil_Pressure", "OilPressure"),
+                "BrakePressure": ("Brake_Pressure", "BrakePressure"),
+                "BatteryVoltage": ("Battery_Voltage", "BatteryVoltage"),
+                "GForce_Lateral": ("GForce_Lateral", "LatG"),
+                "GForce_Longitudinal": ("GForce_Longitudinal", "LongG"),
+                "GPS_Speed": ("GPS_Speed", "gps_speed", "GPS_Speed_mps", "speed_mps"),
+                "GPS_Heading": ("GPS_Heading", "gps_heading", "heading", "GPS_Heading_deg"),
+                "GPS_Altitude": ("GPS_Altitude", "gps_altitude", "altitude_m", "GPS_Altitude_m"),
+            }
+            for canonical, keys in aliases.items():
+                for key in keys:
+                    if key not in self._key_to_canonical:  # First match wins
+                        self._key_to_canonical[key] = canonical
+        
+        # Use reverse lookup for O(n) normalization instead of O(n*m)
+        seen_canonicals = set()
         for key, value in data.items():
-            normalized_data.setdefault(key, float(value))
+            # Add original key
+            normalized_data[key] = float(value)
+            
+            # Add canonical name if mapping exists and not already added
+            canonical = self._key_to_canonical.get(key)
+            if canonical and canonical not in seen_canonicals:
+                normalized_data[canonical] = float(value)
+                seen_canonicals.add(canonical)
         
         # Update telemetry panel with normalized data
         if self.telemetry_panel:
@@ -794,15 +914,171 @@ class DataStreamController(QObject):
             if not hasattr(self, '_update_count'):
                 self._update_count = 0
             self._update_count += 1
-            if self._update_count <= 5:
+            if self._update_count <= 10:  # Log first 10 updates
                 rpm = normalized_data.get('RPM', normalized_data.get('Engine_RPM', 0))
                 speed = normalized_data.get('Speed', normalized_data.get('Vehicle_Speed', 0))
-                print(f"[DATA FLOW] Update #{self._update_count}: {len(normalized_data)} values, RPM={rpm:.0f}, Speed={speed:.0f}")
-            LOGGER.debug(f"Updated telemetry panel with {len(normalized_data)} values")
+                LOGGER.info("Data flow update #%d: %d values, RPM=%.0f, Speed=%.0f", 
+                           self._update_count, len(normalized_data), rpm, speed)
+            elif self._update_count == 11:
+                LOGGER.info("Telemetry updates continuing (logging reduced)")
         
         # Update gauge panel with normalized data
         if self.gauge_panel:
             self.gauge_panel.update_data(normalized_data)
+
+        # Advanced Algorithm Integration - Process telemetry through all algorithms
+        if self.advanced_algorithms:
+            try:
+                algorithm_results = self.advanced_algorithms.process_telemetry(
+                    telemetry_data=normalized_data,
+                    timestamp=time.time()
+                )
+                
+                # Display anomalies (using Enum instead of string comparison)
+                if algorithm_results.anomalies:
+                    from algorithms.enhanced_anomaly_detector import AnomalySeverity
+                    for anomaly in algorithm_results.anomalies:
+                        if anomaly.severity in [AnomalySeverity.HIGH, AnomalySeverity.CRITICAL]:
+                            message = f"[Anomaly] {anomaly.description}"
+                            self.ai_panel.update_insight(message, level="warning")
+                            self._speak(f"Anomaly detected: {anomaly.description}", channel="warning", throttle=30)
+                
+                # Display limit violations (using Enum instead of string comparison)
+                if algorithm_results.limit_violations and algorithm_results.limit_violations.violations:
+                    from algorithms.parameter_limit_monitor import LimitSeverity
+                    for violation in algorithm_results.limit_violations.violations:
+                        if violation.severity in [LimitSeverity.CRITICAL]:
+                            message = f"[Limit] {violation.parameter}: {violation.value:.1f} (limit: {violation.limit:.1f})"
+                            self.ai_panel.update_insight(message, level="error")
+                            self._speak(f"Parameter limit exceeded: {violation.parameter}", channel="warning", throttle=20)
+                        elif violation.severity == LimitSeverity.WARNING:
+                            message = f"[Limit] {violation.parameter}: {violation.value:.1f} (approaching limit: {violation.limit:.1f})"
+                            self.ai_panel.update_insight(message, level="warning")
+                
+                # Display correlation insights periodically (CORRELATION_INSIGHT_INTERVAL samples to avoid spam)
+                CORRELATION_INSIGHT_INTERVAL = 100  # Display insights every N samples
+                if self._update_count % CORRELATION_INSIGHT_INTERVAL == 0:
+                    try:
+                        correlations = self.advanced_algorithms.get_correlations()
+                        if correlations and correlations.correlations:
+                            # Find unexpected correlations
+                            unexpected = []
+                            for (s1, s2), corr in correlations.correlations.items():
+                                if abs(corr.correlation_coefficient) > 0.7:  # Strong correlation
+                                    # Check if it's expected
+                                    if s1 != s2 and corr.relationship_type != "none":
+                                        unexpected.append(f"{s1} ↔ {s2}: {corr.correlation_coefficient:.2f}")
+                            
+                            if unexpected and len(unexpected) <= 3:  # Limit to 3 insights
+                                insight = f"[Correlation] Strong relationships: {', '.join(unexpected[:3])}"
+                                self.ai_panel.update_insight(insight, level="success")
+                    except (ValueError, AttributeError) as e:
+                        LOGGER.debug("Error getting correlations: %s", e)
+                    except Exception as e:
+                        LOGGER.warning("Unexpected error getting correlations: %s", e, exc_info=True)
+            except (ValueError, AttributeError) as e:
+                LOGGER.debug("Error processing advanced algorithms: %s", e)
+            except Exception as e:
+                LOGGER.warning("Unexpected error processing advanced algorithms: %s", e, exc_info=True)
+
+        # Read IMU data if available (with thread safety)
+        imu_reading = None
+        if self.imu_interface:
+            with self._imu_lock:
+                try:
+                    if not self.imu_interface.is_connected():
+                        # Try to connect (non-blocking)
+                        try:
+                            self.imu_interface.connect()
+                        except (ConnectionError, TimeoutError, OSError) as e:
+                            LOGGER.debug("IMU connection failed (expected if not available): %s", e)
+                            # IMU not available, continue without it
+                        except Exception as e:
+                            LOGGER.warning("Unexpected error connecting to IMU: %s", e, exc_info=True)
+                    
+                    if self.imu_interface.is_connected():
+                        imu_reading = self.imu_interface.read()
+                        if imu_reading:
+                            # Add IMU data to normalized_data for display
+                            normalized_data["GForce_X"] = imu_reading.accel_x / 9.81  # Convert m/s² to G
+                            normalized_data["GForce_Y"] = imu_reading.accel_y / 9.81
+                            normalized_data["GForce_Z"] = imu_reading.accel_z / 9.81
+                            normalized_data["Gyro_X"] = imu_reading.gyro_x
+                            normalized_data["Gyro_Y"] = imu_reading.gyro_y
+                            normalized_data["Gyro_Z"] = imu_reading.gyro_z
+                except (ConnectionError, TimeoutError, OSError) as e:
+                    LOGGER.debug("Error reading IMU (connection issue): %s", e)
+                except Exception as e:
+                    LOGGER.warning("Unexpected error reading IMU: %s", e, exc_info=True)
+
+        # Read GPS data and add to normalized_data
+        gps_fix = None
+        if self.gps_interface:
+            try:
+                gps_fix = self.gps_interface.read_fix()
+                if gps_fix:
+                    # Add GPS data to normalized_data for telemetry panel
+                    normalized_data["GPS_Speed"] = gps_fix.speed_mps * 2.237  # Convert m/s to mph
+                    normalized_data["GPS_Heading"] = gps_fix.heading
+                    if gps_fix.altitude_m is not None:
+                        normalized_data["GPS_Altitude"] = gps_fix.altitude_m
+                    # Also add raw GPS data
+                    normalized_data["GPS_Latitude"] = gps_fix.latitude
+                    normalized_data["GPS_Longitude"] = gps_fix.longitude
+                    normalized_data["gps_speed"] = gps_fix.speed_mps
+                    normalized_data["gps_heading"] = gps_fix.heading
+                    if gps_fix.altitude_m is not None:
+                        normalized_data["gps_altitude"] = gps_fix.altitude_m
+                    
+                    # Update performance tracker with GPS coordinates for track display
+                    if self.performance_tracker and gps_fix.latitude and gps_fix.longitude:
+                        self.performance_tracker.update_gps(gps_fix.latitude, gps_fix.longitude)
+                        # Update dragy view GPS track panel
+                        if self.dragy_view:
+                            snapshot = self.performance_tracker.snapshot()
+                            self.dragy_view.update_track(snapshot.track_points)
+                            # Update distance
+                            miles = snapshot.total_distance_m / 1609.34
+                            self.dragy_view.gps_panel.set_distance(miles)
+                            # Update status
+                            status_text = f"Lat {gps_fix.latitude:.5f}, Lon {gps_fix.longitude:.5f}, {gps_fix.speed_mps * 2.237:.1f} mph"
+                            self.dragy_view.gps_panel.set_status(status_text)
+            except Exception as e:
+                LOGGER.debug("Error reading GPS: %s", e)
+
+        # Update Kalman Filter with GPS + IMU data
+        kalman_output = None
+        if self.kalman_filter:
+            try:
+                # Update Kalman filter
+                if gps_fix or imu_reading:
+                    kalman_output = self.kalman_filter.update(
+                        gps_fix=gps_fix,
+                        imu_reading=imu_reading
+                    )
+                    
+                    if kalman_output:
+                        # Use Kalman filter output for more accurate position/velocity
+                        # Add to normalized_data for display
+                        normalized_data["KF_X_Velocity"] = kalman_output.x_velocity
+                        normalized_data["KF_Y_Velocity"] = kalman_output.y_velocity
+                        normalized_data["KF_Heading"] = kalman_output.heading
+                        normalized_data["KF_Roll"] = kalman_output.roll
+                        normalized_data["KF_Pitch"] = kalman_output.pitch
+                        normalized_data["KF_Position_Quality"] = kalman_output.position_quality
+                        
+                        # Use Kalman filter velocity if available (more accurate)
+                        if kalman_output.x_velocity and kalman_output.y_velocity:
+                            kf_speed_mps = (kalman_output.x_velocity**2 + kalman_output.y_velocity**2)**0.5
+                            normalized_data["KF_Speed"] = kf_speed_mps * 2.237  # Convert m/s to mph
+                            
+                            # Use KF speed for GPS_Speed if GPS not available or KF is more accurate
+                            if "GPS_Speed" not in normalized_data or normalized_data.get("GPS_Speed", 0) == 0:
+                                normalized_data["GPS_Speed"] = kf_speed_mps * 2.237
+            except (ValueError, AttributeError) as e:
+                LOGGER.debug("Error updating Kalman filter (validation/attribute): %s", e)
+            except Exception as e:
+                LOGGER.warning("Unexpected error updating Kalman filter: %s", e, exc_info=True)
 
         # Update wheel slip calculation for drag racing
         if self.wheel_slip_panel and self.wheel_slip_service:
@@ -811,13 +1087,8 @@ class DataStreamController(QObject):
             driveshaft_rpm = normalized_data.get("Driveshaft_RPM", 0)
             driven_speed = normalized_data.get("Driven_Wheel_Speed", 0)
             
-            # Actual vehicle speed from GPS, front wheels, or speed sensor
-            actual_speed = normalized_data.get("Speed", normalized_data.get("Vehicle_Speed", 0))
-            gps_speed = normalized_data.get("GPS_Speed", 0)
-            
-            # Prefer GPS speed if available (more accurate for slip calculation)
-            if gps_speed > 0:
-                actual_speed = gps_speed
+            # Get best available speed source (helper method for code reuse)
+            actual_speed = self._get_best_speed_source(normalized_data)
             
             # Calculate wheel slip
             if driveshaft_rpm > 0 and actual_speed > 0:
@@ -1093,6 +1364,28 @@ class DataStreamController(QObject):
 
 
 def start_data_stream(window: QObject, **settings) -> DataStreamController:
+    """Start data stream with optional GPS interface setup for demo mode."""
+    import os
+    
+    # In demo/simulated mode, create SimulatedGPSInterface if GPS not available
+    gps_interface = getattr(window, "gps_interface", None)
+    if not gps_interface and (settings.get("source") == "simulated" or os.environ.get("AITUNER_DEMO_MODE") == "true"):
+        try:
+            from interfaces.simulated_interface import SimulatedGPSInterface
+            from services.data_simulator import DataSimulator
+            
+            # Get or create simulator
+            simulator = None
+            if hasattr(window, "demo_controller") and hasattr(window.demo_controller, "simulator"):
+                simulator = window.demo_controller.simulator
+            else:
+                # Create a temporary simulator for GPS
+                simulator = DataSimulator(mode="demo")
+            
+            gps_interface = SimulatedGPSInterface(simulator)
+            LOGGER.info("Using SimulatedGPSInterface for demo mode")
+        except Exception as e:
+            LOGGER.debug("Could not create SimulatedGPSInterface: %s", e)
     controller: Optional[DataStreamController] = getattr(window, "data_stream_controller", None)
     if not controller:
         controller = DataStreamController(
@@ -1107,7 +1400,7 @@ def start_data_stream(window: QObject, **settings) -> DataStreamController:
             logger=getattr(window, "data_logger", None),
             cloud_sync=getattr(window, "cloud_sync", None),
             status_bar=getattr(window, "status_bar", None),
-            gps_interface=getattr(window, "gps_interface", None),
+            gps_interface=gps_interface,
             performance_tracker=getattr(window, "performance_tracker", None),
             geo_logger=getattr(window, "geo_logger", None),
             voice_output=getattr(window, "voice_output", None),
