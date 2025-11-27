@@ -236,15 +236,15 @@ class RaceSetupRecommender:
                 if temps:  # Prevent division by zero
                     avg_temp = sum(temps.values()) / len(temps)
                     if avg_temp > 200:
-                    insights.append(
-                        "- *Telemetry Insight*: Average tire temps >200°F - consider reducing pressure 1-2 psi or "
-                        "increasing camber 0.5° to reduce heat buildup."
-                    )
-                elif avg_temp < 150:
-                    insights.append(
-                        "- *Telemetry Insight*: Tire temps <150°F - tires may not be in optimal operating window. "
-                        "Consider lower starting pressure or more aggressive warm-up lap."
-                    )
+                        insights.append(
+                            "- *Telemetry Insight*: Average tire temps >200°F - consider reducing pressure 1-2 psi or "
+                            "increasing camber 0.5° to reduce heat buildup."
+                        )
+                    elif avg_temp < 150:
+                        insights.append(
+                            "- *Telemetry Insight*: Tire temps <150°F - tires may not be in optimal operating window. "
+                            "Consider lower starting pressure or more aggressive warm-up lap."
+                        )
         
         elif "drag" in scenario:
             # Drag-specific tire temp analysis
