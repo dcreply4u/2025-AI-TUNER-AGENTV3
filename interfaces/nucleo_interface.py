@@ -46,6 +46,15 @@ except ImportError:
     I2C_AVAILABLE = False
     smbus = None  # type: ignore
 
+try:
+    from interfaces.can_interface import CANMessage, CANMessageType, OptimizedCANInterface
+    CAN_AVAILABLE = True
+except ImportError:
+    CAN_AVAILABLE = False
+    CANMessage = None  # type: ignore
+    CANMessageType = None  # type: ignore
+    OptimizedCANInterface = None  # type: ignore
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -164,6 +173,12 @@ class NucleoInterface:
         self._read_thread: Optional[threading.Thread] = None
         self._running = False
         self._data_callback: Optional[Callable[[Dict[str, float]], None]] = None
+        
+        # CAN integration
+        self._can_enabled = False
+        self._can_callback: Optional[Callable[[CANMessage], None]] = None
+        self._can_interface: Optional[OptimizedCANInterface] = None
+        self._can_monitoring = False
         
         # Load sensor configurations
         if sensor_configs:
@@ -327,12 +342,21 @@ class NucleoInterface:
             elif self.connection_type == NucleoConnectionType.I2C:
                 # Send ping via I2C
                 return self._send_command_i2c({"cmd": "ping"}) is not None
+            elif self.connection_type == NucleoConnectionType.CAN:
+                # For CAN, we still need base connection (UART/SPI/I2C)
+                # So ping via that connection
+                if self._interface:
+                    return self._send_command_uart({"cmd": "ping"}) is not None
             return False
         except Exception:
             return False
     
     def disconnect(self) -> None:
         """Disconnect from NUCLEO board."""
+        # Disable CAN gateway if enabled
+        if self._can_enabled:
+            self.disable_can_gateway()
+        
         self._running = False
         
         if self._read_thread and self._read_thread.is_alive():
@@ -581,6 +605,177 @@ class NucleoInterface:
     def get_last_reading(self, sensor_name: str) -> Optional[NucleoSensorReading]:
         """Get last reading for a sensor."""
         return self._last_readings.get(sensor_name)
+    
+    # ========== CAN Integration Methods ==========
+    
+    def enable_can_gateway(
+        self,
+        can_bitrate: int = 500000,
+        can_channel: str = "can1",
+        message_callback: Optional[Callable[[CANMessage], None]] = None,
+    ) -> bool:
+        """
+        Enable CAN gateway mode on NUCLEO.
+        
+        The NUCLEO will act as a CAN gateway, forwarding messages
+        between its onboard CAN controller and the Pi.
+        
+        Args:
+            can_bitrate: CAN bus bitrate (default: 500000)
+            can_channel: CAN channel name on NUCLEO (can1 or can2)
+            message_callback: Callback for received CAN messages
+        
+        Returns:
+            True if CAN gateway enabled successfully
+        """
+        if not CAN_AVAILABLE:
+            LOGGER.error("CAN interface not available")
+            return False
+        
+        self._can_callback = message_callback
+        
+        # If not connected, connect first (UART recommended for control)
+        if not self.connected:
+            if self.connection_type == NucleoConnectionType.CAN:
+                # For CAN mode, we need base connection first
+                if not self._interface:
+                    if self.auto_detect:
+                        self.port = self._detect_nucleo_port()
+                    if self.port and SERIAL_AVAILABLE:
+                        try:
+                            self._interface = serial.Serial(
+                                port=self.port,
+                                baudrate=self.baudrate,
+                                timeout=self.timeout,
+                            )
+                        except Exception as e:
+                            LOGGER.error(f"Failed to establish base connection for CAN: {e}")
+                            return False
+            
+            if not self.connect():
+                return False
+        
+        # Enable CAN on NUCLEO
+        try:
+            response = self.send_command({
+                "cmd": "enable_can",
+                "bitrate": can_bitrate,
+                "channel": can_channel,
+            })
+            
+            if response and response.get("status") == "ok":
+                self._can_enabled = True
+                self._start_can_monitoring()
+                LOGGER.info(f"NUCLEO CAN gateway enabled on {can_channel} @ {can_bitrate} bps")
+                return True
+            else:
+                LOGGER.error("Failed to enable CAN gateway on NUCLEO")
+                return False
+        except Exception as e:
+            LOGGER.error(f"Failed to enable CAN gateway: {e}")
+            return False
+    
+    def send_can_message(
+        self,
+        arbitration_id: int,
+        data: bytes,
+        extended: bool = False,
+    ) -> bool:
+        """
+        Send CAN message through NUCLEO's CAN controller.
+        
+        Args:
+            arbitration_id: CAN ID
+            data: Message data (up to 8 bytes for standard, 64 for CAN FD)
+            extended: Use extended 29-bit ID (default: False)
+        
+        Returns:
+            True if message sent successfully
+        """
+        if not self._can_enabled:
+            LOGGER.warning("CAN gateway not enabled")
+            return False
+        
+        try:
+            response = self.send_command({
+                "cmd": "send_can",
+                "id": arbitration_id,
+                "data": list(data),
+                "extended": extended,
+            })
+            
+            return response is not None and response.get("status") == "ok"
+        except Exception as e:
+            LOGGER.error(f"Error sending CAN message: {e}")
+            return False
+    
+    def _start_can_monitoring(self) -> None:
+        """Start background thread for monitoring CAN messages from NUCLEO."""
+        if self._can_monitoring:
+            return
+        
+        self._can_monitoring = True
+        can_thread = threading.Thread(target=self._can_monitor_loop, daemon=True)
+        can_thread.start()
+    
+    def _can_monitor_loop(self) -> None:
+        """Background loop for receiving CAN messages from NUCLEO."""
+        while self._can_monitoring and self.connected and self._can_enabled:
+            try:
+                # Request CAN messages from NUCLEO
+                response = self.send_command({"cmd": "read_can", "count": 10})
+                
+                if response and "messages" in response:
+                    for msg_data in response["messages"]:
+                        # Convert to CANMessage
+                        can_msg = CANMessage(
+                            arbitration_id=msg_data["id"],
+                            data=bytes(msg_data["data"]),
+                            timestamp=msg_data.get("timestamp", time.time()),
+                            channel=msg_data.get("channel", "nucleo_can"),
+                            message_type=CANMessageType.EXTENDED if msg_data.get("extended") else CANMessageType.STANDARD,
+                            dlc=len(msg_data["data"]),
+                        )
+                        
+                        # Call callback if set
+                        if self._can_callback:
+                            try:
+                                self._can_callback(can_msg)
+                            except Exception as e:
+                                LOGGER.error(f"Error in CAN callback: {e}")
+                
+                time.sleep(0.01)  # 100Hz polling
+                
+            except Exception as e:
+                LOGGER.error(f"Error in CAN monitor loop: {e}")
+                time.sleep(0.1)
+    
+    def disable_can_gateway(self) -> None:
+        """Disable CAN gateway mode."""
+        self._can_monitoring = False
+        
+        if self.connected:
+            try:
+                self.send_command({"cmd": "disable_can"})
+            except Exception:
+                pass
+        
+        self._can_enabled = False
+        LOGGER.info("NUCLEO CAN gateway disabled")
+    
+    def get_can_statistics(self) -> Optional[Dict[str, Any]]:
+        """Get CAN bus statistics from NUCLEO."""
+        if not self._can_enabled:
+            return None
+        
+        try:
+            response = self.send_command({"cmd": "get_can_stats"})
+            if response and "stats" in response:
+                return response["stats"]
+        except Exception as e:
+            LOGGER.error(f"Error getting CAN statistics: {e}")
+        
+        return None
 
 
 __all__ = [
