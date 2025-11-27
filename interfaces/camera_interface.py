@@ -178,7 +178,15 @@ class CameraAutoDetector:
             return cameras
 
         # Linux: Check each /dev/video* device
+        # Limit to first 10 devices to avoid long timeouts on non-existent devices
+        checked_count = 0
+        max_devices_to_check = 10
+        
         for video_dev in video_devices:
+            if checked_count >= max_devices_to_check:
+                LOGGER.debug("Reached max device check limit (%d), stopping camera detection", max_devices_to_check)
+                break
+                
             try:
                 # Extract device index
                 match = re.search(r"video(\d+)", str(video_dev))
@@ -187,10 +195,17 @@ class CameraAutoDetector:
 
                 dev_idx = int(match.group(1))
                 
+                # Skip high-numbered devices (likely not cameras) to speed up detection
+                if dev_idx > 10:
+                    LOGGER.debug("Skipping high-numbered device video%d (likely not a camera)", dev_idx)
+                    continue
+                
                 # Skip if it's a metadata device (videoX usually has videoX and videoXmeta)
                 # Only check the main video device, not metadata
                 if "meta" in str(video_dev).lower():
                     continue
+                
+                checked_count += 1
                 
                 # Suppress OpenCV errors during detection
                 import sys
@@ -199,21 +214,51 @@ class CameraAutoDetector:
                 cap = None
                 try:
                     sys.stderr = open(os.devnull, 'w')
+                    # Set very short timeout to avoid long waits
                     # Try opening with different backends for better compatibility
                     cap = cv2.VideoCapture(dev_idx, cv2.CAP_V4L2)
+                    # Set timeout properties if available
+                    try:
+                        cap.set(cv2.CAP_PROP_OPEN_TIMEOUT_MSEC, 500)  # 500ms timeout
+                        cap.set(cv2.CAP_PROP_READ_TIMEOUT_MSEC, 500)  # 500ms timeout
+                    except Exception:
+                        pass  # Some backends don't support timeout
+                    
                     if not cap.isOpened():
                         # Try without specifying backend
-                        cap.release()
+                        if cap:
+                            cap.release()
                         cap = cv2.VideoCapture(dev_idx)
+                        try:
+                            cap.set(cv2.CAP_PROP_OPEN_TIMEOUT_MSEC, 500)
+                            cap.set(cv2.CAP_PROP_READ_TIMEOUT_MSEC, 500)
+                        except Exception:
+                            pass
                     
                     if not cap.isOpened():
                         sys.stderr.close()
                         sys.stderr = old_stderr
                         continue
                     
-                    # Try to read a frame to verify camera is actually working
-                    ret, _ = cap.read()
-                    if not ret:
+                    # Try to read a frame to verify camera is actually working (with timeout)
+                    # Use threading to enforce timeout
+                    import threading
+                    frame_result = [None, None]
+                    frame_read = threading.Event()
+                    
+                    def read_frame():
+                        try:
+                            frame_result[0], frame_result[1] = cap.read()
+                        except Exception:
+                            pass
+                        finally:
+                            frame_read.set()
+                    
+                    read_thread = threading.Thread(target=read_frame, daemon=True)
+                    read_thread.start()
+                    frame_read.wait(timeout=0.5)  # 500ms timeout
+                    
+                    if not frame_read.is_set() or not frame_result[0]:
                         # Camera opened but can't read frames - might be a metadata device
                         cap.release()
                         sys.stderr.close()

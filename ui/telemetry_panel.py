@@ -245,6 +245,14 @@ class TelemetryPanel(QWidget):
         self.xdata.append(self.counter)
 
         updated_channels = 0
+        # Debug GPS data on first few updates
+        if self.counter <= 5:
+            gps_keys = [k for k in data.keys() if 'GPS' in k.upper() or 'gps' in k.lower()]
+            if gps_keys:
+                print(f"[GPS DEBUG] Update #{self.counter}: GPS keys in data: {gps_keys}")
+                for gk in gps_keys:
+                    print(f"  {gk} = {data.get(gk, 'N/A')}")
+        
         for key, curve in self.curves.items():
             # Accept CamelCase fallback keys for compatibility
             aliases = {
@@ -254,12 +262,12 @@ class TelemetryPanel(QWidget):
                 "BatteryVoltage": "Battery_Voltage",
                 "GForce_Lateral": ("GForce_Lateral", "LatG", "GForce_X", "Lateral_G"),
                 "GForce_Longitudinal": ("GForce_Longitudinal", "LongG", "GForce_Y", "Longitudinal_G"),
-                "GPS_Speed": ("GPS_Speed", "gps_speed", "GPS_Speed_mps", "speed_mps"),
-                "GPS_Heading": ("GPS_Heading", "gps_heading", "heading", "GPS_Heading_deg"),
+                "GPS_Speed": ("GPS_Speed", "gps_speed", "GPS_Speed_mps", "speed_mps", "KF_Speed"),
+                "GPS_Heading": ("GPS_Heading", "gps_heading", "heading", "GPS_Heading_deg", "KF_Heading"),
                 "GPS_Altitude": ("GPS_Altitude", "gps_altitude", "altitude_m", "GPS_Altitude_m"),
             }
             lookup_key = key
-            # Handle tuple aliases (for G-forces)
+            # Handle tuple aliases (for G-forces and GPS)
             if lookup_key in aliases:
                 alias_list = aliases[lookup_key]
                 if isinstance(alias_list, tuple):
@@ -271,13 +279,24 @@ class TelemetryPanel(QWidget):
                 elif alias_list in data:
                     lookup_key = alias_list
 
-            value = float(data.get(key, data.get(lookup_key, 0.0)))
+            # Try to get value - check both key and lookup_key
+            value = None
+            if key in data:
+                value = float(data[key])
+            elif lookup_key in data:
+                value = float(data[lookup_key])
+            else:
+                value = 0.0
+            
             if key not in self.data:
                 continue
             self.data[key].append(value)
             if curve:
                 curve.setData(self.xdata, list(self.data[key]))
                 updated_channels += 1
+                # Debug GPS channels on first few updates
+                if self.counter <= 5 and key in self.GPS_CHANNELS:
+                    print(f"[GPS DEBUG] Updated {key} curve: value={value}, data_len={len(self.data[key])}")
 
         if updated_channels == 0 and self.counter > 5:
             print(f"[WARN] No telemetry curves updated. Available keys: {list(data.keys())}")

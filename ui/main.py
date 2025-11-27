@@ -495,11 +495,16 @@ class MainWindow(QWidget):
 
         # GPS + camera manager
         self.camera_manager = None
-        try:
-            self.gps_interface = GPSInterface()
-        except Exception as exc:  # pragma: no cover - hardware optional
-            self.gps_interface = None
-            print(f"[WARN] GPS interface unavailable: {exc}")
+        # Don't create real GPS interface in demo mode - will be created by start_data_stream
+        import os
+        if os.environ.get("AITUNER_DEMO_MODE") != "true":
+            try:
+                self.gps_interface = GPSInterface()
+            except Exception as exc:  # pragma: no cover - hardware optional
+                self.gps_interface = None
+                print(f"[WARN] GPS interface unavailable: {exc}")
+        else:
+            self.gps_interface = None  # Will be set to SimulatedGPSInterface by start_data_stream
 
         try:
             from services import VideoLogger

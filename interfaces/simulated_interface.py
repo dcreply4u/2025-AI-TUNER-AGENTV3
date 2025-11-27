@@ -35,12 +35,17 @@ class SimulatedGPSInterface:
         if not gps_data:
             return None
 
+        # Add simulated altitude (Los Angeles area is ~100m above sea level)
+        altitude_m = 100.0 + (gps_data.get("speed_mps", 0) * 0.1)  # Slight variation based on speed
+        
         return GPSFix(
             latitude=gps_data["latitude"],
             longitude=gps_data["longitude"],
             speed_mps=gps_data["speed_mps"],
             heading=gps_data["heading"],
             timestamp=gps_data["timestamp"],
+            altitude_m=altitude_m,
+            satellites=12,  # Simulated satellite count
         )
 
 

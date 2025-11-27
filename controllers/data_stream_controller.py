@@ -124,6 +124,7 @@ class DataStreamController(QObject):
         self.connectivity_manager = connectivity_manager
         self.camera_manager = camera_manager
         self.voice_feedback = voice_feedback
+        self._main_window = None  # Will be set if parent is MainWindow
 
         # Wheel Slip Service for drag racing optimization
         self.wheel_slip_service = WheelSlipService(
@@ -304,6 +305,9 @@ class DataStreamController(QObject):
         # IMU Interface (optional - for accelerometer, gyroscope, magnetometer)
         # Supports: MPU6050, MPU9250, BNO085, Sense HAT (AstroPi), IMU04
         self.imu_interface = None
+        # Thread lock for thread-safe IMU access
+        import threading
+        self._imu_lock = threading.Lock()
         try:
             from interfaces.imu_interface import IMUInterface, IMUType
             # Auto-detect IMU (will detect Sense HAT/AstroPi on Pi 5)
@@ -450,8 +454,25 @@ class DataStreamController(QObject):
         return interface
 
     def _ensure_gps_interface(self) -> None:
+        # Don't override existing GPS interface (e.g., SimulatedGPSInterface in demo mode)
         if self.gps_interface:
+            LOGGER.info("GPS interface already set: %s (type: %s)", 
+                       type(self.gps_interface).__name__, 
+                       "SimulatedGPSInterface" if "Simulated" in type(self.gps_interface).__name__ else "Real GPS")
             return
+        
+        # Skip creating real GPS interface in simulated mode
+        source = (self.settings.source or "auto").lower()
+        import os
+        if source == "simulated" or os.environ.get("AITUNER_DEMO_MODE") == "true":
+            LOGGER.info("Skipping real GPS interface creation in simulated/demo mode - using SimulatedGPSInterface")
+            # Try to get from window if it was set there
+            parent = self.parent()
+            if parent and hasattr(parent, 'gps_interface') and parent.gps_interface:
+                self.gps_interface = parent.gps_interface
+                LOGGER.info("Retrieved SimulatedGPSInterface from parent window")
+            return
+        
         try:
             self.gps_interface = GPSInterface()
             LOGGER.info("GPS interface initialized.")
@@ -907,7 +928,42 @@ class DataStreamController(QObject):
                 normalized_data[canonical] = float(value)
                 seen_canonicals.add(canonical)
         
-        # Update telemetry panel with normalized data
+        # Read GPS data EARLY and add to normalized_data BEFORE updating telemetry panel
+        gps_fix = None
+        if self.gps_interface:
+            try:
+                gps_fix = self.gps_interface.read_fix()
+                if gps_fix:
+                    # Add GPS data to normalized_data for telemetry panel
+                    normalized_data["GPS_Speed"] = gps_fix.speed_mps * 2.237  # Convert m/s to mph
+                    normalized_data["GPS_Heading"] = gps_fix.heading
+                    if gps_fix.altitude_m is not None:
+                        normalized_data["GPS_Altitude"] = gps_fix.altitude_m
+                    # Also add raw GPS data
+                    normalized_data["GPS_Latitude"] = gps_fix.latitude
+                    normalized_data["GPS_Longitude"] = gps_fix.longitude
+                    normalized_data["gps_speed"] = gps_fix.speed_mps
+                    normalized_data["gps_heading"] = gps_fix.heading
+                    if gps_fix.altitude_m is not None:
+                        normalized_data["gps_altitude"] = gps_fix.altitude_m
+                    
+                    # Debug logging for first few GPS reads
+                    if not hasattr(self, '_gps_read_count'):
+                        self._gps_read_count = 0
+                    self._gps_read_count += 1
+                    if self._gps_read_count <= 5:
+                        LOGGER.info("GPS data read: Lat=%.5f, Lon=%.5f, Speed=%.1f mph, Heading=%.1f", 
+                                   gps_fix.latitude, gps_fix.longitude, 
+                                   gps_fix.speed_mps * 2.237, gps_fix.heading)
+            except Exception as e:
+                LOGGER.warning("Error reading GPS (early): %s", e, exc_info=True)
+        else:
+            # Debug: log if GPS interface is missing
+            if not hasattr(self, '_gps_missing_logged'):
+                LOGGER.warning("GPS interface is None - cannot read GPS data")
+                self._gps_missing_logged = True
+        
+        # Update telemetry panel with normalized data (now includes GPS)
         if self.telemetry_panel:
             self.telemetry_panel.update_data(normalized_data)
             # Print first few updates for verification
@@ -1011,31 +1067,17 @@ class DataStreamController(QObject):
                 except Exception as e:
                     LOGGER.warning("Unexpected error reading IMU: %s", e, exc_info=True)
 
-        # Read GPS data and add to normalized_data
-        gps_fix = None
-        if self.gps_interface:
+        # GPS data was already read earlier and added to normalized_data
+        # Now update performance tracker and GPS track panels with GPS coordinates
+        if gps_fix:
             try:
-                gps_fix = self.gps_interface.read_fix()
-                if gps_fix:
-                    # Add GPS data to normalized_data for telemetry panel
-                    normalized_data["GPS_Speed"] = gps_fix.speed_mps * 2.237  # Convert m/s to mph
-                    normalized_data["GPS_Heading"] = gps_fix.heading
-                    if gps_fix.altitude_m is not None:
-                        normalized_data["GPS_Altitude"] = gps_fix.altitude_m
-                    # Also add raw GPS data
-                    normalized_data["GPS_Latitude"] = gps_fix.latitude
-                    normalized_data["GPS_Longitude"] = gps_fix.longitude
-                    normalized_data["gps_speed"] = gps_fix.speed_mps
-                    normalized_data["gps_heading"] = gps_fix.heading
-                    if gps_fix.altitude_m is not None:
-                        normalized_data["gps_altitude"] = gps_fix.altitude_m
-                    
-                    # Update performance tracker with GPS coordinates for track display
-                    if self.performance_tracker and gps_fix.latitude and gps_fix.longitude:
+                # Update performance tracker with GPS coordinates for track display
+                if self.performance_tracker and gps_fix.latitude and gps_fix.longitude:
                         self.performance_tracker.update_gps(gps_fix.latitude, gps_fix.longitude)
-                        # Update dragy view GPS track panel
+                        snapshot = self.performance_tracker.snapshot()
+                        
+                        # Update dragy view GPS track panel (if it exists)
                         if self.dragy_view:
-                            snapshot = self.performance_tracker.snapshot()
                             self.dragy_view.update_track(snapshot.track_points)
                             # Update distance
                             miles = snapshot.total_distance_m / 1609.34
@@ -1043,6 +1085,49 @@ class DataStreamController(QObject):
                             # Update status
                             status_text = f"Lat {gps_fix.latitude:.5f}, Lon {gps_fix.longitude:.5f}, {gps_fix.speed_mps * 2.237:.1f} mph"
                             self.dragy_view.gps_panel.set_status(status_text)
+                        
+                        # Also update standalone GPS track panel (if it exists)
+                        # This is the one actually displayed in the UI
+                        try:
+                            # Check if we have a direct reference
+                            if hasattr(self, '_gps_track_panel') and self._gps_track_panel:
+                                gps_panel = self._gps_track_panel
+                                # Update track points
+                                gps_panel.set_track(snapshot.track_points)
+                                # Update distance
+                                miles = snapshot.total_distance_m / 1609.34
+                                gps_panel.set_distance(miles)
+                                # Update status
+                                status_text = f"Lat {gps_fix.latitude:.5f}, Lon {gps_fix.longitude:.5f}, {gps_fix.speed_mps * 2.237:.1f} mph"
+                                gps_panel.set_status(status_text)
+                                if not hasattr(self, '_gps_panel_log_count'):
+                                    self._gps_panel_log_count = 0
+                                self._gps_panel_log_count += 1
+                                if self._gps_panel_log_count <= 5:
+                                    LOGGER.info("Updated standalone GPS track panel: %d points, %.2f miles, status=%s", 
+                                               len(snapshot.track_points), miles, status_text)
+                            else:
+                                # Fallback: try to get from parent window
+                                parent = self.parent()
+                                if parent and hasattr(parent, 'gps_track_panel'):
+                                    gps_panel = parent.gps_track_panel
+                                    if gps_panel:
+                                        gps_panel.set_track(snapshot.track_points)
+                                        miles = snapshot.total_distance_m / 1609.34
+                                        gps_panel.set_distance(miles)
+                                        status_text = f"Lat {gps_fix.latitude:.5f}, Lon {gps_fix.longitude:.5f}, {gps_fix.speed_mps * 2.237:.1f} mph"
+                                        gps_panel.set_status(status_text)
+                                        # Cache the reference for next time
+                                        self._gps_track_panel = gps_panel
+                                        LOGGER.info("Found and updated GPS track panel via parent: %d points, %.2f miles", 
+                                                   len(snapshot.track_points), miles)
+                                else:
+                                    if not hasattr(self, '_gps_panel_missing_logged'):
+                                        LOGGER.warning("GPS track panel not found - parent=%s, has gps_track_panel=%s", 
+                                                      parent, hasattr(parent, 'gps_track_panel') if parent else "no parent")
+                                        self._gps_panel_missing_logged = True
+                        except Exception as e:
+                            LOGGER.warning("Could not update standalone GPS track panel: %s", e, exc_info=True)
             except Exception as e:
                 LOGGER.debug("Error reading GPS: %s", e)
 
@@ -1080,59 +1165,70 @@ class DataStreamController(QObject):
             except Exception as e:
                 LOGGER.warning("Unexpected error updating Kalman filter: %s", e, exc_info=True)
 
-        # Update wheel slip calculation for drag racing
+        # Update wheel slip calculation for drag racing (wrapped in try-except to prevent breaking data flow)
         if self.wheel_slip_panel and self.wheel_slip_service:
-            # Get required speeds for slip calculation
-            # Driven wheel speed from driveshaft/rear wheel sensors
-            driveshaft_rpm = normalized_data.get("Driveshaft_RPM", 0)
-            driven_speed = normalized_data.get("Driven_Wheel_Speed", 0)
-            
-            # Get best available speed source (helper method for code reuse)
-            actual_speed = self._get_best_speed_source(normalized_data)
-            
-            # Calculate wheel slip
-            if driveshaft_rpm > 0 and actual_speed > 0:
-                # Use driveshaft RPM for driven wheel speed calculation
-                reading = self.wheel_slip_service.update_from_driveshaft(
-                    driveshaft_rpm=driveshaft_rpm,
-                    actual_vehicle_speed=actual_speed,
-                    gear_ratio=1.0,  # Assume post-transmission measurement
-                )
-            elif driven_speed > 0 and actual_speed > 0:
-                # Use direct driven wheel speed
-                reading = self.wheel_slip_service.update(
-                    driven_wheel_speed=driven_speed,
-                    actual_vehicle_speed=actual_speed,
-                )
-            else:
-                # Estimate slip from RPM and speed (simplified)
-                rpm = normalized_data.get("RPM", normalized_data.get("Engine_RPM", 0))
-                if rpm > 500 and actual_speed > 5:
-                    # Simple estimation: compare expected speed from RPM to actual
-                    # This is a rough approximation for demo/estimation purposes
-                    # Assume some gear/final drive combo gives ~3500 RPM at 60 mph
-                    estimated_driven = (rpm / 3500.0) * 60.0
+            try:
+                # Get required speeds for slip calculation
+                # Driven wheel speed from driveshaft/rear wheel sensors
+                driveshaft_rpm = normalized_data.get("Driveshaft_RPM", 0)
+                driven_speed = normalized_data.get("Driven_Wheel_Speed", 0)
+                
+                # Get best available speed source (priority: KF Speed > GPS Speed > Vehicle Speed)
+                kf_speed = normalized_data.get("KF_Speed", 0.0)
+                if kf_speed > 0:
+                    actual_speed = kf_speed
+                else:
+                    gps_speed = normalized_data.get("GPS_Speed", 0.0)
+                    if gps_speed > 0:
+                        actual_speed = gps_speed
+                    else:
+                        actual_speed = normalized_data.get("Vehicle_Speed", normalized_data.get("Speed", 0.0))
+                
+                # Calculate wheel slip
+                if driveshaft_rpm > 0 and actual_speed > 0:
+                    # Use driveshaft RPM for driven wheel speed calculation
+                    reading = self.wheel_slip_service.update_from_driveshaft(
+                        driveshaft_rpm=driveshaft_rpm,
+                        actual_vehicle_speed=actual_speed,
+                        gear_ratio=1.0,  # Assume post-transmission measurement
+                    )
+                elif driven_speed > 0 and actual_speed > 0:
+                    # Use direct driven wheel speed
                     reading = self.wheel_slip_service.update(
-                        driven_wheel_speed=estimated_driven,
+                        driven_wheel_speed=driven_speed,
                         actual_vehicle_speed=actual_speed,
                     )
                 else:
-                    reading = None
-            
-            # Update UI if we have a reading
-            if reading:
-                status_text = reading.status.value.upper()
-                rec = ""
-                if reading.status.value in ("excessive", "critical"):
-                    rec = "Reduce throttle to optimize traction!"
-                elif reading.status.value == "low":
-                    rec = "Room for more throttle"
+                    # Estimate slip from RPM and speed (simplified)
+                    rpm = normalized_data.get("RPM", normalized_data.get("Engine_RPM", 0))
+                    if rpm > 500 and actual_speed > 5:
+                        # Simple estimation: compare expected speed from RPM to actual
+                        # This is a rough approximation for demo/estimation purposes
+                        # Assume some gear/final drive combo gives ~3500 RPM at 60 mph
+                        estimated_driven = (rpm / 3500.0) * 60.0
+                        reading = self.wheel_slip_service.update(
+                            driven_wheel_speed=estimated_driven,
+                            actual_vehicle_speed=actual_speed,
+                        )
+                    else:
+                        reading = None
                 
-                self.wheel_slip_panel.update_slip(
-                    reading.slip_percentage,
-                    status_text,
-                    rec,
-                )
+                # Update UI if we have a reading
+                if reading:
+                    status_text = reading.status.value.upper()
+                    rec = ""
+                    if reading.status.value in ("excessive", "critical"):
+                        rec = "Reduce throttle to optimize traction!"
+                    elif reading.status.value == "low":
+                        rec = "Room for more throttle"
+                    
+                    self.wheel_slip_panel.update_slip(
+                        reading.slip_percentage,
+                        status_text,
+                        rec,
+                    )
+            except Exception as e:
+                LOGGER.debug("Error updating wheel slip (non-critical): %s", e)
 
         health_payload = self._update_health(data)
 
@@ -1383,9 +1479,18 @@ def start_data_stream(window: QObject, **settings) -> DataStreamController:
                 simulator = DataSimulator(mode="demo")
             
             gps_interface = SimulatedGPSInterface(simulator)
-            LOGGER.info("Using SimulatedGPSInterface for demo mode")
+            LOGGER.info("Using SimulatedGPSInterface for demo mode (simulator=%s)", type(simulator).__name__)
+            # Store on window so it persists
+            window.gps_interface = gps_interface
+            # Test that GPS data can be read
+            test_fix = gps_interface.read_fix()
+            if test_fix:
+                LOGGER.info("SimulatedGPSInterface test read successful: Lat=%.5f, Lon=%.5f, Speed=%.1f m/s", 
+                           test_fix.latitude, test_fix.longitude, test_fix.speed_mps)
+            else:
+                LOGGER.warning("SimulatedGPSInterface test read returned None")
         except Exception as e:
-            LOGGER.debug("Could not create SimulatedGPSInterface: %s", e)
+            LOGGER.warning("Could not create SimulatedGPSInterface: %s", e, exc_info=True)
     controller: Optional[DataStreamController] = getattr(window, "data_stream_controller", None)
     if not controller:
         controller = DataStreamController(
@@ -1411,6 +1516,9 @@ def start_data_stream(window: QObject, **settings) -> DataStreamController:
             wheel_slip_panel=getattr(window, "wheel_slip_panel", None),
             parent=window,
         )
+        # Store reference to GPS track panel if it exists
+        if hasattr(window, "gps_track_panel"):
+            controller._gps_track_panel = window.gps_track_panel
         window.data_stream_controller = controller
         
         # Connect telemetry sync to camera manager
