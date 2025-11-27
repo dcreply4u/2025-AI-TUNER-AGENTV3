@@ -273,8 +273,16 @@ class MainWindow(QWidget):
         # ------------------------------------------------------------------
         # Left column: telemetry, health, AI insights, advice, performance
         # ------------------------------------------------------------------
-        self.telemetry_panel = TelemetryPanel()
-        self.telemetry_panel.setFixedHeight(320)  # Increased height to show all 3 graphs including G-forces
+        # Use enhanced telemetry panel if available, otherwise fall back to basic
+        try:
+            from ui.enhanced_telemetry_panel import EnhancedTelemetryPanel
+            self.telemetry_panel = EnhancedTelemetryPanel()
+            self.telemetry_panel.setMinimumHeight(400)  # Enhanced panel needs more space
+            LOGGER.info("Using Enhanced Telemetry Panel")
+        except Exception as e:
+            LOGGER.warning(f"Enhanced telemetry panel not available, using basic: {e}")
+            self.telemetry_panel = TelemetryPanel()
+            self.telemetry_panel.setFixedHeight(320)  # Increased height to show all 3 graphs including G-forces
         self.health_widget = HealthScoreWidget()
         self.health_widget.setFixedHeight(100)  # Compact fixed height
         
