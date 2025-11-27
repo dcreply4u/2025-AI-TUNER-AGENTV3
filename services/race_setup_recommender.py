@@ -217,20 +217,25 @@ class RaceSetupRecommender:
                 front_temps = [v for k, v in temps.items() if k.startswith("F")]
                 rear_temps = [v for k, v in temps.items() if k.startswith("R")]
                 
-                if front_temps and max(front_temps) - min(front_temps) > 30:
-                    insights.append(
-                        "- *Telemetry Insight*: Front tire temp spread >30°F indicates camber or pressure imbalance. "
-                        "Adjust camber to even out temps, or check for brake bias issues."
-                    )
+                if front_temps and len(front_temps) >= 2:
+                    temp_spread = max(front_temps) - min(front_temps)
+                    if temp_spread > 30:
+                        insights.append(
+                            "- *Telemetry Insight*: Front tire temp spread >30°F indicates camber or pressure imbalance. "
+                            "Adjust camber to even out temps, or check for brake bias issues."
+                        )
                 
-                if rear_temps and max(rear_temps) - min(rear_temps) > 30:
-                    insights.append(
-                        "- *Telemetry Insight*: Rear tire temp spread >30°F - check alignment and rear sway bar settings."
-                    )
+                if rear_temps and len(rear_temps) >= 2:
+                    temp_spread = max(rear_temps) - min(rear_temps)
+                    if temp_spread > 30:
+                        insights.append(
+                            "- *Telemetry Insight*: Rear tire temp spread >30°F - check alignment and rear sway bar settings."
+                        )
                 
                 # Overall temperature analysis
-                avg_temp = sum(temps.values()) / len(temps)
-                if avg_temp > 200:
+                if temps:  # Prevent division by zero
+                    avg_temp = sum(temps.values()) / len(temps)
+                    if avg_temp > 200:
                     insights.append(
                         "- *Telemetry Insight*: Average tire temps >200°F - consider reducing pressure 1-2 psi or "
                         "increasing camber 0.5° to reduce heat buildup."
@@ -244,15 +249,17 @@ class RaceSetupRecommender:
         elif "drag" in scenario:
             # Drag-specific tire temp analysis
             if len(temps) >= 2:
-                rear_avg = sum(v for k, v in temps.items() if k.startswith("R")) / len([k for k in temps if k.startswith("R")])
-                if rear_avg < 140:
-                    insights.append(
-                        "- *Telemetry Insight*: Rear tire temps <140°F - pre-heat tires more aggressively for better 60ft times."
-                    )
-                elif rear_avg > 180:
-                    insights.append(
-                        "- *Telemetry Insight*: Rear tire temps >180°F - may be overheating. Reduce burnout time or check tire pressure."
-                    )
+                rear_tires = [v for k, v in temps.items() if k.startswith("R")]
+                if rear_tires:  # Prevent division by zero
+                    rear_avg = sum(rear_tires) / len(rear_tires)
+                    if rear_avg < 140:
+                        insights.append(
+                            "- *Telemetry Insight*: Rear tire temps <140°F - pre-heat tires more aggressively for better 60ft times."
+                        )
+                    elif rear_avg > 180:
+                        insights.append(
+                            "- *Telemetry Insight*: Rear tire temps >180°F - may be overheating. Reduce burnout time or check tire pressure."
+                        )
         
         return insights
     

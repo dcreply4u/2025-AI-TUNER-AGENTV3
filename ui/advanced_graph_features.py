@@ -6,6 +6,9 @@ from __future__ import annotations
 
 import logging
 import math
+import re
+import ast
+import operator
 from collections import deque
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple, Callable, Any
@@ -57,6 +60,81 @@ class MathChannel:
     enabled: bool = True
     color: str = "#ff00ff"
     
+    def _safe_eval(self, expr: str, context: Dict[str, Any]) -> float:
+        """
+        Safely evaluate a mathematical expression.
+        
+        SECURITY: Uses AST-based evaluation to prevent code injection.
+        Only allows safe mathematical operations.
+        """
+        # Validate formula contains only safe characters
+        safe_pattern = r'^[a-zA-Z0-9_+\-*/().\s,]+$'
+        if not re.match(safe_pattern, expr):
+            raise ValueError(f"Formula contains invalid characters: {expr}")
+        
+        # Try using simpleeval if available (more flexible and safe)
+        try:
+            from simpleeval import simple_eval
+            return float(simple_eval(expr, names=context, functions=context))
+        except ImportError:
+            # Fallback to AST-based evaluation
+            try:
+                # Parse expression to AST
+                node = ast.parse(expr, mode='eval')
+                
+                # Define safe operations
+                safe_ops = {
+                    ast.Add: operator.add,
+                    ast.Sub: operator.sub,
+                    ast.Mult: operator.mul,
+                    ast.Div: operator.truediv,
+                    ast.Pow: operator.pow,
+                    ast.Mod: operator.mod,
+                    ast.USub: operator.neg,
+                    ast.UAdd: operator.pos,
+                }
+                
+                def _eval_node(node):
+                    """Recursively evaluate AST node."""
+                    if isinstance(node, ast.Num):  # Python < 3.8
+                        return node.n
+                    elif isinstance(node, ast.Constant):  # Python >= 3.8
+                        return node.value
+                    elif isinstance(node, ast.Name):
+                        if node.id in context:
+                            return context[node.id]
+                        raise NameError(f"Name '{node.id}' is not defined")
+                    elif isinstance(node, ast.BinOp):
+                        left = _eval_node(node.left)
+                        right = _eval_node(node.right)
+                        op = safe_ops.get(type(node.op))
+                        if op is None:
+                            raise ValueError(f"Unsupported operation: {type(node.op)}")
+                        return op(left, right)
+                    elif isinstance(node, ast.UnaryOp):
+                        operand = _eval_node(node.operand)
+                        op = safe_ops.get(type(node.op))
+                        if op is None:
+                            raise ValueError(f"Unsupported operation: {type(node.op)}")
+                        return op(operand)
+                    elif isinstance(node, ast.Call):
+                        func_name = node.func.id if isinstance(node.func, ast.Name) else None
+                        if func_name and func_name in context:
+                            args = [_eval_node(arg) for arg in node.args]
+                            func = context[func_name]
+                            if callable(func):
+                                return func(*args)
+                        raise ValueError(f"Unsupported function call: {func_name}")
+                    else:
+                        raise ValueError(f"Unsupported AST node type: {type(node)}")
+                
+                result = _eval_node(node.body)
+                return float(result)
+            except SyntaxError as e:
+                raise ValueError(f"Invalid formula syntax: {e}")
+            except Exception as e:
+                raise ValueError(f"Error evaluating formula: {e}")
+    
     def evaluate(self, sensor_data: Dict[str, List[float]]) -> Optional[List[float]]:
         """Evaluate formula using sensor data."""
         try:
@@ -94,9 +172,10 @@ class MathChannel:
                         context[var_name] = values[i]
                 
                 try:
-                    value = eval(self.formula, context)
+                    value = self._safe_eval(self.formula, context)
                     result.append(float(value))
-                except Exception:
+                except Exception as e:
+                    LOGGER.debug(f"Error evaluating formula at index {i}: {e}")
                     result.append(0.0)
             
             return result
@@ -218,13 +297,15 @@ class MathChannelDialog(QDialog):
             sample_data[sensor] = [10.0, 20.0, 30.0, 40.0, 50.0]
         
         try:
-            # Test evaluation
-            safe_dict = {"__builtins__": {}, "abs": abs, "min": min, "max": max, "math": math}
+            # Test evaluation with safe evaluator
+            safe_dict = {"abs": abs, "min": min, "max": max, "math": math}
             for sensor_name, values in sample_data.items():
                 var_name = sensor_name.replace(" ", "_").replace("-", "_")
                 safe_dict[var_name] = values[0]
             
-            result = eval(formula, safe_dict)
+            # Use safe evaluation (create temporary MathChannel to use its _safe_eval method)
+            temp_channel = MathChannel(name="test", formula=formula)
+            result = temp_channel._safe_eval(formula, safe_dict)
             QMessageBox.information(self, "Test Result", f"Formula evaluates to: {result}\n(Using sample data)")
         except Exception as e:
             QMessageBox.warning(self, "Formula Error", f"Formula error: {e}\n\nMake sure sensor names match available sensors.")

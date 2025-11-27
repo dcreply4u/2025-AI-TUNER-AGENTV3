@@ -256,8 +256,9 @@ class AIAdvisorWidget(QWidget):
                     icon = QIcon.fromTheme("clear")
                 if icon.isNull():
                     icon = QIcon.fromTheme("edit-delete")
-        except Exception:
-            pass
+        except (ImportError, AttributeError, OSError) as e:
+            # Icon loading failed - not critical, continue without icon
+            LOGGER.debug(f"Could not load icon: {e}")
         
         if icon and not icon.isNull():
             clear_btn.setIcon(icon)
