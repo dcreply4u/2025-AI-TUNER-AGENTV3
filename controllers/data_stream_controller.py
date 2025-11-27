@@ -621,9 +621,22 @@ class DataStreamController(QObject):
         path = Path(self.settings.replay_file).expanduser()
         if not path.exists():
             raise FileNotFoundError(f"Replay log not found: {path}")
+        
+        # Check file size to prevent memory issues with very large log files
+        file_size_mb = path.stat().st_size / (1024 * 1024)
+        if file_size_mb > 500:  # Warn if file is > 500MB
+            LOGGER.warning(f"Replay file is large ({file_size_mb:.1f}MB). Consider using a smaller log file for replay.")
+        
+        # Load replay buffer with memory-efficient approach
+        # For very large files, we could implement streaming, but for now we'll load it
+        # and warn if it's too large
         with path.open("r", newline="") as handle:
             reader = csv.DictReader(handle)
             self._replay_buffer = list(reader)
+        
+        # Log buffer size for monitoring
+        LOGGER.info(f"Loaded {len(self._replay_buffer)} samples from replay file ({file_size_mb:.1f}MB)")
+        
         self._replay_index = 0
         self.interface = None
 

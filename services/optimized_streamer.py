@@ -198,6 +198,21 @@ class OptimizedStreamer:
             self._notify(f"Stream start failed: {str(e)}", "error")
             return False
 
+    def _parse_bitrate(self, bitrate_str: str) -> int:
+        """Parse bitrate string (e.g., '2000k') to integer in kbps."""
+        try:
+            bitrate_str = str(bitrate_str).lower().strip()
+            if bitrate_str.endswith('k'):
+                return int(bitrate_str[:-1])
+            elif bitrate_str.endswith('m'):
+                return int(bitrate_str[:-1]) * 1000
+            else:
+                # Assume it's already in kbps if no suffix
+                return int(bitrate_str)
+        except (ValueError, AttributeError) as e:
+            LOGGER.warning(f"Invalid bitrate format: {bitrate_str}, using default 2000kbps. Error: {e}")
+            return 2000
+    
     def _start_optimized_ffmpeg(self, config: OptimizedStreamConfig, rtmp_url: str) -> Optional[subprocess.Popen]:
         """Start FFmpeg with optimized low-latency settings."""
         # Base command
@@ -222,7 +237,7 @@ class OptimizedStreamer:
                 "-rc", "vbr",
                 "-b:v", config.bitrate,
                 "-maxrate", config.max_bitrate,
-                "-bufsize", str(int(config.bitrate.replace("k", "")) * 2) + "k",
+                "-bufsize", str(self._parse_bitrate(config.bitrate) * 2) + "k",
                 "-gpu", "0",
             ])
         elif config.hardware_accel == HardwareAccel.VAAPI:
@@ -232,7 +247,7 @@ class OptimizedStreamer:
                 "-c:v", "h264_vaapi",
                 "-b:v", config.bitrate,
                 "-maxrate", config.max_bitrate,
-                "-bufsize", str(int(config.bitrate.replace("k", "")) * 2) + "k",
+                "-bufsize", str(self._parse_bitrate(config.bitrate) * 2) + "k",
             ])
         elif config.hardware_accel == HardwareAccel.VIDEOTOOLBOX:
             cmd.extend([
@@ -250,7 +265,7 @@ class OptimizedStreamer:
                 "-profile:v", "baseline",  # Baseline profile for compatibility
                 "-b:v", config.bitrate,
                 "-maxrate", config.max_bitrate,
-                "-bufsize", str(int(config.bitrate.replace("k", "")) * 1) + "k",  # Smaller buffer
+                "-bufsize", str(self._parse_bitrate(config.bitrate) * 1) + "k",  # Smaller buffer
                 "-g", str(config.fps),  # GOP = 1 second
                 "-keyint_min", str(config.fps),  # Keyframe every second
             ])
@@ -361,6 +376,11 @@ class OptimizedStreamer:
                 except Empty:
                     continue
 
+                # Validate frame is a numpy array
+                if not isinstance(frame, np.ndarray) or len(frame.shape) < 2:
+                    LOGGER.warning("Invalid frame format for %s", camera_name)
+                    continue
+                
                 # Resize if needed (optimized)
                 if frame.shape[:2] != (config.height, config.width):
                     frame = cv2.resize(frame, (config.width, config.height), interpolation=cv2.INTER_LINEAR)
@@ -430,28 +450,67 @@ class OptimizedStreamer:
                     self._stop_stream(name)
 
     def _stop_stream(self, camera_name: str) -> None:
-        """Stop a specific stream."""
-        if camera_name in self.active_streams:
-            process = self.active_streams[camera_name]
-            try:
-                if process.stdin:
+        """Stop a specific stream and clean up all resources."""
+        if camera_name not in self.active_streams:
+            LOGGER.warning(f"Stream {camera_name} not found in active streams")
+            return
+        
+        process = self.active_streams[camera_name]
+        try:
+            # Close stdin to signal FFmpeg to stop gracefully
+            if process.stdin:
+                try:
                     process.stdin.close()
-                process.terminate()
+                except Exception as e:
+                    LOGGER.debug(f"Error closing stdin for {camera_name}: {e}")
+            
+            # Terminate process gracefully
+            process.terminate()
+            try:
                 process.wait(timeout=3)
             except subprocess.TimeoutExpired:
-                process.kill()
-            except Exception as e:
-                LOGGER.error("Error stopping stream: %s", e)
+                # Force kill if it doesn't terminate
+                LOGGER.warning(f"Stream {camera_name} didn't terminate, forcing kill")
+                try:
+                    process.kill()
+                    process.wait(timeout=2)
+                except Exception as e:
+                    LOGGER.error(f"Error killing stream process {camera_name}: {e}")
+            
+            # Close stdout and stderr pipes
+            if process.stdout:
+                try:
+                    process.stdout.close()
+                except Exception:
+                    pass
+            if process.stderr:
+                try:
+                    process.stderr.close()
+                except Exception:
+                    pass
+                    
+        except Exception as e:
+            LOGGER.error("Error stopping stream %s: %s", camera_name, e)
+            # Force cleanup even if there was an error
+            try:
+                if process and process.poll() is None:  # Process still running
+                    process.kill()
+            except Exception:
+                pass
 
+        # Clean up references (always, even if process cleanup failed)
+        try:
             del self.active_streams[camera_name]
-            if camera_name in self.stream_configs:
-                del self.stream_configs[camera_name]
-            if camera_name in self.frame_queues:
-                del self.frame_queues[camera_name]
-            if camera_name in self.stream_threads:
-                del self.stream_threads[camera_name]
+        except KeyError:
+            pass
+        if camera_name in self.stream_configs:
+            del self.stream_configs[camera_name]
+        if camera_name in self.frame_queues:
+            del self.frame_queues[camera_name]
+        if camera_name in self.stream_threads:
+            del self.stream_threads[camera_name]
 
-            LOGGER.info("Stopped stream: %s", camera_name)
+        LOGGER.info("Stopped stream: %s", camera_name)
 
     def get_stream_stats(self, camera_name: Optional[str] = None) -> Dict:
         """Get streaming statistics."""

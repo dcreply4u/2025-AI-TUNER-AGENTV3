@@ -2461,12 +2461,43 @@ Alerts are provided at multiple danger levels:
         self.move(x, y)
 
     def closeEvent(self, event) -> None:  # noqa: N802
+        """Clean up all resources when window closes."""
+        # Stop live streams first (critical - prevents zombie FFmpeg processes)
+        if hasattr(self, "live_streamer") and self.live_streamer:
+            try:
+                self.live_streamer.stop_stream()  # Stop all streams
+                LOGGER.info("Stopped all live streams")
+            except Exception as e:
+                LOGGER.error(f"Error stopping live streams: {e}")
+        
+        # Stop data stream controller
+        if hasattr(self, "data_stream_controller") and self.data_stream_controller:
+            try:
+                self.data_stream_controller.stop()
+            except Exception as e:
+                LOGGER.error(f"Error stopping data stream controller: {e}")
+        
+        # Stop connectivity manager
         if getattr(self, "connectivity_manager", None):
-            self.connectivity_manager.stop()
+            try:
+                self.connectivity_manager.stop()
+            except Exception as e:
+                LOGGER.error(f"Error stopping connectivity manager: {e}")
+        
+        # Close voice output
         if getattr(self, "voice_output", None):
-            self.voice_output.close()
+            try:
+                self.voice_output.close()
+            except Exception as e:
+                LOGGER.error(f"Error closing voice output: {e}")
+        
+        # Stop all cameras
         if self.camera_manager:
-            self.camera_manager.stop_all()
+            try:
+                self.camera_manager.stop_all()
+            except Exception as e:
+                LOGGER.error(f"Error stopping cameras: {e}")
+        
         super().closeEvent(event)
 
 

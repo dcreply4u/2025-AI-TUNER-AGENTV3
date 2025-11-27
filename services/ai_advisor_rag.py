@@ -329,7 +329,13 @@ class RAGAIAdvisor:
             models = ollama.list()
             
             # Check if our model is available
-            model_names = [m['name'] for m in models.get('models', [])]
+            # Safely extract model names with error handling
+            model_list = models.get('models', []) if isinstance(models, dict) else []
+            model_names = []
+            for m in model_list:
+                if isinstance(m, dict) and 'name' in m:
+                    model_names.append(m['name'])
+            
             if self.llm_model not in model_names:
                 LOGGER.warning(f"Model {self.llm_model} not found. Available: {model_names}")
                 LOGGER.info(f"To install: ollama pull {self.llm_model}")

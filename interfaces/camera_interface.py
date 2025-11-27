@@ -711,13 +711,21 @@ class CameraInterface:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 old_stderr = sys.stderr
+                devnull_fd = None
                 try:
-                    sys.stderr = open(os.devnull, 'w')
+                    devnull_fd = open(os.devnull, 'w')
+                    sys.stderr = devnull_fd
                     self.cap = self._open_camera()
-                    sys.stderr = old_stderr
                 except Exception:
-                    sys.stderr = old_stderr
                     self.cap = None
+                finally:
+                    # Always restore stderr, even if exceptions occur
+                    sys.stderr = old_stderr
+                    if devnull_fd:
+                        try:
+                            devnull_fd.close()
+                        except Exception:
+                            pass
                     
             if self.cap is None or not self.cap.isOpened():
                 LOGGER.warning("Camera not available: %s (type: %s, source: %s) - this is normal if no camera connected", 
