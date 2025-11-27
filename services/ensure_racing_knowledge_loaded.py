@@ -67,11 +67,11 @@ def check_knowledge_coverage(vector_store, test_questions: list[str]) -> dict:
     
     for question in test_questions:
         try:
-            matches = vector_store.search(question, top_k=3, min_score=0.3)
+            matches = vector_store.search(question, n_results=3, min_similarity=0.3)
             results[question] = {
                 "found": len(matches) > 0,
                 "matches": len(matches),
-                "top_score": matches[0]["score"] if matches else 0.0,
+                "top_score": matches[0]["similarity"] if matches else 0.0,
                 "top_content": matches[0]["text"][:200] if matches else "No matches"
             }
         except Exception as e:

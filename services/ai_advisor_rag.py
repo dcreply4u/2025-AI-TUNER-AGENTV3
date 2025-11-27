@@ -532,29 +532,13 @@ class RAGAIAdvisor:
         else:
             answer = self._generate_template_response(question, retrieved_knowledge, web_search_results)
         
-        # Step 6: Validate answer (if reasoning engine available)
-        if self.reasoning_engine:
-            try:
-                validation = self.reasoning_engine.validate_answer(
-                    answer,
-                    question,
-                    sources
-                )
-                if validation.get("warnings"):
-                    warnings.extend(validation.get("warnings", []))
-                if validation.get("missing_info") and not answer.endswith("?"):
-                    answer += "\n\n(Note: This answer may benefit from additional context)"
-                LOGGER.debug(f"Answer validation: {validation}")
-            except Exception as e:
-                LOGGER.debug(f"Answer validation failed: {e}")
-        
-        # Step 7: Post-process response
+        # Step 6: Post-process response
         answer = self._post_process_response(answer, question)
         
-        # Step 6: Calculate confidence
+        # Step 7: Calculate confidence
         confidence = self._calculate_confidence(retrieved_knowledge, use_web_search, self.llm_available)
         
-        # Step 7: Extract sources
+        # Step 8: Extract sources
         sources = []
         for item in retrieved_knowledge[:3]:
             sources.append({
@@ -571,11 +555,27 @@ class RAGAIAdvisor:
                     "title": result.get("title", "")
                 })
         
-        # Step 8: Generate follow-up questions
+        # Step 9: Generate follow-up questions
         follow_ups = self._generate_follow_ups(question, retrieved_knowledge)
         
-        # Step 9: Check for warnings
+        # Step 10: Check for warnings
         warnings = self._check_warnings(question, telemetry)
+        
+        # Step 11: Validate answer (if reasoning engine available) - after sources are extracted
+        if self.reasoning_engine:
+            try:
+                validation = self.reasoning_engine.validate_answer(
+                    answer,
+                    question,
+                    sources
+                )
+                if validation.get("warnings"):
+                    warnings.extend(validation.get("warnings", []))
+                if validation.get("missing_info") and not answer.endswith("?"):
+                    answer += "\n\n(Note: This answer may benefit from additional context)"
+                LOGGER.debug(f"Answer validation: {validation}")
+            except Exception as e:
+                LOGGER.debug(f"Answer validation failed: {e}")
         
         # Store in history
         self.conversation_history.append(ChatMessage(
