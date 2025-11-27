@@ -112,6 +112,23 @@ except ImportError:  # pragma: no cover
     CellularModem = None  # type: ignore
     CellularModemDetector = None  # type: ignore
 
+try:
+    from .nucleo_interface import (
+        NucleoInterface,
+        NucleoConnectionType,
+        NucleoSensorType,
+        NucleoSensorConfig,
+        NucleoSensorReading,
+        NucleoStatus,
+    )
+except ImportError:  # pragma: no cover
+    NucleoInterface = None  # type: ignore
+    NucleoConnectionType = None  # type: ignore
+    NucleoSensorType = None  # type: ignore
+    NucleoSensorConfig = None  # type: ignore
+    NucleoSensorReading = None  # type: ignore
+    NucleoStatus = None  # type: ignore
+
 __all__ = [
     "EMSDataInterface",
     "CameraConfig",
@@ -157,6 +174,17 @@ if UnifiedAdapterManager is not None:
     __all__.extend(["UnifiedAdapterManager", "AdapterHealthMonitor", "get_unified_adapter_manager"])
 if CellularModem is not None:
     __all__.extend(["CellularModem", "CellularModemDetector"])
+
+# Add NUCLEO interface if available
+if NucleoInterface is not None:
+    __all__.extend([
+        "NucleoInterface",
+        "NucleoConnectionType",
+        "NucleoSensorType",
+        "NucleoSensorConfig",
+        "NucleoSensorReading",
+        "NucleoStatus",
+    ])
 
 # Add dual antenna GPS if available
 if DualAntennaGPS is not None:
