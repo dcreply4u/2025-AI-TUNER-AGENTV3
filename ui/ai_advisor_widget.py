@@ -132,6 +132,17 @@ class AIAdvisorWidget(QWidget):
                         logging.getLogger(__name__).info("Vector store is empty, migrating knowledge...")
                         migrate_from_enhanced_advisor(vector_store)
                     
+                    # CRITICAL: Ensure racing/tuning knowledge is loaded
+                    try:
+                        from services.ensure_racing_knowledge_loaded import ensure_racing_knowledge_loaded
+                        added = ensure_racing_knowledge_loaded(vector_store)
+                        if added > 0:
+                            import logging
+                            logging.getLogger(__name__).info(f"Loaded {added} racing/tuning knowledge entries into advisor")
+                    except Exception as e:
+                        import logging
+                        logging.getLogger(__name__).warning(f"Could not load racing knowledge: {e}", exc_info=True)
+                    
                     # Initialize RAG advisor
                     self.advisor = RAGAIAdvisor(
                         use_local_llm=True,  # Use Ollama if available

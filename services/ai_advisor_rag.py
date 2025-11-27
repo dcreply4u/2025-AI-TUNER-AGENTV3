@@ -859,23 +859,95 @@ Now provide your answer. Be thorough, technical, and helpful. If you're uncertai
         retrieved_knowledge: List[Dict[str, Any]],
         web_search_results: Optional[List[Dict[str, Any]]]
     ) -> str:
-        """Generate template-based response (fallback when no LLM)."""
+        """Generate intelligent template-based response (fallback when no LLM)."""
+        # Build comprehensive answer from multiple knowledge sources
+        answer_parts = []
+        
         if retrieved_knowledge:
-            # Use best matching knowledge
+            # Use best matching knowledge as primary answer
             best_match = retrieved_knowledge[0]
-            answer = f"Based on the information I have:\n\n{best_match['text'][:500]}"
+            similarity = best_match.get('similarity', 0)
+            text = best_match.get('text', '')
+            metadata = best_match.get('metadata', {})
+            topic = metadata.get('topic', 'General')
             
-            if best_match.get('metadata', {}).get('topic'):
-                answer += f"\n\n(Topic: {best_match['metadata']['topic']})"
+            # Extract the most relevant portion of the text
+            # For "what is" questions, look for definition/overview
+            question_lower = question.lower()
+            if "what is" in question_lower or "what's" in question_lower:
+                # For "what is" questions, provide comprehensive answer
+                # Find the main definition section
+                lines = text.split('\n')
+                definition_section = []
+                in_definition = False
+                
+                # Look for definition markers
+                for i, line in enumerate(lines):
+                    line_lower = line.lower()
+                    # Start capturing at definition markers
+                    if any(marker in line_lower for marker in ['what is', "what's", 'definition', 'overview', 'introduction']):
+                        in_definition = True
+                    
+                    if in_definition:
+                        if line.strip():
+                            definition_section.append(line.strip())
+                        # Stop at next major section (all caps headers)
+                        if i > 0 and line.isupper() and len(line) > 10:
+                            break
+                        # Or stop after reasonable length
+                        if len('\n'.join(definition_section)) > 800:
+                            break
+                
+                if definition_section:
+                    answer_parts.append('\n'.join(definition_section))
+                else:
+                    # Use first few paragraphs
+                    paras = text.split('\n\n')
+                    answer_parts.append('\n\n'.join(paras[:3])[:800])
+            else:
+                # For other questions, use the most relevant section
+                # Take more text for comprehensive answers
+                excerpt = text[:1200]  # More text for better answers
+                # Try to end at paragraph boundary
+                last_para = excerpt.rfind('\n\n')
+                if last_para > 400:  # Only truncate if we have enough content
+                    excerpt = excerpt[:last_para]
+                # Or end at sentence boundary
+                else:
+                    last_period = excerpt.rfind('.')
+                    if last_period > 400:
+                        excerpt = excerpt[:last_period + 1]
+                answer_parts.append(excerpt.strip())
             
-            return answer
+            # Add topic context if available
+            if topic and topic != 'General':
+                answer_parts.append(f"\n\n[Topic: {topic}]")
+            
+            # Add additional relevant knowledge if available
+            if len(retrieved_knowledge) > 1 and similarity > 0.4:
+                # Include second best match if it's also highly relevant
+                second_match = retrieved_knowledge[1]
+                if second_match.get('similarity', 0) > 0.4:
+                    second_text = second_match.get('text', '')[:200]
+                    if second_text and second_text not in text[:200]:
+                        answer_parts.append(f"\n\nAdditional information:\n{second_text}")
         
-        if web_search_results:
+        # Add web search results if no good knowledge found
+        if not answer_parts and web_search_results:
             result = web_search_results[0]
-            answer = f"I found this information:\n\n{result.get('title', '')}\n{result.get('snippet', '')[:400]}"
-            return answer
+            title = result.get('title', '')
+            snippet = result.get('snippet', '')
+            answer_parts.append(f"I found this information:\n\n{title}\n{snippet[:400]}")
         
-        return "I don't have specific information about that. Could you rephrase your question or provide more context?"
+        # If we have an answer, format it nicely
+        if answer_parts:
+            answer = "\n".join(answer_parts)
+            # Clean up formatting
+            answer = answer.replace('\n\n\n', '\n\n')
+            return answer.strip()
+        
+        # No information found
+        return "I don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization."
     
     def _post_process_response(self, answer: str, question: str) -> str:
         """Post-process response for better formatting."""

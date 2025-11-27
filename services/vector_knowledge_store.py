@@ -361,8 +361,9 @@ class VectorKnowledgeStore:
                     similarities.append(0.0)
         elif SKLEARN_AVAILABLE and self.tfidf_vectorizer:
             # Use TF-IDF
-            if not self.tfidf_matrix is None:
-                # Fit on all documents
+            if self.tfidf_matrix is None or len(self.documents) != (self.tfidf_matrix.shape[0] if self.tfidf_matrix is not None else 0):
+                # Fit on all documents (first time or if documents changed)
+                LOGGER.debug(f"Fitting TF-IDF vectorizer with {len(self.documents)} documents")
                 self.tfidf_matrix = self.tfidf_vectorizer.fit_transform(self.documents)
             
             query_vector = self.tfidf_vectorizer.transform([query])
