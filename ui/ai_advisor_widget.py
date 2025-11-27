@@ -7,8 +7,8 @@ from __future__ import annotations
 
 from typing import Optional, Dict, Any, List
 
-from PySide6.QtCore import Qt, QTimer, Signal, QUrl
-from PySide6.QtGui import QFont, QTextCharFormat, QColor, QAction, QKeySequence, QPixmap, QImage
+from PySide6.QtCore import Qt, QTimer, Signal, QUrl, QSize
+from PySide6.QtGui import QFont, QTextCharFormat, QColor, QAction, QKeySequence, QPixmap, QImage, QIcon
 from PySide6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -227,10 +227,22 @@ class AIAdvisorWidget(QWidget):
         
         header_layout.addStretch()
         
-        # Minimal clear button (icon-style)
+        # Clear button with icon
         clear_btn = QPushButton("×")
         clear_btn.setToolTip("Clear chat")
-        clear_btn.setFixedSize(20, 20)
+        clear_btn.setFixedSize(24, 24)
+        # Try to use icon if available
+        try:
+            icon = QIcon.fromTheme("edit-clear")
+            if icon.isNull():
+                icon = QIcon.fromTheme("clear")
+            if not icon.isNull():
+                clear_btn.setIcon(icon)
+                clear_btn.setText("")  # Remove text if icon works
+                clear_btn.setIconSize(QSize(16, 16))
+        except Exception:
+            # Keep text fallback if icon fails
+            pass
         clear_btn.setStyleSheet("""
             QPushButton {
                 background-color: transparent;
@@ -238,11 +250,15 @@ class AIAdvisorWidget(QWidget):
                 font-size: 16px;
                 font-weight: bold;
                 border: none;
-                border-radius: 3px;
+                border-radius: 4px;
+                padding: 2px;
             }
             QPushButton:hover {
                 background-color: #f0f0f0;
                 color: #333;
+            }
+            QPushButton:pressed {
+                background-color: #e0e0e0;
             }
         """)
         clear_btn.clicked.connect(self._clear_chat)
@@ -250,40 +266,42 @@ class AIAdvisorWidget(QWidget):
         
         main_layout.addLayout(header_layout)
         
-        # Chat display - Cursor style: fixed size, clean background
+        # Chat display - Cursor style: fixed size, clean background with better styling
         self.chat_display = QTextEdit()
         self.chat_display.setReadOnly(True)
         self.chat_display.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.chat_display.customContextMenuRequested.connect(self._show_context_menu)
         
-        # Fixed size like Cursor - not expandable
-        self.chat_display.setFixedHeight(280)  # Fixed height like Cursor
+        # Fixed height but expandable width
+        self.chat_display.setFixedHeight(300)  # Slightly taller for better visibility
         self.chat_display.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         
         self.chat_display.setStyleSheet("""
             QTextEdit {
-                background-color: #ffffff;
+                background-color: #fafafa;
                 color: #1a1a1a;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
                 font-size: 13px;
                 border: 1px solid #e0e0e0;
-                border-radius: 4px;
-                padding: 8px;
+                border-radius: 8px;
+                padding: 12px;
+                line-height: 1.5;
             }
             QScrollBar:vertical {
-                background-color: transparent;
-                width: 10px;
+                background-color: #f5f5f5;
+                width: 12px;
                 border: none;
-                margin: 0px;
-            }
-            QScrollBar::handle:vertical {
-                background-color: #d0d0d0;
-                border-radius: 5px;
-                min-height: 30px;
+                border-radius: 6px;
                 margin: 2px;
             }
+            QScrollBar::handle:vertical {
+                background-color: #c0c0c0;
+                border-radius: 6px;
+                min-height: 30px;
+                margin: 1px;
+            }
             QScrollBar::handle:vertical:hover {
-                background-color: #b0b0b0;
+                background-color: #a0a0a0;
             }
             QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
                 height: 0px;
@@ -325,38 +343,57 @@ class AIAdvisorWidget(QWidget):
         input_layout.setContentsMargins(0, 0, 0, 0)
         
         self.input_field = QLineEdit()
-        self.input_field.setPlaceholderText("Ask Q anything...")
+        self.input_field.setPlaceholderText("Ask Q anything about tuning, racing, or the software...")
         self.input_field.setStyleSheet("""
             QLineEdit {
                 background-color: #ffffff;
                 color: #1a1a1a;
-                border: 1px solid #e0e0e0;
-                border-radius: 6px;
-                padding: 8px 12px;
+                border: 1px solid #d0d0d0;
+                border-radius: 8px;
+                padding: 10px 14px;
                 font-size: 13px;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
             }
             QLineEdit:focus {
-                border: 1px solid #007acc;
+                border: 2px solid #007acc;
                 outline: none;
+                background-color: #fafafa;
+            }
+            QLineEdit:hover {
+                border: 1px solid #b0b0b0;
             }
         """)
         self.input_field.returnPressed.connect(self._send_message)
         self.input_field.textChanged.connect(self._on_input_changed)
         input_layout.addWidget(self.input_field, stretch=1)
         
-        # Send button - Cursor style: minimal, icon or text
+        # Send button with icon
         send_btn = QPushButton("→")
-        send_btn.setToolTip("Send message")
-        send_btn.setFixedWidth(36)
+        send_btn.setToolTip("Send message (Enter)")
+        send_btn.setFixedSize(40, 40)
+        # Try to use icon if available
+        try:
+            icon = QIcon.fromTheme("mail-send")
+            if icon.isNull():
+                icon = QIcon.fromTheme("document-send")
+            if not icon.isNull():
+                send_btn.setIcon(icon)
+                send_btn.setText("")  # Remove text if icon works
+                send_btn.setIconSize(QSize(20, 20))
+        except Exception:
+            # Keep text fallback if icon fails
+            pass
+        
+        # Set stylesheet
         send_btn.setStyleSheet("""
             QPushButton {
                 background-color: #007acc;
                 color: white;
                 padding: 8px;
-                font-size: 16px;
+                font-size: 18px;
                 font-weight: bold;
                 border: none;
-                border-radius: 6px;
+                border-radius: 8px;
             }
             QPushButton:hover {
                 background-color: #005a9e;
@@ -376,8 +413,8 @@ class AIAdvisorWidget(QWidget):
         self.status_label.setFixedHeight(16)
         main_layout.addWidget(self.status_label)
         
-        # Set fixed overall size to prevent resizing
-        self.setFixedWidth(400)  # Fixed width like Cursor
+        # Allow horizontal expansion to match other panels
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         self.setMinimumHeight(350)
         self.setMaximumHeight(400)
     
@@ -633,23 +670,24 @@ class AIAdvisorWidget(QWidget):
         scrollbar.setValue(scrollbar.maximum())
     
     def _format_message(self, sender: str, message: str, is_user: bool = False) -> str:
-        """Format message in Cursor style - message bubbles."""
+        """Format message in Cursor style - message bubbles with better styling."""
+        escaped_message = self._escape_html(message)
         if is_user:
-            # User message - right aligned, blue background
+            # User message - right aligned, blue background bubble
             return f"""
-            <div style="margin: 8px 0px; text-align: right;">
-                <div style="display: inline-block; max-width: 80%; background-color: #007acc; color: white; padding: 8px 12px; border-radius: 12px 12px 4px 12px; text-align: left; word-wrap: break-word;">
-                    <span style="white-space: pre-wrap;">{self._escape_html(message)}</span>
+            <div style="margin: 10px 0px; text-align: right; padding-right: 8px;">
+                <div style="display: inline-block; max-width: 75%; background-color: #007acc; color: white; padding: 10px 14px; border-radius: 18px 18px 4px 18px; text-align: left; word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                    <span style="white-space: pre-wrap; font-size: 13px; line-height: 1.4;">{escaped_message}</span>
                 </div>
             </div>
             """
         else:
-            # AI message - left aligned, gray background
+            # AI message - left aligned, light gray background bubble with sender label
             return f"""
-            <div style="margin: 8px 0px;">
-                <div style="font-weight: 600; color: #1a1a1a; margin-bottom: 4px; font-size: 12px;">{sender}</div>
-                <div style="display: inline-block; max-width: 85%; background-color: #f0f0f0; color: #1a1a1a; padding: 8px 12px; border-radius: 12px 12px 12px 4px; word-wrap: break-word;">
-                    <span style="white-space: pre-wrap;">{self._escape_html(message)}</span>
+            <div style="margin: 10px 0px; padding-left: 8px;">
+                <div style="font-weight: 600; color: #666; margin-bottom: 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">{sender}</div>
+                <div style="display: inline-block; max-width: 80%; background-color: #f5f5f5; color: #1a1a1a; padding: 10px 14px; border-radius: 18px 18px 18px 4px; word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border: 1px solid #e8e8e8;">
+                    <span style="white-space: pre-wrap; font-size: 13px; line-height: 1.5;">{escaped_message}</span>
                 </div>
             </div>
             """

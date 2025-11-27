@@ -6,12 +6,15 @@ AI Tuner Desktop – main shell and responsive layout host
 =========================================================
 """
 
+import logging
 import platform
 import sys
 
 # Platform detection for OS-specific sizing
 IS_WINDOWS = platform.system().lower().startswith("win")
 from pathlib import Path
+
+LOGGER = logging.getLogger(__name__)
 
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QScreen
@@ -271,6 +274,7 @@ class MainWindow(QWidget):
         # Left column: telemetry, health, AI insights, advice, performance
         # ------------------------------------------------------------------
         self.telemetry_panel = TelemetryPanel()
+        self.telemetry_panel.setFixedHeight(320)  # Increased height to show all 3 graphs including G-forces
         self.health_widget = HealthScoreWidget()
         self.health_widget.setFixedHeight(100)  # Compact fixed height
         
@@ -394,17 +398,37 @@ class MainWindow(QWidget):
         except Exception as exc:  # pragma: no cover - hardware/OS dependent
             print(f"[WARN] USB manager unavailable: {exc}")
 
+        # HDD Manager for hard drive storage and sync
+        self.hdd_manager = None
+        try:
+            from services.hdd_manager import HDDManager
+            self.hdd_manager = HDDManager()
+            if self.hdd_manager.is_mounted():
+                LOGGER.info("Hard drive detected: %s", self.hdd_manager.mount_point)
+            else:
+                LOGGER.debug("Hard drive not mounted (running from USB/local)")
+        except Exception as e:
+            LOGGER.debug("HDD Manager not available: %s", e)
+
         # ------------------------------------------------------------------
         # Shared service instances
         # ------------------------------------------------------------------
         self.fault_predictor = PredictiveFaultDetector()
         self.tuning_advisor = TuningAdvisor()
 
-        log_path = (
-            self.usb_manager.get_logs_path("telemetry")
-            if self.usb_manager
-            else Path("logs/telemetry")
-        )
+        # Determine log path (priority: HDD > USB > Local)
+        log_path = Path("logs/telemetry")  # Default fallback
+        if self.hdd_manager and self.hdd_manager.is_mounted():
+            hdd_logs = self.hdd_manager.get_logs_path("telemetry")
+            if hdd_logs:
+                log_path = hdd_logs
+                LOGGER.info("Using HDD for logs: %s", log_path)
+        elif self.usb_manager:
+            usb_logs = self.usb_manager.get_logs_path("telemetry")
+            if usb_logs:
+                log_path = usb_logs
+                LOGGER.info("Using USB for logs: %s", log_path)
+        
         self.data_logger = DataLogger(log_dir=log_path)
 
         self.cloud_sync = CloudSync()
@@ -554,8 +578,8 @@ class MainWindow(QWidget):
         # Column composition
         # ------------------------------------------------------------------
         # Left: primary telemetry stack - use stretch=0 for fixed-size widgets
-        left_column.setSpacing(0)  # No spacing for very tight layout
-        left_column.addWidget(self.telemetry_panel, 0)  # Telemetry graphs - fixed height
+        left_column.setSpacing(4)  # Small spacing to prevent overlap
+        left_column.addWidget(self.telemetry_panel, 0)  # Telemetry graphs - fixed height (280px)
         left_column.addWidget(self.drag_mode_panel, 0)  # Dodge Charger Drag Mode
         left_column.addWidget(self.health_widget, 0)  # Engine Health
         # No spacing before AI Advisor - extremely tight

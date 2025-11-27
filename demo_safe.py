@@ -98,6 +98,30 @@ try:
                 print(f"[WARN] Demo controller failed: {e}")
                 traceback.print_exc()
             
+            # Start data stream to enable telemetry graphs
+            try:
+                status_label.setText("Starting data stream...")
+                app.processEvents()
+                print("[DEBUG] Setting stream settings...")
+                # Set source to simulated for demo mode
+                main_window.stream_settings["source"] = "simulated"
+                main_window.stream_settings["mode"] = "live"
+                print(f"[DEBUG] Stream settings: source={main_window.stream_settings['source']}, mode={main_window.stream_settings['mode']}")
+                # Start the data stream to feed telemetry panel
+                print("[DEBUG] Calling start_session()...")
+                main_window.start_session()
+                print("[OK] Data stream started with simulated data - telemetry graphs should be active")
+                # Verify data stream controller was created
+                if hasattr(main_window, 'data_stream_controller'):
+                    print(f"[DEBUG] Data stream controller exists: {main_window.data_stream_controller}")
+                    if main_window.data_stream_controller:
+                        print(f"[DEBUG] Timer active: {main_window.data_stream_controller.timer.isActive()}")
+                else:
+                    print("[WARN] Data stream controller not found on main_window")
+            except Exception as e:
+                print(f"[ERROR] Failed to start data stream: {e}")
+                traceback.print_exc()
+            
         except Exception as e:
             print(f"[ERROR] Failed to load MainWindow: {e}")
             traceback.print_exc()

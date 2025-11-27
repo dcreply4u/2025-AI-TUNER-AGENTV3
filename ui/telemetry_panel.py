@@ -58,8 +58,10 @@ class TelemetryPanel(QWidget):
         )
         
         # Allow panel to expand for 3 stacked graphs
-        self.setMinimumHeight(240)  # 3 graphs x 60px + header + spacing
-        self.setMaximumHeight(260)  # Cap max height
+        # 3 graphs x 90px = 270px + header (~30px) + spacing (~20px) = ~320px
+        self.setMinimumHeight(320)  # Increased to accommodate taller graphs
+        self.setMaximumHeight(350)  # Cap max height
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)  # Ensure it takes space
         
         header = QLabel("Live Telemetry Overview", alignment=Qt.AlignLeft)
         header_font_size = scaled_font_size(18)
@@ -83,7 +85,7 @@ class TelemetryPanel(QWidget):
             pg.setConfigOptions(antialias=True, background="#ffffff", foreground="#2c3e50")
             
             # 3 graphs stacked VERTICALLY - full width like Drag Mode
-            GRAPH_HEIGHT = 60  # Fixed height per graph (very compact)
+            GRAPH_HEIGHT = 90  # Increased height per graph for better visibility
 
             # Powertrain graph (Row 1)
             self.plots["primary"] = pg.PlotWidget(title="Powertrain")
@@ -109,7 +111,7 @@ class TelemetryPanel(QWidget):
                 get_responsive_manager().configure_graph_responsive(self.plots["secondary"])
             layout.addWidget(self.plots["secondary"])
 
-            # G-Forces graph (Row 3)
+            # G-Forces graph (Row 3) - Make sure it's visible
             self.plots["gforce"] = pg.PlotWidget(title="G-Forces")
             self.plots["gforce"].setBackground("w")
             self.plots["gforce"].setFixedHeight(GRAPH_HEIGHT)
@@ -228,10 +230,21 @@ class TelemetryPanel(QWidget):
                 "OilPressure": "Oil_Pressure",
                 "BrakePressure": "Brake_Pressure",
                 "BatteryVoltage": "Battery_Voltage",
+                "GForce_Lateral": ("GForce_Lateral", "LatG", "GForce_X", "Lateral_G"),
+                "GForce_Longitudinal": ("GForce_Longitudinal", "LongG", "GForce_Y", "Longitudinal_G"),
             }
             lookup_key = key
-            if lookup_key in aliases and aliases[lookup_key] in data:
-                lookup_key = aliases[lookup_key]
+            # Handle tuple aliases (for G-forces)
+            if lookup_key in aliases:
+                alias_list = aliases[lookup_key]
+                if isinstance(alias_list, tuple):
+                    # Try each alias in order
+                    for alias in alias_list:
+                        if alias in data:
+                            lookup_key = alias
+                            break
+                elif alias_list in data:
+                    lookup_key = alias_list
 
             value = float(data.get(key, data.get(lookup_key, 0.0)))
             if key not in self.data:
