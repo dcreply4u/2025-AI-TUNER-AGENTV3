@@ -1,19 +1,19 @@
 {
-  "generated": "2025-11-27T19:39:33.783896",
+  "generated": "2025-11-28T11:51:47.660076",
   "summary": {
-    "total_modules": 12,
-    "passed_modules": 6,
-    "total_tests": 112,
-    "passed_tests": 101,
-    "failed_tests": 9,
-    "skipped_tests": 2,
-    "total_time_seconds": 25.142295360565186
+    "total_modules": 20,
+    "passed_modules": 13,
+    "total_tests": 168,
+    "passed_tests": 134,
+    "failed_tests": 27,
+    "skipped_tests": 7,
+    "total_time_seconds": 86.55373334884644
   },
   "modules": {
     "File Operations": {
       "module": "tests/test_file_operations.py",
       "success": true,
-      "elapsed": 0.7329611778259277,
+      "elapsed": 0.6226003170013428,
       "tests_run": 9,
       "tests_passed": 8,
       "tests_failed": 0,
@@ -23,7 +23,7 @@
     "Graphing & Visualization": {
       "module": "tests/test_graphing.py",
       "success": true,
-      "elapsed": 1.6032185554504395,
+      "elapsed": 0.7286293506622314,
       "tests_run": 12,
       "tests_passed": 12,
       "tests_failed": 0,
@@ -32,48 +32,58 @@
     },
     "Data Reading": {
       "module": "tests/test_data_reading.py",
-      "success": false,
-      "elapsed": 7.709368705749512,
+      "success": true,
+      "elapsed": 2.8418807983398438,
       "tests_run": 13,
-      "tests_passed": 11,
-      "tests_failed": 2,
+      "tests_passed": 13,
+      "tests_failed": 0,
       "tests_skipped": 0,
       "errors": []
     },
     "AI Advisor": {
       "module": "tests/test_ai_advisor.py",
-      "success": false,
-      "elapsed": 4.076398134231567,
+      "success": true,
+      "elapsed": 2.8360044956207275,
       "tests_run": 7,
-      "tests_passed": 5,
-      "tests_failed": 2,
+      "tests_passed": 7,
+      "tests_failed": 0,
       "tests_skipped": 0,
+      "errors": []
+    },
+    "AI Advisor Advanced": {
+      "module": "tests/test_ai_advisor_advanced.py",
+      "success": false,
+      "elapsed": 4.577353477478027,
+      "tests_run": 24,
+      "tests_passed": 5,
+      "tests_failed": 17,
+      "tests_skipped": 2,
       "errors": []
     },
     "Telemetry Processing": {
       "module": "tests/test_telemetry_processing.py",
-      "success": false,
-      "elapsed": 0.7987816333770752,
+      "success": true,
+      "elapsed": 0.7260067462921143,
       "tests_run": 8,
-      "tests_passed": 6,
-      "tests_failed": 2,
+      "tests_passed": 8,
+      "tests_failed": 0,
       "tests_skipped": 0,
       "errors": []
     },
     "Integration": {
       "module": "tests/test_integration.py",
-      "success": false,
-      "elapsed": 4.148384094238281,
+      "success": true,
+      "elapsed": 3.5552477836608887,
       "tests_run": 7,
-      "tests_passed": 6,
-      "tests_failed": 1,
+      "tests_passed": 7,
+      "tests_failed": 0,
       "tests_skipped": 0,
       "errors": []
     },
     "Configuration": {
       "module": "tests/test_configuration.py",
       "success": true,
-      "elapsed": 0.5654683113098145,
+      "elapsed": 0.5617351531982422,
       "tests_run": 7,
       "tests_passed": 7,
       "tests_failed": 0,
@@ -83,7 +93,7 @@
     "UI Components": {
       "module": "tests/test_ui_components.py",
       "success": true,
-      "elapsed": 0.7433187961578369,
+      "elapsed": 0.6790626049041748,
       "tests_run": 8,
       "tests_passed": 8,
       "tests_failed": 0,
@@ -93,7 +103,7 @@
     "Error Handling": {
       "module": "tests/test_error_handling.py",
       "success": true,
-      "elapsed": 0.540571928024292,
+      "elapsed": 0.6066632270812988,
       "tests_run": 11,
       "tests_passed": 11,
       "tests_failed": 0,
@@ -103,7 +113,7 @@
     "Performance": {
       "module": "tests/test_performance.py",
       "success": true,
-      "elapsed": 0.645395040512085,
+      "elapsed": 0.6433024406433105,
       "tests_run": 5,
       "tests_passed": 5,
       "tests_failed": 0,
@@ -112,66 +122,143 @@
     },
     "CAN Bus": {
       "module": "tests/test_can_bus.py",
-      "success": false,
-      "elapsed": 2.5112290382385254,
+      "success": true,
+      "elapsed": 2.509284257888794,
       "tests_run": 11,
       "tests_passed": 9,
-      "tests_failed": 1,
-      "tests_skipped": 1,
+      "tests_failed": 0,
+      "tests_skipped": 2,
       "errors": []
     },
     "Comprehensive QA": {
       "module": "tests/test_comprehensive_qa.py",
-      "success": false,
-      "elapsed": 1.0645551681518555,
+      "success": true,
+      "elapsed": 0.7651948928833008,
       "tests_run": 14,
-      "tests_passed": 13,
+      "tests_passed": 14,
+      "tests_failed": 0,
+      "tests_skipped": 0,
+      "errors": []
+    },
+    "Virtual Dyno": {
+      "module": "tests/test_virtual_dyno.py",
+      "success": false,
+      "elapsed": 3.0750198364257812,
+      "tests_run": 5,
+      "tests_passed": 2,
+      "tests_failed": 3,
+      "tests_skipped": 0,
+      "errors": []
+    },
+    "Video Recording": {
+      "module": "tests/test_video_recording.py",
+      "success": false,
+      "elapsed": 3.7589683532714844,
+      "tests_run": 5,
+      "tests_passed": 4,
       "tests_failed": 1,
       "tests_skipped": 0,
+      "errors": []
+    },
+    "GPS & Lap Timing": {
+      "module": "tests/test_gps_lap_timing.py",
+      "success": false,
+      "elapsed": 2.827702522277832,
+      "tests_run": 6,
+      "tests_passed": 4,
+      "tests_failed": 2,
+      "tests_skipped": 0,
+      "errors": []
+    },
+    "Voice Control": {
+      "module": "tests/test_voice_control.py",
+      "success": false,
+      "elapsed": 2.8470144271850586,
+      "tests_run": 5,
+      "tests_passed": 3,
+      "tests_failed": 1,
+      "tests_skipped": 1,
+      "errors": []
+    },
+    "AI Racing Coach": {
+      "module": "tests/test_ai_racing_coach.py",
+      "success": false,
+      "elapsed": 2.841425895690918,
+      "tests_run": 3,
+      "tests_passed": 2,
+      "tests_failed": 1,
+      "tests_skipped": 0,
+      "errors": []
+    },
+    "Auto-Tuning Engine": {
+      "module": "tests/test_auto_tuning.py",
+      "success": false,
+      "elapsed": 3.1166484355926514,
+      "tests_run": 3,
+      "tests_passed": 1,
+      "tests_failed": 2,
+      "tests_skipped": 0,
+      "errors": []
+    },
+    "Enhanced Graphing": {
+      "module": "tests/test_enhanced_graphing.py",
+      "success": true,
+      "elapsed": 3.1955714225769043,
+      "tests_run": 5,
+      "tests_passed": 4,
+      "tests_failed": 0,
+      "tests_skipped": 1,
       "errors": []
     }
   },
   "issues": [
     {
-      "category": "Data Reading",
+      "category": "AI Advisor Advanced",
       "severity": "high",
-      "description": "2 test(s) failed in Data Reading",
-      "module": "tests/test_data_reading.py",
+      "description": "17 test(s) failed in AI Advisor Advanced",
+      "module": "tests/test_ai_advisor_advanced.py",
       "errors": []
     },
     {
-      "category": "AI Advisor",
+      "category": "Virtual Dyno",
       "severity": "high",
-      "description": "2 test(s) failed in AI Advisor",
-      "module": "tests/test_ai_advisor.py",
+      "description": "3 test(s) failed in Virtual Dyno",
+      "module": "tests/test_virtual_dyno.py",
       "errors": []
     },
     {
-      "category": "Telemetry Processing",
+      "category": "Video Recording",
       "severity": "high",
-      "description": "2 test(s) failed in Telemetry Processing",
-      "module": "tests/test_telemetry_processing.py",
+      "description": "1 test(s) failed in Video Recording",
+      "module": "tests/test_video_recording.py",
       "errors": []
     },
     {
-      "category": "Integration",
+      "category": "GPS & Lap Timing",
       "severity": "high",
-      "description": "1 test(s) failed in Integration",
-      "module": "tests/test_integration.py",
+      "description": "2 test(s) failed in GPS & Lap Timing",
+      "module": "tests/test_gps_lap_timing.py",
       "errors": []
     },
     {
-      "category": "CAN Bus",
+      "category": "Voice Control",
       "severity": "high",
-      "description": "1 test(s) failed in CAN Bus",
-      "module": "tests/test_can_bus.py",
+      "description": "1 test(s) failed in Voice Control",
+      "module": "tests/test_voice_control.py",
       "errors": []
     },
     {
-      "category": "Comprehensive QA",
+      "category": "AI Racing Coach",
       "severity": "high",
-      "description": "1 test(s) failed in Comprehensive QA",
-      "module": "tests/test_comprehensive_qa.py",
+      "description": "1 test(s) failed in AI Racing Coach",
+      "module": "tests/test_ai_racing_coach.py",
+      "errors": []
+    },
+    {
+      "category": "Auto-Tuning Engine",
+      "severity": "high",
+      "description": "2 test(s) failed in Auto-Tuning Engine",
+      "module": "tests/test_auto_tuning.py",
       "errors": []
     }
   ]

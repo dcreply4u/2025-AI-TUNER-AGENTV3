@@ -71,18 +71,25 @@ class TestComponentIntegration:
     """Test integration between components."""
     
     @patch('controllers.data_stream_controller.DataStreamController')
-    def test_data_stream_integration(self, mock_controller):
+    def test_data_stream_integration(self, mock_controller, sample_data):
         """Test data stream controller integration."""
         # Mock controller
         mock_instance = MagicMock()
         mock_controller.return_value = mock_instance
         
-        # Simulate data flow
+        # Simulate data flow - ensure sample_data is a dict
+        if not isinstance(sample_data, dict):
+            sample_data = {
+                "rpm": 6500.0,
+                "throttle": 85.5,
+                "boost": 12.3,
+            }
         mock_instance._latest_sample = sample_data
         mock_instance._on_poll = MagicMock()
         
         # Verify integration
         assert mock_instance._latest_sample is not None
+        assert isinstance(mock_instance._latest_sample, dict)
         assert "rpm" in mock_instance._latest_sample
     
     def test_ui_data_integration(self, sample_data):

@@ -1,97 +1,141 @@
 AI TUNER AGENT - COMPREHENSIVE TEST REPORT
 ================================================================================
-Generated: 2025-11-27 19:39:33
-Total Modules: 6/12 passed
-Total Tests: 101/112 passed (9 failed, 2 skipped)
-Total Time: 25.14s
+Generated: 2025-11-28 11:51:47
+Total Modules: 13/20 passed
+Total Tests: 134/168 passed (27 failed, 7 skipped)
+Total Time: 86.55s
 
 MODULE RESULTS:
 --------------------------------------------------------------------------------
 
 File Operations (tests/test_file_operations.py):
   Status: PASS
-  Time: 0.73s
+  Time: 0.62s
   Tests: 8/9 passed (1 skipped)
 
 Graphing & Visualization (tests/test_graphing.py):
   Status: PASS
-  Time: 1.60s
+  Time: 0.73s
   Tests: 12/12 passed
 
 Data Reading (tests/test_data_reading.py):
-  Status: FAIL
-  Time: 7.71s
-  Tests: 11/13 passed (2 failed)
+  Status: PASS
+  Time: 2.84s
+  Tests: 13/13 passed
 
 AI Advisor (tests/test_ai_advisor.py):
+  Status: PASS
+  Time: 2.84s
+  Tests: 7/7 passed
+
+AI Advisor Advanced (tests/test_ai_advisor_advanced.py):
   Status: FAIL
-  Time: 4.08s
-  Tests: 5/7 passed (2 failed)
+  Time: 4.58s
+  Tests: 5/24 passed (17 failed) (2 skipped)
 
 Telemetry Processing (tests/test_telemetry_processing.py):
-  Status: FAIL
-  Time: 0.80s
-  Tests: 6/8 passed (2 failed)
+  Status: PASS
+  Time: 0.73s
+  Tests: 8/8 passed
 
 Integration (tests/test_integration.py):
-  Status: FAIL
-  Time: 4.15s
-  Tests: 6/7 passed (1 failed)
+  Status: PASS
+  Time: 3.56s
+  Tests: 7/7 passed
 
 Configuration (tests/test_configuration.py):
   Status: PASS
-  Time: 0.57s
+  Time: 0.56s
   Tests: 7/7 passed
 
 UI Components (tests/test_ui_components.py):
   Status: PASS
-  Time: 0.74s
+  Time: 0.68s
   Tests: 8/8 passed
 
 Error Handling (tests/test_error_handling.py):
   Status: PASS
-  Time: 0.54s
+  Time: 0.61s
   Tests: 11/11 passed
 
 Performance (tests/test_performance.py):
   Status: PASS
-  Time: 0.65s
+  Time: 0.64s
   Tests: 5/5 passed
 
 CAN Bus (tests/test_can_bus.py):
-  Status: FAIL
+  Status: PASS
   Time: 2.51s
-  Tests: 9/11 passed (1 failed) (1 skipped)
+  Tests: 9/11 passed (2 skipped)
 
 Comprehensive QA (tests/test_comprehensive_qa.py):
+  Status: PASS
+  Time: 0.77s
+  Tests: 14/14 passed
+
+Virtual Dyno (tests/test_virtual_dyno.py):
   Status: FAIL
-  Time: 1.06s
-  Tests: 13/14 passed (1 failed)
+  Time: 3.08s
+  Tests: 2/5 passed (3 failed)
+
+Video Recording (tests/test_video_recording.py):
+  Status: FAIL
+  Time: 3.76s
+  Tests: 4/5 passed (1 failed)
+
+GPS & Lap Timing (tests/test_gps_lap_timing.py):
+  Status: FAIL
+  Time: 2.83s
+  Tests: 4/6 passed (2 failed)
+
+Voice Control (tests/test_voice_control.py):
+  Status: FAIL
+  Time: 2.85s
+  Tests: 3/5 passed (1 failed) (1 skipped)
+
+AI Racing Coach (tests/test_ai_racing_coach.py):
+  Status: FAIL
+  Time: 2.84s
+  Tests: 2/3 passed (1 failed)
+
+Auto-Tuning Engine (tests/test_auto_tuning.py):
+  Status: FAIL
+  Time: 3.12s
+  Tests: 1/3 passed (2 failed)
+
+Enhanced Graphing (tests/test_enhanced_graphing.py):
+  Status: PASS
+  Time: 3.20s
+  Tests: 4/5 passed (1 skipped)
 
 
 ISSUES FOUND:
 --------------------------------------------------------------------------------
 
-[HIGH] Data Reading
-  2 test(s) failed in Data Reading
-  Module: tests/test_data_reading.py
+[HIGH] AI Advisor Advanced
+  17 test(s) failed in AI Advisor Advanced
+  Module: tests/test_ai_advisor_advanced.py
 
-[HIGH] AI Advisor
-  2 test(s) failed in AI Advisor
-  Module: tests/test_ai_advisor.py
+[HIGH] Virtual Dyno
+  3 test(s) failed in Virtual Dyno
+  Module: tests/test_virtual_dyno.py
 
-[HIGH] Telemetry Processing
-  2 test(s) failed in Telemetry Processing
-  Module: tests/test_telemetry_processing.py
+[HIGH] Video Recording
+  1 test(s) failed in Video Recording
+  Module: tests/test_video_recording.py
 
-[HIGH] Integration
-  1 test(s) failed in Integration
-  Module: tests/test_integration.py
+[HIGH] GPS & Lap Timing
+  2 test(s) failed in GPS & Lap Timing
+  Module: tests/test_gps_lap_timing.py
 
-[HIGH] CAN Bus
-  1 test(s) failed in CAN Bus
-  Module: tests/test_can_bus.py
+[HIGH] Voice Control
+  1 test(s) failed in Voice Control
+  Module: tests/test_voice_control.py
 
-[HIGH] Comprehensive QA
-  1 test(s) failed in Comprehensive QA
-  Module: tests/test_comprehensive_qa.py
+[HIGH] AI Racing Coach
+  1 test(s) failed in AI Racing Coach
+  Module: tests/test_ai_racing_coach.py
+
+[HIGH] Auto-Tuning Engine
+  2 test(s) failed in Auto-Tuning Engine
+  Module: tests/test_auto_tuning.py

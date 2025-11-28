@@ -44,6 +44,22 @@ from .crowdsourced_track_database import CommunityTrackData, CrowdsourcedTrackDa
 from .fleet_management import FleetManagement, FleetPerformance, PerformanceComparison, Vehicle
 from .predictive_crash_prevention import DangerAlert, DangerLevel, PredictiveCrashPrevention
 from .track_learning_ai import TrackLearningAI, TrackPoint, TrackProfile
+
+# Auto knowledge ingestion service (runs automatically in background)
+try:
+    from .auto_knowledge_ingestion_service import (
+        AutoKnowledgeIngestionService,
+        get_auto_ingestion_service,
+        start_auto_ingestion,
+        stop_auto_ingestion,
+    )
+    AUTO_INGESTION_AVAILABLE = True
+except ImportError:
+    AUTO_INGESTION_AVAILABLE = False
+    AutoKnowledgeIngestionService = None  # type: ignore
+    get_auto_ingestion_service = None  # type: ignore
+    start_auto_ingestion = None  # type: ignore
+    stop_auto_ingestion = None  # type: ignore
 from .voice_ecu_control import ECUAdjustment, VoiceCommand, VoiceECUControl
 from .weather_adaptive_tuning import WeatherAdaptiveTuning, WeatherConditions, WeatherTuningAdjustment
 from .live_streamer import LiveStreamer, StreamConfig, StreamingPlatform
@@ -252,6 +268,15 @@ __all__ = [
     "WeatherStandard",
     "DynoCalibration",
 ]
+
+# Add auto ingestion service if available
+if AUTO_INGESTION_AVAILABLE:
+    __all__.extend([
+        "AutoKnowledgeIngestionService",
+        "get_auto_ingestion_service",
+        "start_auto_ingestion",
+        "stop_auto_ingestion",
+    ])
 
 # Add optional fuel/additive management if available
 if BoostNitrousAdvisor is not None:

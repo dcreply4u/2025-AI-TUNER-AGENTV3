@@ -16,11 +16,13 @@ from datetime import datetime
 from typing import Dict, List, Any
 import traceback
 
-# Fix Windows encoding issues
+# Fix Windows encoding issues and force unbuffered output
 if sys.platform == "win32":
     import io
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace', line_buffering=True)
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace', line_buffering=True)
+    import os
+    os.environ['PYTHONUNBUFFERED'] = '1'
 
 # Add project root to path
 project_root = Path(__file__).parent.parent
@@ -113,34 +115,42 @@ class TestRunner:
                 "--disable-warnings",
             ]
             
-            process = subprocess.run(
+            # Print header
+            print(f"\n{'='*80}")
+            print(f"Running: {module_name}")
+            print(f"{'='*80}\n")
+            sys.stdout.flush()
+            
+            # Run pytest directly - output goes to terminal in real-time
+            # Use os.system for immediate output, or subprocess without capture
+            import os
+            old_cwd = os.getcwd()
+            os.chdir(str(project_root))
+            
+            try:
+                # Run pytest - output streams directly to terminal with unbuffered output
+                cmd = f'"{sys.executable}" -u -m pytest {module_path} -v --tb=short --disable-warnings'
+                return_code = os.system(cmd)
+                return_code = return_code >> 8  # os.system returns exit code in high byte
+            finally:
+                os.chdir(old_cwd)
+            
+            elapsed = time.time() - start_time
+            result["elapsed"] = elapsed
+            
+            # Re-run with capture just to parse results for reporting
+            parse_process = subprocess.run(
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=600,  # 10 minute timeout per module
+                timeout=600,
                 cwd=str(project_root),
                 encoding='utf-8',
                 errors='replace',
             )
-            
-            elapsed = time.time() - start_time
-            result["elapsed"] = elapsed
-            # Combine stdout and stderr (pytest sometimes uses stderr)
-            combined_output = process.stdout + "\n" + process.stderr
+            combined_output = parse_process.stdout + "\n" + parse_process.stderr
             result["output"] = combined_output
-            result["error_output"] = process.stderr
-            
-            # Debug: Save output for inspection (first run only)
-            if not hasattr(self, '_debug_saved'):
-                debug_file = project_root / "pytest_debug_output.txt"
-                with open(debug_file, 'w', encoding='utf-8') as f:
-                    f.write(f"Module: {module_path}\n")
-                    f.write(f"Return code: {process.returncode}\n")
-                    f.write("="*80 + "\nSTDOUT:\n" + "="*80 + "\n")
-                    f.write(process.stdout)
-                    f.write("\n" + "="*80 + "\nSTDERR:\n" + "="*80 + "\n")
-                    f.write(process.stderr)
-                self._debug_saved = True
+            result["error_output"] = parse_process.stderr
             
             # Parse pytest text output
             import re
@@ -229,7 +239,7 @@ class TestRunner:
                 })
             else:
                 result["success"] = (
-                    process.returncode == 0 and
+                    parse_process.returncode == 0 and
                     result["tests_failed"] == 0 and
                     result["tests_run"] > 0
                 )

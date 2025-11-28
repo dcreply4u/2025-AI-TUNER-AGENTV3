@@ -83,6 +83,16 @@ try:
             
             print("[SUCCESS] MainWindow loaded and shown")
             
+            # Start auto knowledge ingestion service (runs in background automatically)
+            try:
+                from services.auto_knowledge_ingestion_service import start_auto_ingestion
+                if start_auto_ingestion():
+                    print("[OK] Auto knowledge ingestion service started (runs automatically)")
+                else:
+                    print("[WARN] Auto knowledge ingestion service could not start")
+            except Exception as e:
+                print(f"[WARN] Could not start auto knowledge ingestion: {e}")
+            
             # Start demo controller
             try:
                 from demo import DemoController

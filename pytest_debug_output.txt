@@ -21,17 +21,17 @@ tests/test_file_operations.py::TestFileSaveLoad::test_load_configuration [32mPA
 tests/test_file_operations.py::TestFileSaveLoad::test_save_session_data [32mPASSED[0m[32m [100%][0m
 
 ============================ slowest 10 durations =============================
+0.01s call     tests/test_file_operations.py::TestFileUpload::test_json_upload
 0.00s setup    tests/test_file_operations.py::TestFileUpload::test_csv_upload
-0.00s call     tests/test_file_operations.py::TestFileExport::test_export_to_csv
-0.00s call     tests/test_file_operations.py::TestFileUpload::test_csv_upload
 0.00s call     tests/test_file_operations.py::TestFileExport::test_export_to_json
-0.00s call     tests/test_file_operations.py::TestFileSaveLoad::test_load_configuration
-0.00s call     tests/test_file_operations.py::TestFileUpload::test_json_upload
-0.00s call     tests/test_file_operations.py::TestFileSaveLoad::test_save_session_data
-0.00s call     tests/test_file_operations.py::TestFileSaveLoad::test_save_configuration
+0.00s call     tests/test_file_operations.py::TestFileUpload::test_csv_upload
+0.00s call     tests/test_file_operations.py::TestFileExport::test_export_to_csv
 0.00s call     tests/test_file_operations.py::TestFileUpload::test_log_file_upload
-0.00s call     tests/test_file_operations.py::TestFileExport::test_export_to_excel
-[32m======================== [32m[1m8 passed[0m, [33m1 skipped[0m[32m in 0.20s[0m[32m =========================[0m
+0.00s call     tests/test_file_operations.py::TestFileSaveLoad::test_save_configuration
+0.00s call     tests/test_file_operations.py::TestFileSaveLoad::test_save_session_data
+0.00s call     tests/test_file_operations.py::TestFileSaveLoad::test_load_configuration
+0.00s teardown tests/test_file_operations.py::TestFileUpload::test_csv_upload
+[32m======================== [32m[1m8 passed[0m, [33m1 skipped[0m[32m in 0.17s[0m[32m =========================[0m
 
 ================================================================================
 STDERR:

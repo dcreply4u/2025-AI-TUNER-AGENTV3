@@ -280,6 +280,17 @@ class RAGAIAdvisor:
                 LOGGER.info("Auto knowledge populator initialized with KB file saving")
             except Exception as e:
                 LOGGER.warning(f"Auto knowledge populator not available: {e}")
+        
+        # Start auto knowledge ingestion service (runs continuously in background)
+        # This automatically searches and ingests knowledge without manual intervention
+        try:
+            from services.auto_knowledge_ingestion_service import start_auto_ingestion
+            if start_auto_ingestion():
+                LOGGER.info("Auto knowledge ingestion service started (runs automatically)")
+            else:
+                LOGGER.debug("Auto knowledge ingestion service could not start (may already be running)")
+        except Exception as e:
+            LOGGER.debug(f"Could not start auto knowledge ingestion service: {e}")
 
         self.race_setup_recommender = None
         if RACE_SETUP_AVAILABLE:

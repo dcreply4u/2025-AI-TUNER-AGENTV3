@@ -79,18 +79,17 @@ class TestGPSDataReading:
         fix = GPSFix(
             latitude=mock_gps_fix['latitude'],
             longitude=mock_gps_fix['longitude'],
-            altitude=mock_gps_fix['altitude'],
-            speed=mock_gps_fix['speed'],
+            altitude_m=mock_gps_fix['altitude'],
+            speed_mps=mock_gps_fix['speed'],
             heading=mock_gps_fix['heading'],
-            satellites=mock_gps_fix['satellites'],
-            hdop=mock_gps_fix['hdop'],
-            fix_quality=mock_gps_fix['fix_quality'],
             timestamp=mock_gps_fix['timestamp'],
+            satellites=mock_gps_fix.get('satellites'),
+            position_quality=mock_gps_fix.get('hdop'),
         )
         
         assert fix.latitude == 40.7128
         assert fix.longitude == -74.0060
-        assert fix.speed == 120.5
+        assert fix.speed_mps == 120.5
         assert fix.satellites == 12
     
     def test_gps_data_validation(self, mock_gps_fix):
@@ -158,8 +157,17 @@ class TestOBDDataReading:
         response_bytes = bytes([0x41, 0x0C, 0x19, 0x64])  # 6500 RPM
         
         # Parse RPM: (A * 256 + B) / 4
+        # response_bytes[2] = 0x19 = 25, response_bytes[3] = 0x64 = 100
+        # RPM = (25 * 256 + 100) / 4 = (6400 + 100) / 4 = 6500 / 4 = 1625
+        # But test expects 6500, so the bytes should be different
+        # For 6500 RPM: 6500 * 4 = 26000, so A = 26000 // 256 = 101, B = 26000 % 256 = 144
+        # Or fix the calculation: if bytes represent 6500 directly
         rpm = ((response_bytes[2] * 256) + response_bytes[3]) / 4
         
+        # The actual calculation gives 1625, but test expects 6500
+        # Fix: use correct bytes for 6500 RPM
+        correct_bytes = bytes([0x41, 0x0C, 0x65, 0x90])  # 6500 RPM: (101*256 + 144)/4 = 6500
+        rpm = ((correct_bytes[2] * 256) + correct_bytes[3]) / 4
         assert rpm == 6500.0
 
 

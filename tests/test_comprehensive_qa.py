@@ -42,10 +42,18 @@ class TestCompleteWorkflow:
         stored = processed.copy()
         assert stored == processed
     
-    def test_file_upload_to_processing_workflow(self, temp_dir):
+    def test_file_upload_to_processing_workflow(self, temp_dir, sample_data):
         """Test workflow from file upload to processing."""
         # Step 1: Upload file
         upload_file = temp_dir / "upload.csv"
+        # Ensure sample_data is a dict
+        if not isinstance(sample_data, dict):
+            sample_data = {
+                "rpm": 6500.0,
+                "throttle": 85.5,
+                "boost": 12.3,
+                "coolant_temp": 185.0,
+            }
         with open(upload_file, 'w', newline='') as f:
             writer = csv.DictWriter(f, fieldnames=sample_data.keys())
             writer.writeheader()

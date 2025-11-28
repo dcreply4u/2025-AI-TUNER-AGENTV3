@@ -1,28 +1,31 @@
 AI TUNER AGENT - TEST ISSUES LIST
 ================================================================================
-Generated: 2025-11-27 19:39:33
-Total Issues: 6
+Generated: 2025-11-28 11:51:47
+Total Issues: 7
 
 
 ================================================================================
-HIGH PRIORITY ISSUES (6)
+HIGH PRIORITY ISSUES (7)
 ================================================================================
 
-1. [Data Reading] 2 test(s) failed in Data Reading
-   Module: tests/test_data_reading.py
+1. [AI Advisor Advanced] 17 test(s) failed in AI Advisor Advanced
+   Module: tests/test_ai_advisor_advanced.py
 
-2. [AI Advisor] 2 test(s) failed in AI Advisor
-   Module: tests/test_ai_advisor.py
+2. [Virtual Dyno] 3 test(s) failed in Virtual Dyno
+   Module: tests/test_virtual_dyno.py
 
-3. [Telemetry Processing] 2 test(s) failed in Telemetry Processing
-   Module: tests/test_telemetry_processing.py
+3. [Video Recording] 1 test(s) failed in Video Recording
+   Module: tests/test_video_recording.py
 
-4. [Integration] 1 test(s) failed in Integration
-   Module: tests/test_integration.py
+4. [GPS & Lap Timing] 2 test(s) failed in GPS & Lap Timing
+   Module: tests/test_gps_lap_timing.py
 
-5. [CAN Bus] 1 test(s) failed in CAN Bus
-   Module: tests/test_can_bus.py
+5. [Voice Control] 1 test(s) failed in Voice Control
+   Module: tests/test_voice_control.py
 
-6. [Comprehensive QA] 1 test(s) failed in Comprehensive QA
-   Module: tests/test_comprehensive_qa.py
+6. [AI Racing Coach] 1 test(s) failed in AI Racing Coach
+   Module: tests/test_ai_racing_coach.py
+
+7. [Auto-Tuning Engine] 2 test(s) failed in Auto-Tuning Engine
+   Module: tests/test_auto_tuning.py
 

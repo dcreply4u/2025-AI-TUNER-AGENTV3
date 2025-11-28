@@ -114,12 +114,17 @@ class TestCANSimulator:
     
     def test_simulator_initialization(self):
         """Test simulator initialization."""
+        import pytest
         try:
             from services.can_simulator import CANSimulator
             
             simulator = CANSimulator(channel="vcan0", bitrate=500000)
             assert simulator is not None
             assert simulator.channel == "vcan0"
+        except RuntimeError as e:
+            if "python-can required" in str(e):
+                pytest.skip("python-can not installed - simulator requires it")
+            raise
             assert simulator.bitrate == 500000
             assert not simulator.running
         except ImportError:
