@@ -22,7 +22,7 @@ Write-Host ""
 
 # Step 1: Test SSH connection
 Write-Host "Step 1: Testing SSH connection..." -ForegroundColor Yellow
-$testResult = & $plinkPath -ssh -hostkey $hostKey -pw $PiPassword "$PiUser@$PiIP" "echo 'Connection OK'" 2>&1
+$testResult = & $plinkPath -batch -ssh -hostkey $hostKey -pw $PiPassword "$PiUser@$PiIP" "echo 'Connection OK'" 2>&1
 if ($LASTEXITCODE -ne 0) {
     Write-Host "ERROR: SSH connection failed!" -ForegroundColor Red
     Write-Host $testResult -ForegroundColor Red
@@ -34,12 +34,12 @@ Write-Host ""
 # Step 2: Check git status and handle local changes
 Write-Host "Step 2: Checking repository status..." -ForegroundColor Yellow
 $statusCmd = "cd $DestPath && git status --porcelain"
-$statusResult = & $plinkPath -ssh -hostkey $hostKey -pw $PiPassword "$PiUser@$PiIP" $statusCmd 2>&1
+$statusResult = & $plinkPath -batch -ssh -hostkey $hostKey -pw $PiPassword "$PiUser@$PiIP" $statusCmd 2>&1
 
 if ($statusResult -match "M\s|A\s|D\s|R\s|C\s|U\s") {
     Write-Host "WARNING: Local changes detected - stashing..." -ForegroundColor Yellow
     $stashCmd = "cd $DestPath && git stash push -m 'Auto-stash before sync' 2>&1"
-    $stashResult = & $plinkPath -ssh -hostkey $hostKey -pw $PiPassword "$PiUser@$PiIP" $stashCmd 2>&1
+    $stashResult = & $plinkPath -batch -ssh -hostkey $hostKey -pw $PiPassword "$PiUser@$PiIP" $stashCmd 2>&1
     if ($LASTEXITCODE -eq 0) {
         Write-Host "OK: Local changes stashed" -ForegroundColor Green
     } else {
@@ -53,7 +53,7 @@ Write-Host ""
 # Step 3: Fetch latest from GitHub
 Write-Host "Step 3: Fetching latest from GitHub..." -ForegroundColor Yellow
 $fetchCmd = "cd $DestPath && git fetch origin main"
-$fetchResult = & $plinkPath -ssh -hostkey $hostKey -pw $PiPassword "$PiUser@$PiIP" $fetchCmd 2>&1
+$fetchResult = & $plinkPath -batch -ssh -hostkey $hostKey -pw $PiPassword "$PiUser@$PiIP" $fetchCmd 2>&1
 if ($LASTEXITCODE -eq 0) {
     Write-Host "OK: Fetched latest changes" -ForegroundColor Green
 } else {
@@ -66,7 +66,7 @@ Write-Host "Step 4: Checking for updates and merging..." -ForegroundColor Yellow
 
 # Check if behind first
 $checkBehindCmd = "cd $DestPath && git rev-list --count HEAD..origin/main 2>/dev/null || echo '0'"
-$behindCheck = & $plinkPath -ssh -hostkey $hostKey -pw $PiPassword "$PiUser@$PiIP" $checkBehindCmd 2>&1
+$behindCheck = & $plinkPath -batch -ssh -hostkey $hostKey -pw $PiPassword "$PiUser@$PiIP" $checkBehindCmd 2>&1
 $behindMatch = $behindCheck | Select-String -Pattern "^\d+$" | Select-Object -First 1
 $isBehind = if ($behindMatch) { [int]$behindMatch.Matches[0].Value -gt 0 } else { $false }
 
@@ -79,7 +79,7 @@ if (-not $isBehind) {
     
     # Try simple pull first
     $pullCmd = "cd $DestPath && git pull origin main --no-edit 2>&1"
-    $pullResult = & $plinkPath -ssh -hostkey $hostKey -pw $PiPassword "$PiUser@$PiIP" $pullCmd 2>&1
+    $pullResult = & $plinkPath -batch -ssh -hostkey $hostKey -pw $PiPassword "$PiUser@$PiIP" $pullCmd 2>&1
     $mergeOutput = $pullResult -join "`n"
     
     # Check if pull succeeded
@@ -128,7 +128,7 @@ if ($mergeOutput -match "Already up to date") {
         $resolveCmds += "echo 'RESOLVE_COMPLETE'"
         
         $resolveCmd = "cd $DestPath && " + ($resolveCmds -join " && ")
-        $resolveResult = & $plinkPath -ssh -hostkey $hostKey -pw $PiPassword "$PiUser@$PiIP" $resolveCmd 2>&1
+        $resolveResult = & $plinkPath -batch -ssh -hostkey $hostKey -pw $PiPassword "$PiUser@$PiIP" $resolveCmd 2>&1
         
         if ($resolveResult -match "RESOLVE_COMPLETE") {
             Write-Host "OK: Conflicts resolved (accepted GitHub version)" -ForegroundColor Green
@@ -142,7 +142,7 @@ if ($mergeOutput -match "Already up to date") {
     Write-Host "WARNING: Merge failed - trying reset and pull..." -ForegroundColor Yellow
     
     $resetCmd = "cd $DestPath && git stash push -m 'Pre-reset stash' 2>/dev/null; git reset --hard origin/main 2>&1; echo 'RESET_COMPLETE'"
-    $resetResult = & $plinkPath -ssh -hostkey $hostKey -pw $PiPassword "$PiUser@$PiIP" $resetCmd 2>&1
+    $resetResult = & $plinkPath -batch -ssh -hostkey $hostKey -pw $PiPassword "$PiUser@$PiIP" $resetCmd 2>&1
     
     if ($resetResult -match "RESET_COMPLETE") {
         Write-Host "OK: Repository reset to match GitHub" -ForegroundColor Green
@@ -157,7 +157,7 @@ Write-Host ""
 # Step 5: Verify sync status
 Write-Host "Step 5: Verifying sync status..." -ForegroundColor Yellow
 $verifyCmd = "cd $DestPath && git status --short && echo '---' && git log --oneline -1"
-$verifyResult = & $plinkPath -ssh -hostkey $hostKey -pw $PiPassword "$PiUser@$PiIP" $verifyCmd 2>&1
+$verifyResult = & $plinkPath -batch -ssh -hostkey $hostKey -pw $PiPassword "$PiUser@$PiIP" $verifyCmd 2>&1
 
 Write-Host "Repository status:" -ForegroundColor Gray
 Write-Host $verifyResult -ForegroundColor Gray
@@ -165,12 +165,12 @@ Write-Host ""
 
 # Step 6: Check if behind/ahead
 $behindCmd = "cd $DestPath && git rev-list --count HEAD..origin/main 2>/dev/null || echo '0'"
-$behindOutput = & $plinkPath -ssh -hostkey $hostKey -pw $PiPassword "$PiUser@$PiIP" $behindCmd 2>&1
+$behindOutput = & $plinkPath -batch -ssh -hostkey $hostKey -pw $PiPassword "$PiUser@$PiIP" $behindCmd 2>&1
 $behindMatch = $behindOutput | Select-String -Pattern "^\d+$" | Select-Object -First 1
 $behindCount = if ($behindMatch) { [int]$behindMatch.Matches[0].Value } else { 0 }
 
 $aheadCmd = "cd $DestPath && git rev-list --count origin/main..HEAD 2>/dev/null || echo '0'"
-$aheadOutput = & $plinkPath -ssh -hostkey $hostKey -pw $PiPassword "$PiUser@$PiIP" $aheadCmd 2>&1
+$aheadOutput = & $plinkPath -batch -ssh -hostkey $hostKey -pw $PiPassword "$PiUser@$PiIP" $aheadCmd 2>&1
 $aheadMatch = $aheadOutput | Select-String -Pattern "^\d+$" | Select-Object -First 1
 $aheadCount = if ($aheadMatch) { [int]$aheadMatch.Matches[0].Value } else { 0 }
 

@@ -282,6 +282,10 @@ class DataStreamController(QObject):
         self._cameras_active = False
         self._best_announcements: Dict[str, float] = {}
         
+        # Thread lock for thread-safe data access
+        import threading
+        self._data_lock = threading.Lock()
+        
         # Run detection for intelligent advice
         self._run_detection_state = {
             "in_run": False,
@@ -782,7 +786,9 @@ class DataStreamController(QObject):
         
         # Update lap detector if available
         if hasattr(self, "lap_detector") and self.lap_detector:
-            speed_mph = self._speed_from_data(self._latest_sample or {}) or 0.0
+            with self._data_lock:
+                latest_sample = dict(self._latest_sample) if self._latest_sample else {}
+            speed_mph = self._speed_from_data(latest_sample) or 0.0
             completed_lap = self.lap_detector.update(
                 lat=payload["lat"],
                 lon=payload["lon"],
@@ -850,8 +856,11 @@ class DataStreamController(QObject):
                     if fix:
                         location = (fix.latitude, fix.longitude)
                 
+                # Get latest sample thread-safely
+                with self._data_lock:
+                    latest_telemetry = dict(self._latest_sample) if self._latest_sample else {}
                 industry_updates = self.industry_integration.update_telemetry(
-                    telemetry=self._latest_sample,
+                    telemetry=latest_telemetry,
                     location=location,
                 )
                 
@@ -900,8 +909,9 @@ class DataStreamController(QObject):
             LOGGER.debug("No data received from interface")
             return
         
-        # Store latest sample for other methods
-        self._latest_sample = data
+        # Store latest sample for other methods (thread-safe)
+        with self._data_lock:
+            self._latest_sample = data
         
         # Normalize data keys for telemetry panel (optimized with reverse lookup)
         normalized_data = {}
@@ -1295,7 +1305,9 @@ class DataStreamController(QObject):
                 if rec.priority in [FeedbackPriority.HIGH, FeedbackPriority.CRITICAL]:
                     self._speak(rec.message, channel="warning" if rec.safety_critical else "tip", throttle=throttle)
 
-        self._latest_sample = data
+        # Store latest sample (thread-safe)
+        with self._data_lock:
+            self._latest_sample = data
         self._update_performance()
         self._detect_and_analyze_run(data, health_payload)
 
@@ -1360,7 +1372,8 @@ class DataStreamController(QObject):
     def _detect_and_analyze_run(self, data: Dict[str, float], health_payload: Dict) -> None:
         """Detect when a run/pass completes and analyze it."""
         speed = self._speed_from_data(data) or 0.0
-        state = self._run_detection_state
+        with self._data_lock:
+            state = self._run_detection_state
         
         # Detect run start (speed increases from low to high)
         if not state["in_run"] and speed > 30 and state["last_speed"] < 20:
@@ -1447,11 +1460,14 @@ class DataStreamController(QObject):
             
             LOGGER.info("Run %d completed. Generated %d pieces of advice", state["run_number"], len(analysis.advice))
         
-        state["last_speed"] = speed
+        # Update last_speed thread-safely
+        with self._data_lock:
+            state["last_speed"] = speed
 
     def _get_current_telemetry(self) -> dict:
         """Get current telemetry data for camera frame synchronization."""
-        telemetry = dict(self._latest_sample)
+        with self._data_lock:
+            telemetry = dict(self._latest_sample) if self._latest_sample else {}
         # Add GPS data if available
         if self.gps_interface:
             try:

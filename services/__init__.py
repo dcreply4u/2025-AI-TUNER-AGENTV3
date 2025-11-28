@@ -47,12 +47,18 @@ from .track_learning_ai import TrackLearningAI, TrackPoint, TrackProfile
 
 # Auto knowledge ingestion service (runs automatically in background)
 try:
-    from .auto_knowledge_ingestion_service import (
-        AutoKnowledgeIngestionService,
-        get_auto_ingestion_service,
-        start_auto_ingestion,
-        stop_auto_ingestion,
-    )
+from .auto_knowledge_ingestion_service import (
+    AutoKnowledgeIngestionService,
+    get_auto_ingestion_service,
+    start_auto_ingestion,
+    stop_auto_ingestion,
+)
+from .knowledge_update_service import (
+    KnowledgeUpdateService,
+    get_knowledge_update_service,
+    start_knowledge_update_service,
+    stop_knowledge_update_service,
+)
     AUTO_INGESTION_AVAILABLE = True
 except ImportError:
     AUTO_INGESTION_AVAILABLE = False
@@ -108,6 +114,14 @@ from .startup_diagnostics import DiagnosticResult, StartupDiagnostics
 from .usb_manager import USBDevice, USBManager
 from .video_logger import VideoLogger
 from .voice_feedback import FeedbackEvent, FeedbackPriority, VoiceFeedback
+from .cylinder_pressure_analyzer import (
+    CombustionMetrics,
+    CylinderPressureAnalyzer,
+    PressureCycle,
+    PressureReading,
+    PressureUnit,
+    StabilityMetrics,
+)
 from .virtual_dyno import (
     DynoCurve,
     DynoMethod,
@@ -280,6 +294,12 @@ __all__ = [
     "VirtualDyno",
     "DynoCurve",
     "DynoReading",
+    "CylinderPressureAnalyzer",
+    "PressureCycle",
+    "PressureReading",
+    "CombustionMetrics",
+    "StabilityMetrics",
+    "PressureUnit",
     "DynoMethod",
     "VehicleSpecs",
     "EnvironmentalConditions",
@@ -310,6 +330,30 @@ if AUTO_INGESTION_AVAILABLE:
         "get_auto_ingestion_service",
         "start_auto_ingestion",
         "stop_auto_ingestion",
+    ])
+
+# Knowledge update service (unified service)
+try:
+    from .knowledge_update_service import (
+        KnowledgeUpdateService,
+        get_knowledge_update_service,
+        start_knowledge_update_service,
+        stop_knowledge_update_service,
+    )
+    KNOWLEDGE_UPDATE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_UPDATE_AVAILABLE = False
+    KnowledgeUpdateService = None  # type: ignore
+    get_knowledge_update_service = None  # type: ignore
+    start_knowledge_update_service = None  # type: ignore
+    stop_knowledge_update_service = None  # type: ignore
+
+if KNOWLEDGE_UPDATE_AVAILABLE:
+    __all__.extend([
+        "KnowledgeUpdateService",
+        "get_knowledge_update_service",
+        "start_knowledge_update_service",
+        "stop_knowledge_update_service",
     ])
 
 # Add optional fuel/additive management if available

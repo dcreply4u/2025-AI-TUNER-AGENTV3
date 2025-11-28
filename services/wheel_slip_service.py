@@ -135,7 +135,7 @@ class WheelSlipService(QObject):
         
         # History storage
         self.history: Deque[SlipReading] = deque(maxlen=history_size)
-        self.current_run_history: List[SlipReading] = []
+        self.current_run_history: Deque[SlipReading] = deque(maxlen=5000)  # Limit run history to prevent memory leaks
         
         # Current state
         self.current_slip: float = 0.0

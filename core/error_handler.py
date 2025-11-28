@@ -130,15 +130,38 @@ class ErrorHandler:
     def _recover_connection_error(self, error: ConnectionError, context: ErrorContext) -> bool:
         """Recover from connection errors."""
         LOGGER.info("Attempting to recover from connection error in %s", context.component)
-        # Wait and retry logic would go here
-        time.sleep(1)
-        return False  # Recovery would need component-specific logic
+        max_retries = 3
+        retry_delay = 1.0
+        
+        for attempt in range(max_retries):
+            try:
+                time.sleep(retry_delay * (attempt + 1))  # Exponential backoff
+                LOGGER.info("Retry attempt %d/%d for %s", attempt + 1, max_retries, context.component)
+                # Note: Actual reconnection logic would need component-specific implementation
+                # This is a framework for recovery
+                return False  # Recovery would need component-specific logic
+            except Exception as e:
+                LOGGER.warning("Recovery attempt %d failed: %s", attempt + 1, e)
+        
+        return False
 
     def _recover_file_error(self, error: FileNotFoundError, context: ErrorContext) -> bool:
         """Recover from file errors."""
         LOGGER.info("Attempting to recover from file error in %s", context.component)
-        # Create missing directories or files
-        return False
+        try:
+            from pathlib import Path
+            error_path = Path(str(error).split("'")[1] if "'" in str(error) else str(error))
+            if error_path.parent.exists():
+                # Try to create the missing file
+                error_path.parent.mkdir(parents=True, exist_ok=True)
+                if error_path.suffix:  # Has extension, likely a file
+                    error_path.touch(exist_ok=True)
+                    LOGGER.info("Created missing file: %s", error_path)
+                    return True
+            return False
+        except Exception as e:
+            LOGGER.warning("File recovery failed: %s", e)
+            return False
 
     def _recover_permission_error(self, error: PermissionError, context: ErrorContext) -> bool:
         """Recover from permission errors."""
@@ -148,6 +171,8 @@ class ErrorHandler:
     def _recover_timeout_error(self, error: TimeoutError, context: ErrorContext) -> bool:
         """Recover from timeout errors."""
         LOGGER.info("Timeout in %s - will retry with longer timeout", context.component)
+        # Note: Actual timeout adjustment would need component-specific implementation
+        # This logs the intent for manual intervention or component-specific recovery
         return False
 
     def _generate_user_message(self, error: Exception, component: str) -> str:

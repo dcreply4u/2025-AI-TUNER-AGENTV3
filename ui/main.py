@@ -752,31 +752,38 @@ class MainWindow(QWidget):
         session_layout.addStretch()
         self.bottom_tabs.addTab(session_tab, "🏁 Session")
 
-        # Tab 2: Camera & Display
-        camera_tab = QWidget()
-        camera_layout = QHBoxLayout(camera_tab)
-        camera_layout.setContentsMargins(12, 8, 12, 8)
-        camera_layout.setSpacing(10)
-        
-        self.camera_btn = QPushButton("📷  Configure Cameras")
-        self.camera_btn.setStyleSheet("background-color: #34495e;")
-        self.camera_btn.clicked.connect(self.configure_cameras)
-        self.camera_btn.setEnabled(self.camera_manager is not None)
-        camera_layout.addWidget(self.camera_btn)
-        
-        self.overlay_btn = QPushButton("🎬  Video Overlay")
-        self.overlay_btn.setStyleSheet("background-color: #34495e;")
-        self.overlay_btn.clicked.connect(self.toggle_video_overlay)
-        self.overlay_btn.setEnabled(self.camera_manager is not None)
-        camera_layout.addWidget(self.overlay_btn)
-        
-        self.display_btn = QPushButton("🖥️  External Display")
-        self.display_btn.setStyleSheet("background-color: #9b59b6;")
-        self.display_btn.clicked.connect(self.toggle_external_display)
-        camera_layout.addWidget(self.display_btn)
-        
-        camera_layout.addStretch()
-        self.bottom_tabs.addTab(camera_tab, "📹 Camera & Display")
+        # Tab 2: Video Player (with Camera & Display)
+        try:
+            from ui.video_player_tab import VideoPlayerTab
+            video_player_tab = VideoPlayerTab()
+            self.bottom_tabs.addTab(video_player_tab, "📹 Video Player")
+        except ImportError as e:
+            LOGGER.warning(f"Video player tab not available: {e}")
+            # Fallback to simple camera tab
+            camera_tab = QWidget()
+            camera_layout = QHBoxLayout(camera_tab)
+            camera_layout.setContentsMargins(12, 8, 12, 8)
+            camera_layout.setSpacing(10)
+            
+            self.camera_btn = QPushButton("📷  Configure Cameras")
+            self.camera_btn.setStyleSheet("background-color: #34495e;")
+            self.camera_btn.clicked.connect(self.configure_cameras)
+            self.camera_btn.setEnabled(self.camera_manager is not None)
+            camera_layout.addWidget(self.camera_btn)
+            
+            self.overlay_btn = QPushButton("🎬  Video Overlay")
+            self.overlay_btn.setStyleSheet("background-color: #34495e;")
+            self.overlay_btn.clicked.connect(self.toggle_video_overlay)
+            self.overlay_btn.setEnabled(self.camera_manager is not None)
+            camera_layout.addWidget(self.overlay_btn)
+            
+            self.display_btn = QPushButton("🖥️  External Display")
+            self.display_btn.setStyleSheet("background-color: #9b59b6;")
+            self.display_btn.clicked.connect(self.toggle_external_display)
+            camera_layout.addWidget(self.display_btn)
+            
+            camera_layout.addStretch()
+            self.bottom_tabs.addTab(camera_tab, "📹 Camera & Display")
 
         # Tab 3: Tools & Settings
         tools_tab = QWidget()
@@ -1009,6 +1016,17 @@ class MainWindow(QWidget):
         
         safety_layout.addStretch()
         self.bottom_tabs.addTab(safety_tab, "🛡️ Safety")
+
+        # Development-only tab: Log Viewer
+        try:
+            from ui.dev_log_viewer_tab import DevLogViewerTab
+            dev_log_tab = DevLogViewerTab()
+            # Only add if in dev mode (tab checks internally)
+            if dev_log_tab.is_dev_mode:
+                self.bottom_tabs.addTab(dev_log_tab, "🔧 Dev Logs")
+                LOGGER.info("Development log viewer tab added")
+        except ImportError as e:
+            LOGGER.debug(f"Dev log viewer tab not available: {e}")
 
         root_layout.addWidget(self.bottom_tabs)
         root_layout.addWidget(make_hgrow(self.status_bar))
@@ -2462,6 +2480,8 @@ Alerts are provided at multiple danger levels:
 
     def closeEvent(self, event) -> None:  # noqa: N802
         """Clean up all resources when window closes."""
+        LOGGER.info("Closing application - cleaning up resources...")
+        
         # Stop live streams first (critical - prevents zombie FFmpeg processes)
         if hasattr(self, "live_streamer") and self.live_streamer:
             try:
@@ -2498,6 +2518,27 @@ Alerts are provided at multiple danger levels:
             except Exception as e:
                 LOGGER.error(f"Error stopping cameras: {e}")
         
+        # Clean up auto knowledge ingestion service
+        try:
+            from services.auto_knowledge_ingestion_service import stop_auto_ingestion
+            stop_auto_ingestion()
+        except Exception as e:
+            LOGGER.debug(f"Auto ingestion service cleanup: {e}")
+        
+        # Clean up error monitoring service
+        try:
+            from services.error_monitoring_service import get_error_monitor
+            monitor = get_error_monitor(None)
+            if monitor:
+                monitor.stop()
+        except Exception as e:
+            LOGGER.debug(f"Error monitoring service cleanup: {e}")
+        
+        # Force garbage collection to free memory
+        import gc
+        gc.collect()
+        
+        LOGGER.info("Application cleanup complete")
         super().closeEvent(event)
 
 

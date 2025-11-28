@@ -83,15 +83,16 @@ try:
             
             print("[SUCCESS] MainWindow loaded and shown")
             
-            # Start auto knowledge ingestion service (runs in background automatically)
+            # Start unified knowledge update service (runs in background automatically)
             try:
-                from services.auto_knowledge_ingestion_service import start_auto_ingestion
-                if start_auto_ingestion():
-                    print("[OK] Auto knowledge ingestion service started (runs automatically)")
+                from services.knowledge_update_service import start_knowledge_update_service
+                if start_knowledge_update_service():
+                    print("[OK] Knowledge Update Service started (runs automatically)")
                 else:
-                    print("[WARN] Auto knowledge ingestion service could not start")
+                    print("[WARN] Knowledge Update Service could not start")
             except Exception as e:
-                print(f"[WARN] Could not start auto knowledge ingestion: {e}")
+                print(f"[WARN] Could not start knowledge update service: {e}")
+                traceback.print_exc()
             
             # Start demo controller
             try:

@@ -51,8 +51,47 @@ The AI Tuner Agent supports multiple sensor types and connection methods. This g
 **Example Sensors:**
 - Oil pressure sensors (0-5V output)
 - Coolant temperature sensors
-- Fuel pressure sensors
+- Fuel pressure sensors (pre/post regulator)
 - Battery voltage monitors
+- EGT sensors (thermocouple amplifiers)
+- Suspension travel sensors (linear potentiometers)
+- Steering angle sensors (rotary potentiometers)
+
+### 2.5. Cylinder Pressure Sensors (Advanced/Professional)
+
+**⚠️ Professional Feature:** Requires specialized hardware and installation
+
+**Best for:** Professional engine tuning, combustion analysis, motorsport applications
+
+**Hardware Required:**
+- **High-temperature pressure transducers:** Piezoelectric or piezoresistive sensors
+- **Installation:** Spark plug adapters or drilled cylinder head bores
+- **Data Acquisition System (DAQ):** AEM Series 2, Racepak, Picoscope, Motec, or custom DAQ
+- **TDC Synchronization:** Crank position sensor or encoder for accurate crank angle correlation
+
+**Specifications:**
+- Operating temperature: Up to 300°C+ (572°F+)
+- Pressure range: 0-2000 PSI (0-138 bar) typical
+- Sampling rate: 10kHz+ per channel (100kHz+ recommended)
+- Resolution: 16-bit ADC minimum
+
+**Connection Methods:**
+- **CAN Bus:** AEM Series 2, Motec, Racepak (via CAN messages)
+- **Serial:** RS-232/RS-485 DAQ systems
+- **Ethernet:** Network-enabled DAQ systems
+- **USB:** Direct USB connection DAQ systems
+
+**Features Enabled:**
+- Peak Firing Pressure (PFP) analysis
+- Rate of Pressure Rise (ROPR) - detonation detection
+- Indicated Mean Effective Pressure (IMEP) - accurate HP/TQ calculation
+- Combustion stability analysis
+- Optimal ignition timing optimization
+- Heat release analysis
+
+**📚 For detailed information, see:** [Cylinder Pressure Analysis Documentation](CYLINDER_PRESSURE_ANALYSIS.md)
+
+**Note:** This is a professional-grade feature requiring significant hardware investment ($2000-$10,000+). Standard OBD-II data does not include cylinder pressure.
 
 ### 3. Digital I/O
 
@@ -323,6 +362,18 @@ CANONICAL_METRICS = {
 - Cameras → USB
 - **Total:** 2 CAN buses + I2C + GPIO + USB
 
+### Professional Setup (Cylinder Pressure Analysis)
+- ECU → CAN Bus (can0)
+- Cylinder Pressure DAQ → CAN Bus (can1) or Serial/Ethernet
+- TDC Sync Signal → DAQ or CAN Bus
+- Wideband O2 → CAN Bus
+- Analog sensors (oil, fuel pressure) → ADC board → I2C
+- Digital sensors (switches) → GPIO
+- GPS → USB Serial
+- **Total:** 2 CAN buses + DAQ interface + I2C + GPIO + USB
+- **Hardware Investment:** $2000-$10,000+
+- **See:** [Cylinder Pressure Analysis](CYLINDER_PRESSURE_ANALYSIS.md) for details
+
 ## Power Requirements
 
 **reTerminal DM:**
@@ -362,4 +413,20 @@ CANONICAL_METRICS = {
 5. Connect real hardware
 
 For specific sensor integration help, refer to the sensor manufacturer's documentation and the AI Tuner Agent configuration files.
+
+## Professional DAQ Integration
+
+For professional-grade data acquisition systems including chassis dynamics sensors, advanced engine monitoring, and comprehensive analysis features, see:
+
+**📚 [Professional DAQ Integration Guide](PROFESSIONAL_DAQ_INTEGRATION.md)**
+
+This guide covers:
+- Suspension travel sensors and chassis analysis
+- Steering angle sensors and handling analysis
+- Individual cylinder EGT monitoring
+- Fuel and oil system monitoring
+- Knock detection systems
+- Math channels and custom calculations
+- Video + data overlays
+- Predictive lap timing and sector analysis
 
