@@ -48,9 +48,9 @@ class WebsiteListManager:
         self.websites: Dict[str, WebsiteEntry] = {}
         self._load_list()
         
-        # Add default websites if list is empty
-        if not self.websites:
-            self._add_default_websites()
+        # Don't add default websites - use Google search instead
+        # if not self.websites:
+        #     self._add_default_websites()
         
         LOGGER.info(f"Website List Manager initialized with {len(self.websites)} websites")
     
@@ -305,6 +305,19 @@ class WebsiteListManager:
         except Exception as e:
             LOGGER.warning(f"Failed to load website list: {e}")
             self.websites = {}
+    
+    def clear_all_websites(self) -> int:
+        """
+        Clear all websites from the list.
+        
+        Returns:
+            Number of websites removed
+        """
+        count = len(self.websites)
+        self.websites.clear()
+        self._save_list()
+        LOGGER.info(f"Cleared all {count} websites from list")
+        return count
     
     def get_stats(self) -> Dict[str, Any]:
         """

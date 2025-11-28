@@ -1,0 +1,1410 @@
+{
+  "test_name": "AI Advisor Knowledge Base Test",
+  "timestamp": "2025-11-27T22:09:10.264847",
+  "initialization_time": 0.0978238582611084,
+  "vector_store_type": "VectorKnowledgeStore",
+  "knowledge_entries": 0,
+  "questions": [
+    {
+      "question": "What is ECU tuning?",
+      "expected_topic": "Should explain ECU remapping/flashing",
+      "answer": "I can help with that.\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!",
+      "confidence": 0.7,
+      "answer_length": 301,
+      "response_time": 0.001909494400024414,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is a fuel map?",
+      "expected_topic": "Should explain fuel mapping",
+      "answer": "No problem!\nLet me explain:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 351,
+      "response_time": 0.0006923675537109375,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is a VE table?",
+      "expected_topic": "Should explain volumetric efficiency table",
+      "answer": "Let me help you with that.\nLet me break that down:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 374,
+      "response_time": 0.0006334781646728516,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is boost pressure?",
+      "expected_topic": "Should explain turbo boost",
+      "answer": "No problem!\nLet me break that down:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 359,
+      "response_time": 0.0006406307220458984,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I tune ignition timing?",
+      "expected_topic": "Should provide tuning advice",
+      "answer": "Sure thing!\nLet me explain:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nHappy to help with anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 341,
+      "response_time": 0.0005421638488769531,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is knock detection?",
+      "expected_topic": "Should explain knock sensors",
+      "answer": "Sure thing!\nHere's what I found:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 289,
+      "response_time": 0.0006051063537597656,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is AFR?",
+      "expected_topic": "Should explain air-fuel ratio",
+      "answer": "No problem!\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 285,
+      "response_time": 0.0006444454193115234,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is lambda?",
+      "expected_topic": "Should explain lambda value",
+      "answer": "Got it!\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 352,
+      "response_time": 0.0008680820465087891,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is stoichiometric ratio?",
+      "expected_topic": "Should explain 14.7:1 for gasoline",
+      "answer": "Sure thing!\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 348,
+      "response_time": 0.000698089599609375,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I tune the fuel VE table?",
+      "expected_topic": "Should explain fuel calibration process",
+      "answer": "I can help with that.\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 299,
+      "response_time": 0.0005638599395751953,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What AFR should I target at WOT?",
+      "expected_topic": "Should mention 12.5-13.2:1 range",
+      "answer": "Let me help you with that.\nLet me break that down:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 307,
+      "response_time": 0.0005903244018554688,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is the stoichiometric AFR for gasoline?",
+      "expected_topic": "Should mention 14.7:1",
+      "answer": "No problem!\nLet me break that down:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nHappy to help with anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 349,
+      "response_time": 0.0006854534149169922,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I use Local Autotune?",
+      "expected_topic": "Should explain A key shortcut",
+      "answer": "Let me help you with that.\nLet me break that down:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nHappy to help with anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 364,
+      "response_time": 0.0007612705230712891,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What does too rich mean?",
+      "expected_topic": "Should explain rich condition symptoms",
+      "answer": "Absolutely!\nHere's what I found:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 356,
+      "response_time": 0.0005812644958496094,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What does too lean mean?",
+      "expected_topic": "Should explain lean condition and dangers",
+      "answer": "Let me help you with that.\nLet me break that down:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 374,
+      "response_time": 0.0007205009460449219,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I interpolate fuel tables?",
+      "expected_topic": "Should mention Ctrl+H/V shortcuts",
+      "answer": "Absolutely!\nHere's what I found:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 352,
+      "response_time": 0.0006418228149414062,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is a fuel map used for?",
+      "expected_topic": "Should explain fuel calibration",
+      "answer": "Let me help you with that.\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 367,
+      "response_time": 0.0006172657012939453,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I smooth fuel tables?",
+      "expected_topic": "Should mention Ctrl+S or interpolation",
+      "answer": "Absolutely!\nHere's what I found:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 352,
+      "response_time": 0.0009043216705322266,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What AFR should I use for idle?",
+      "expected_topic": "Should mention 14.5-15.0:1 range",
+      "answer": "Absolutely!\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nHappy to help with anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 346,
+      "response_time": 0.0009582042694091797,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I tune fuel for E85?",
+      "expected_topic": "Should explain E85 fuel requirements",
+      "answer": "Let me help you with that.\nHere's what I found:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 304,
+      "response_time": 0.0008301734924316406,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is the difference between rich and lean?",
+      "expected_topic": "Should explain AFR concepts",
+      "answer": "Absolutely!\nLet me break that down:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 355,
+      "response_time": 0.0009417533874511719,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is MBT timing?",
+      "expected_topic": "Should explain Minimum Best Timing",
+      "answer": "Let me help you with that.\nHere's what I found:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 371,
+      "response_time": 0.0009322166442871094,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I tune ignition timing?",
+      "expected_topic": "Should provide step-by-step process",
+      "answer": "Got it!\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 352,
+      "response_time": 0.0006597042083740234,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What happens if timing is too advanced?",
+      "expected_topic": "Should mention knock/detonation",
+      "answer": "Got it!\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nHappy to help with anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 342,
+      "response_time": 0.0005822181701660156,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What happens if timing is too retarded?",
+      "expected_topic": "Should mention power loss and EGT",
+      "answer": "Let me help you with that.\nLet me explain:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 299,
+      "response_time": 0.0005643367767333984,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How much timing should I run at WOT?",
+      "expected_topic": "Should mention 25-35° BTDC range",
+      "answer": "Sure thing!\nLet me explain:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nHappy to help with anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 341,
+      "response_time": 0.0005702972412109375,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I prevent knock?",
+      "expected_topic": "Should explain timing adjustment and monitoring",
+      "answer": "Absolutely!\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 348,
+      "response_time": 0.0005478858947753906,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is knock detection?",
+      "expected_topic": "Should explain knock sensor operation",
+      "answer": "Let me help you with that.\nLet me explain:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 366,
+      "response_time": 0.0005776882171630859,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How does boost affect ignition timing?",
+      "expected_topic": "Should mention reducing timing with boost",
+      "answer": "Sure thing!\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 352,
+      "response_time": 0.0005402565002441406,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "Can I run more timing with E85?",
+      "expected_topic": "Should explain higher octane benefits",
+      "answer": "Sure thing!\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 289,
+      "response_time": 0.0005726814270019531,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is detonation?",
+      "expected_topic": "Should explain engine knock/detonation",
+      "answer": "Sure thing!\nHere's what I found:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 356,
+      "response_time": 0.0006694793701171875,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I tune boost control?",
+      "expected_topic": "Should explain boost tuning process",
+      "answer": "I can help with that.\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 362,
+      "response_time": 0.0006508827209472656,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is a wastegate?",
+      "expected_topic": "Should explain wastegate function",
+      "answer": "No problem!\nLet me explain:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nHappy to help with anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 341,
+      "response_time": 0.0006163120269775391,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is overboost protection?",
+      "expected_topic": "Should explain safety feature",
+      "answer": "Got it!\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 344,
+      "response_time": 0.0006656646728515625,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I set boost targets?",
+      "expected_topic": "Should mention typical psi/bar values",
+      "answer": "I can help with that.\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nHappy to help with anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 352,
+      "response_time": 0.0006279945373535156,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is closed loop boost control?",
+      "expected_topic": "Should explain PID control",
+      "answer": "Sure thing!\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nHappy to help with anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 342,
+      "response_time": 0.0005953311920166016,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is open loop boost control?",
+      "expected_topic": "Should explain fixed duty cycle",
+      "answer": "Absolutely!\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 289,
+      "response_time": 0.0007205009460449219,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How much boost can I run?",
+      "expected_topic": "Should mention engine build requirements",
+      "answer": "Got it!\nHere's what I found:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 285,
+      "response_time": 0.0005805492401123047,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is boost compensation?",
+      "expected_topic": "Should explain temperature/altitude adjustment",
+      "answer": "Let me help you with that.\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 304,
+      "response_time": 0.0010063648223876953,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I prevent boost spikes?",
+      "expected_topic": "Should mention ramp-in and safety",
+      "answer": "Let me help you with that.\nHere's what I found:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 367,
+      "response_time": 0.0007498264312744141,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is a boost leak?",
+      "expected_topic": "Should explain symptoms and detection",
+      "answer": "Absolutely!\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 285,
+      "response_time": 0.0006871223449707031,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is rev limit protection?",
+      "expected_topic": "Should explain RPM limiting",
+      "answer": "Absolutely!\nHere's what I found:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 356,
+      "response_time": 0.0006296634674072266,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is EGT protection?",
+      "expected_topic": "Should explain exhaust gas temperature monitoring",
+      "answer": "Got it!\nLet me break that down:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 288,
+      "response_time": 0.0007746219635009766,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is lean power cut?",
+      "expected_topic": "Should explain lambda-based protection",
+      "answer": "Got it!\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 281,
+      "response_time": 0.0008156299591064453,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I set up safety protections?",
+      "expected_topic": "Should explain protection configuration",
+      "answer": "Absolutely!\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 356,
+      "response_time": 0.0006799697875976562,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is soft cut vs hard cut?",
+      "expected_topic": "Should explain rev limit types",
+      "answer": "Got it!\nLet me explain:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 347,
+      "response_time": 0.0008447170257568359,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What EGT is too high?",
+      "expected_topic": "Should mention 900°C threshold",
+      "answer": "Let me help you with that.\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 304,
+      "response_time": 0.0007069110870361328,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I configure rev limit?",
+      "expected_topic": "Should explain rev limit setup",
+      "answer": "Let me help you with that.\nHere's what I found:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 371,
+      "response_time": 0.0006279945373535156,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is speed limiting?",
+      "expected_topic": "Should explain pit lane/road speed limiters",
+      "answer": "Absolutely!\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nHappy to help with anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 346,
+      "response_time": 0.0006403923034667969,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is launch control?",
+      "expected_topic": "Should explain 3-stage launch system",
+      "answer": "I can help with that.\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n🏁 Setup Insight\n**Drag Launch & Traction**\n- *Chassis*: Stiffen rear compression + soften rebound 1-2 clicks to keep the tire planted.\n- *Tires*: Target 12-14 psi on drag radials; pre-heat to ~",
+      "confidence": 0.7,
+      "answer_length": 708,
+      "response_time": 0.0029060840606689453,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I set up anti-lag?",
+      "expected_topic": "Should explain anti-lag configuration",
+      "answer": "Sure thing!\nLet me explain:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nHappy to help with anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 341,
+      "response_time": 0.0007581710815429688,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is traction control?",
+      "expected_topic": "Should explain slip-based power management",
+      "answer": "I can help with that.\nLet me explain:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!\n\n🏁 Setup Insight\n**Drag Launch & Traction**\n- *Chassis*: Stiffen rear compression + soften rebound 1-2 clicks to keep the tire planted.\n- *Tires*: Target 12-14 psi on drag radials; pre-heat to ~140°F",
+      "confidence": 0.7,
+      "answer_length": 703,
+      "response_time": 0.001190185546875,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How does shift cut work?",
+      "expected_topic": "Should explain paddle shift support",
+      "answer": "Got it!\nLet me explain:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 347,
+      "response_time": 0.0006043910980224609,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is a 3-stage launch?",
+      "expected_topic": "Should explain launch control stages",
+      "answer": "Sure thing!\nLet me explain:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n🏁 Setup Insight\n**Drag Launch & Traction**\n- *Chassis*: Stiffen rear compression + soften rebound 1-2 clicks to keep the tire planted.\n- *Tires*: Target 12-14 psi on drag radials; pre-heat to ~140°F for c",
+      "confidence": 0.7,
+      "answer_length": 697,
+      "response_time": 0.0007936954498291016,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I tune traction control?",
+      "expected_topic": "Should explain slip threshold adjustment",
+      "answer": "No problem!\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?\n\n🏁 Setup Insight\n**Drag Launch & Traction**\n- *Chassis*: Stiffen rear compression + soften rebound 1-2 clicks to keep the tire planted.\n- *Tires*: Target 12-14 psi on drag radials; pre-heat to ~140°F for consistenc",
+      "confidence": 0.7,
+      "answer_length": 745,
+      "response_time": 0.0007841587066650391,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is boost by gear?",
+      "expected_topic": "Should explain gear-based boost control",
+      "answer": "Got it!\nHere's what I found:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 285,
+      "response_time": 0.0007770061492919922,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I tune nitrous?",
+      "expected_topic": "Should explain nitrous system tuning",
+      "answer": "I can help with that.\nHere's what I found:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 299,
+      "response_time": 0.0006575584411621094,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is dry nitrous?",
+      "expected_topic": "Should explain nitrous-only system",
+      "answer": "No problem!\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 285,
+      "response_time": 0.0007905960083007812,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is wet nitrous?",
+      "expected_topic": "Should explain nitrous+fuel system",
+      "answer": "I can help with that.\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 362,
+      "response_time": 0.0008056163787841797,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What bottle pressure should I use?",
+      "expected_topic": "Should mention 900-1100 psi",
+      "answer": "Sure thing!\nHere's what I found:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 352,
+      "response_time": 0.0009741783142089844,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is progressive nitrous?",
+      "expected_topic": "Should explain gradual activation",
+      "answer": "Absolutely!\nLet me explain:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 284,
+      "response_time": 0.0008473396301269531,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How much fuel do I need with nitrous?",
+      "expected_topic": "Should mention 50-100% increase",
+      "answer": "No problem!\nHere's what I found:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 352,
+      "response_time": 0.0007677078247070312,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What AFR should I use with nitrous?",
+      "expected_topic": "Should mention 11.5-12.5:1",
+      "answer": "No problem!\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nHappy to help with anything else!",
+      "confidence": 0.7,
+      "answer_length": 289,
+      "response_time": 0.0009438991546630859,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is methanol injection?",
+      "expected_topic": "Should explain methanol system",
+      "answer": "Let me help you with that.\nHere's what I found:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 371,
+      "response_time": 0.0008523464202880859,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I tune methanol injection?",
+      "expected_topic": "Should explain duty cycle tuning",
+      "answer": "I can help with that.\nLet me break that down:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 369,
+      "response_time": 0.0007996559143066406,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What does methanol do?",
+      "expected_topic": "Should explain charge cooling and octane boost",
+      "answer": "No problem!\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 285,
+      "response_time": 0.0008652210235595703,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How much methanol should I inject?",
+      "expected_topic": "Should mention 10-30% duty at boost",
+      "answer": "Got it!\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 348,
+      "response_time": 0.0006644725799560547,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is methanol failsafe?",
+      "expected_topic": "Should explain safety shutdown",
+      "answer": "Got it!\nLet me explain:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 280,
+      "response_time": 0.0007867813110351562,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How does methanol affect timing?",
+      "expected_topic": "Should mention +2-5° timing increase",
+      "answer": "Absolutely!\nLet me break that down:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 359,
+      "response_time": 0.0009107589721679688,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is E85?",
+      "expected_topic": "Should explain ethanol blend",
+      "answer": "Absolutely!\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 289,
+      "response_time": 0.0008397102355957031,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I tune for flex fuel?",
+      "expected_topic": "Should explain flex fuel sensor setup",
+      "answer": "I can help with that.\nHere's what I found:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 299,
+      "response_time": 0.0006992816925048828,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is ethanol content?",
+      "expected_topic": "Should explain 51-83% for E85",
+      "answer": "I can help with that.\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nHappy to help with anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 356,
+      "response_time": 0.0006759166717529297,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How much more fuel does E85 need?",
+      "expected_topic": "Should mention 30-40% more fuel",
+      "answer": "No problem!\nLet me explain:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 351,
+      "response_time": 0.0011718273162841797,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "Can I run more timing with E85?",
+      "expected_topic": "Should explain higher octane benefits",
+      "answer": "I can help with that.\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 299,
+      "response_time": 0.0008955001831054688,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is a flex fuel sensor?",
+      "expected_topic": "Should explain ethanol content measurement",
+      "answer": "I can help with that.\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 366,
+      "response_time": 0.0007736682891845703,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is the stoichiometric ratio for E85?",
+      "expected_topic": "Should mention 9.8:1",
+      "answer": "Absolutely!\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 289,
+      "response_time": 0.0010876655578613281,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is a wideband O2 sensor?",
+      "expected_topic": "Should explain wideband lambda sensor",
+      "answer": "Sure thing!\nLet me explain:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 284,
+      "response_time": 0.0010035037994384766,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is a knock sensor?",
+      "expected_topic": "Should explain detonation detection",
+      "answer": "I can help with that.\nLet me explain:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nHappy to help with anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 351,
+      "response_time": 0.0009729862213134766,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is a MAF sensor?",
+      "expected_topic": "Should explain mass airflow sensor",
+      "answer": "I can help with that.\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 362,
+      "response_time": 0.0009984970092773438,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is a MAP sensor?",
+      "expected_topic": "Should explain manifold absolute pressure",
+      "answer": "Got it!\nHere's what I found:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nHappy to help with anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 342,
+      "response_time": 0.0010776519775390625,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I calibrate sensors?",
+      "expected_topic": "Should explain sensor calibration process",
+      "answer": "Got it!\nLet me explain:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 343,
+      "response_time": 0.0009055137634277344,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is EGT?",
+      "expected_topic": "Should explain exhaust gas temperature",
+      "answer": "Sure thing!\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!",
+      "confidence": 0.7,
+      "answer_length": 295,
+      "response_time": 0.0009555816650390625,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is IAT?",
+      "expected_topic": "Should explain intake air temperature",
+      "answer": "Let me help you with that.\nLet me explain:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!",
+      "confidence": 0.7,
+      "answer_length": 309,
+      "response_time": 0.0006220340728759766,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is TPS?",
+      "expected_topic": "Should explain throttle position sensor",
+      "answer": "Got it!\nLet me break that down:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!",
+      "confidence": 0.7,
+      "answer_length": 294,
+      "response_time": 0.0006928443908691406,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What transmissions are supported?",
+      "expected_topic": "Should list supported gearboxes",
+      "answer": "Sure thing!\nLet me break that down:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 359,
+      "response_time": 0.0005879402160644531,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I tune clutch slip?",
+      "expected_topic": "Should explain torque converter control",
+      "answer": "No problem!\nHere's what I found:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 352,
+      "response_time": 0.0006184577941894531,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is sequential control?",
+      "expected_topic": "Should explain sequential gearbox control",
+      "answer": "Got it!\nLet me break that down:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 355,
+      "response_time": 0.0005939006805419922,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I configure transmission?",
+      "expected_topic": "Should explain TCU setup",
+      "answer": "Let me help you with that.\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 363,
+      "response_time": 0.0005278587341308594,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What GPIO boards are supported?",
+      "expected_topic": "Should list supported hardware",
+      "answer": "I can help with that.\nHere's what I found:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 299,
+      "response_time": 0.000598907470703125,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I set up Arduino?",
+      "expected_topic": "Should explain Arduino GPIO setup",
+      "answer": "Sure thing!\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 285,
+      "response_time": 0.0009579658508300781,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is I2C?",
+      "expected_topic": "Should explain I2C bus communication",
+      "answer": "No problem!\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!",
+      "confidence": 0.7,
+      "answer_length": 295,
+      "response_time": 0.0007157325744628906,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I connect sensors?",
+      "expected_topic": "Should explain sensor interface setup",
+      "answer": "Absolutely!\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 289,
+      "response_time": 0.0006287097930908203,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What USB cameras are supported?",
+      "expected_topic": "Should list camera vendors",
+      "answer": "Got it!\nLet me explain:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nHappy to help with anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 337,
+      "response_time": 0.0006031990051269531,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I backup my tune?",
+      "expected_topic": "Should explain backup system",
+      "answer": "Sure thing!\nLet me explain:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 351,
+      "response_time": 0.0005521774291992188,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I revert changes?",
+      "expected_topic": "Should explain revert/restore",
+      "answer": "Absolutely!\nLet me break that down:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 359,
+      "response_time": 0.0005815029144287109,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What keyboard shortcuts are available?",
+      "expected_topic": "Should list common shortcuts",
+      "answer": "Got it!\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 352,
+      "response_time": 0.0005736351013183594,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I view tables in 3D?",
+      "expected_topic": "Should explain V key toggle",
+      "answer": "Got it!\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 348,
+      "response_time": 0.000583648681640625,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I interpolate tables?",
+      "expected_topic": "Should explain Ctrl+H/V",
+      "answer": "Sure thing!\nLet me explain:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 347,
+      "response_time": 0.0005674362182617188,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I smooth tables?",
+      "expected_topic": "Should explain smoothing function",
+      "answer": "Let me help you with that.\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 363,
+      "response_time": 0.0005578994750976562,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "My engine is knocking, what should I do?",
+      "expected_topic": "Should explain knock troubleshooting",
+      "answer": "Absolutely!\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!",
+      "confidence": 0.7,
+      "answer_length": 291,
+      "response_time": 0.0048580169677734375,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "Why is my AFR too rich?",
+      "expected_topic": "Should explain rich condition causes",
+      "answer": "Let me help you with that.\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 367,
+      "response_time": 0.0009481906890869141,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "Why is my AFR too lean?",
+      "expected_topic": "Should explain lean condition causes",
+      "answer": "I can help with that.\nLet me explain:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 294,
+      "response_time": 0.0008485317230224609,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "My boost is inconsistent, why?",
+      "expected_topic": "Should mention boost leaks",
+      "answer": "Absolutely!\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nHappy to help with anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 342,
+      "response_time": 0.0008177757263183594,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "My ECU won't connect, what's wrong?",
+      "expected_topic": "Should explain connection troubleshooting",
+      "answer": "Absolutely!\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 289,
+      "response_time": 0.0009148120880126953,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "My camera isn't detected, help?",
+      "expected_topic": "Should explain camera detection",
+      "answer": "Sure thing!\nLet me break that down:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nHappy to help with anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 349,
+      "response_time": 0.0010640621185302734,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "My backup failed, why?",
+      "expected_topic": "Should explain backup troubleshooting",
+      "answer": "Absolutely!\nHere's what I found:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 356,
+      "response_time": 0.0007917881011962891,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is volumetric efficiency?",
+      "expected_topic": "Should explain VE concept",
+      "answer": "Let me help you with that.\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 367,
+      "response_time": 0.0008988380432128906,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is MBT?",
+      "expected_topic": "Should explain Minimum Best Timing",
+      "answer": "Got it!\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!",
+      "confidence": 0.7,
+      "answer_length": 295,
+      "response_time": 0.000797271728515625,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is charge cooling?",
+      "expected_topic": "Should explain intake cooling",
+      "answer": "Got it!\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nHappy to help with anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 342,
+      "response_time": 0.0007467269897460938,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is octane rating?",
+      "expected_topic": "Should explain fuel octane",
+      "answer": "Let me help you with that.\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 367,
+      "response_time": 0.0011034011840820312,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is detonation vs pre-ignition?",
+      "expected_topic": "Should explain difference",
+      "answer": "Absolutely!\nLet me break that down:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 359,
+      "response_time": 0.0010461807250976562,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is boost creep?",
+      "expected_topic": "Should explain boost control issue",
+      "answer": "Got it!\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 281,
+      "response_time": 0.0007860660552978516,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is fuel staging?",
+      "expected_topic": "Should explain primary/secondary injectors",
+      "answer": "No problem!\nLet me break that down:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 292,
+      "response_time": 0.0008742809295654297,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is individual cylinder correction?",
+      "expected_topic": "Should explain per-cylinder tuning",
+      "answer": "No problem!\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 289,
+      "response_time": 0.0009381771087646484,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is trailing ignition?",
+      "expected_topic": "Should explain rotary engine ignition",
+      "answer": "Absolutely!\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 352,
+      "response_time": 0.0008707046508789062,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is flex fuel blending?",
+      "expected_topic": "Should explain automatic map switching",
+      "answer": "Got it!\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 352,
+      "response_time": 0.000705718994140625,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I start tuning from scratch?",
+      "expected_topic": "Should explain systematic approach",
+      "answer": "Absolutely!\nLet me explain:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 347,
+      "response_time": 0.0007047653198242188,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What should I tune first?",
+      "expected_topic": "Should mention fuel before timing",
+      "answer": "No problem!\nLet me explain:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 347,
+      "response_time": 0.0006029605865478516,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I tune safely?",
+      "expected_topic": "Should emphasize protections and small changes",
+      "answer": "I can help with that.\nHere's what I found:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 299,
+      "response_time": 0.0005831718444824219,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is the tuning process?",
+      "expected_topic": "Should explain step-by-step methodology",
+      "answer": "I can help with that.\nHere's what I found:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 299,
+      "response_time": 0.0006835460662841797,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I optimize power?",
+      "expected_topic": "Should explain power tuning strategy",
+      "answer": "Got it!\nHere's what I found:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nHappy to help with anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 342,
+      "response_time": 0.0009152889251708984,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I tune for efficiency?",
+      "expected_topic": "Should explain efficiency tuning",
+      "answer": "Let me help you with that.\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 367,
+      "response_time": 0.001161813735961914,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I tune for racing?",
+      "expected_topic": "Should explain motorsport tuning approach",
+      "answer": "I can help with that.\nLet me break that down:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!",
+      "confidence": 0.7,
+      "answer_length": 308,
+      "response_time": 0.0011217594146728516,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I tune for street?",
+      "expected_topic": "Should explain street tuning considerations",
+      "answer": "I can help with that.\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nHappy to help with anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 356,
+      "response_time": 0.001100778579711914,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I tune a turbo engine?",
+      "expected_topic": "Should explain turbo-specific tuning",
+      "answer": "Got it!\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 281,
+      "response_time": 0.0008533000946044922,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I tune a supercharged engine?",
+      "expected_topic": "Should explain supercharger tuning",
+      "answer": "Absolutely!\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 348,
+      "response_time": 0.0008196830749511719,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I tune a rotary engine?",
+      "expected_topic": "Should mention trailing ignition",
+      "answer": "I can help with that.\nLet me explain:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nFeel free to ask if you need anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 361,
+      "response_time": 0.0010845661163330078,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I tune for high altitude?",
+      "expected_topic": "Should explain altitude compensation",
+      "answer": "No problem!\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 348,
+      "response_time": 0.0008280277252197266,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I tune for hot weather?",
+      "expected_topic": "Should explain temperature compensation",
+      "answer": "Sure thing!\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nHappy to help with anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 346,
+      "response_time": 0.0007731914520263672,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I tune for cold weather?",
+      "expected_topic": "Should explain cold start tuning",
+      "answer": "Got it!\nLet me break that down:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 351,
+      "response_time": 0.0008001327514648438,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I log data?",
+      "expected_topic": "Should explain data logging",
+      "answer": "Absolutely!\nHere's what I found:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 289,
+      "response_time": 0.0007898807525634766,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What should I log?",
+      "expected_topic": "Should list important parameters",
+      "answer": "No problem!\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 289,
+      "response_time": 0.0010023117065429688,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I analyze logs?",
+      "expected_topic": "Should explain log analysis",
+      "answer": "Absolutely!\nHere's what I found:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 352,
+      "response_time": 0.0006330013275146484,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What is telemetry?",
+      "expected_topic": "Should explain real-time data",
+      "answer": "Sure thing!\nLet me break that down:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nHappy to help with anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 349,
+      "response_time": 0.0008194446563720703,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What safety features should I enable?",
+      "expected_topic": "Should list important protections",
+      "answer": "Absolutely!\nHere's what I found:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 289,
+      "response_time": 0.0006749629974365234,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How do I tune safely?",
+      "expected_topic": "Should emphasize safety first approach",
+      "answer": "Got it!\nHere's the deal:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nAnything else you'd like to know?",
+      "confidence": 0.7,
+      "answer_length": 281,
+      "response_time": 0.00060272216796875,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What should I backup?",
+      "expected_topic": "Should explain backup best practices",
+      "answer": "Sure thing!\nSo here's the thing:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 352,
+      "response_time": 0.0005426406860351562,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "How often should I backup?",
+      "expected_topic": "Should recommend frequent backups",
+      "answer": "I can help with that.\nLet me explain:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nLet me know if you have more questions!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 357,
+      "response_time": 0.0005564689636230469,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    },
+    {
+      "question": "What are tuning best practices?",
+      "expected_topic": "Should list recommended practices",
+      "answer": "No problem!\nLet me break that down:\nI don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization.\n\nHappy to help with anything else!\n\n(Note: This answer may benefit from additional context)",
+      "confidence": 0.7,
+      "answer_length": 349,
+      "response_time": 0.000560760498046875,
+      "sources_count": 0,
+      "status": "✓ GOOD"
+    }
+  ],
+  "summary": {
+    "total_questions": 139,
+    "successful": 139,
+    "failed": 0,
+    "average_confidence": 0.7,
+    "average_response_time": 0.0008143452431658189,
+    "good_responses": 139,
+    "moderate_responses": 139,
+    "low_responses": 0,
+    "assessment": "✓ EXCELLENT - Advisor has strong knowledge base"
+  }
+}

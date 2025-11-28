@@ -18,7 +18,7 @@ from tests.conftest import temp_dir, sample_data
 class TestFileUpload:
     """Test file upload functionality."""
     
-    def test_csv_upload(self, temp_dir):
+    def test_csv_upload(self, temp_dir, sample_data):
         """Test CSV file upload."""
         # Create sample CSV file
         csv_file = temp_dir / "test_data.csv"
@@ -38,7 +38,7 @@ class TestFileUpload:
             assert len(rows) == 1
             assert float(rows[0]['rpm']) == sample_data['rpm']
     
-    def test_json_upload(self, temp_dir):
+    def test_json_upload(self, temp_dir, sample_data):
         """Test JSON file upload."""
         json_file = temp_dir / "test_data.json"
         with open(json_file, 'w') as f:
@@ -52,7 +52,7 @@ class TestFileUpload:
             assert data['rpm'] == sample_data['rpm']
             assert data['throttle'] == sample_data['throttle']
     
-    def test_log_file_upload(self, temp_dir):
+    def test_log_file_upload(self, temp_dir, sample_data):
         """Test telemetry log file upload."""
         log_file = temp_dir / "telemetry.log"
         

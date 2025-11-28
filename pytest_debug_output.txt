@@ -1,0 +1,38 @@
+Module: tests/test_file_operations.py
+Return code: 0
+================================================================================
+STDOUT:
+================================================================================
+[1m============================= test session starts =============================[0m
+platform win32 -- Python 3.13.9, pytest-9.0.1, pluggy-1.6.0 -- C:\Users\DC\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\DC\OneDrive\Desktop\AITUNER\2025-AI-TUNER-AGENTV3
+configfile: pytest.ini
+[1mcollecting ... [0mcollected 9 items
+
+tests/test_file_operations.py::TestFileUpload::test_csv_upload [32mPASSED[0m[32m    [ 11%][0m
+tests/test_file_operations.py::TestFileUpload::test_json_upload [32mPASSED[0m[32m   [ 22%][0m
+tests/test_file_operations.py::TestFileUpload::test_log_file_upload [32mPASSED[0m[32m [ 33%][0m
+tests/test_file_operations.py::TestFileExport::test_export_to_csv [32mPASSED[0m[32m [ 44%][0m
+tests/test_file_operations.py::TestFileExport::test_export_to_json [32mPASSED[0m[32m [ 55%][0m
+tests/test_file_operations.py::TestFileExport::test_export_to_excel [33mSKIPPED[0m[32m [ 66%][0m
+tests/test_file_operations.py::TestFileSaveLoad::test_save_configuration [32mPASSED[0m[32m [ 77%][0m
+tests/test_file_operations.py::TestFileSaveLoad::test_load_configuration [32mPASSED[0m[32m [ 88%][0m
+tests/test_file_operations.py::TestFileSaveLoad::test_save_session_data [32mPASSED[0m[32m [100%][0m
+
+============================ slowest 10 durations =============================
+0.00s setup    tests/test_file_operations.py::TestFileUpload::test_csv_upload
+0.00s call     tests/test_file_operations.py::TestFileExport::test_export_to_csv
+0.00s call     tests/test_file_operations.py::TestFileUpload::test_csv_upload
+0.00s call     tests/test_file_operations.py::TestFileExport::test_export_to_json
+0.00s call     tests/test_file_operations.py::TestFileSaveLoad::test_load_configuration
+0.00s call     tests/test_file_operations.py::TestFileUpload::test_json_upload
+0.00s call     tests/test_file_operations.py::TestFileSaveLoad::test_save_session_data
+0.00s call     tests/test_file_operations.py::TestFileSaveLoad::test_save_configuration
+0.00s call     tests/test_file_operations.py::TestFileUpload::test_log_file_upload
+0.00s call     tests/test_file_operations.py::TestFileExport::test_export_to_excel
+[32m======================== [32m[1m8 passed[0m, [33m1 skipped[0m[32m in 0.20s[0m[32m =========================[0m
+
+================================================================================
+STDERR:
+================================================================================

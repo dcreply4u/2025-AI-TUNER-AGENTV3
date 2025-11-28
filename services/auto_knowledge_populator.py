@@ -160,8 +160,101 @@ class AutoKnowledgePopulator:
             "errors": []
         }
         
-        # Strategy 1: Search forums from website list
-        if self.website_ingestion_service:
+        # Strategy 1: Web search (Google/DuckDuckGo) - FASTEST and most reliable
+        if self.web_search_service and self.web_search_service.is_available():
+            try:
+                LOGGER.info("="*60)
+                LOGGER.info(f"🌐 SEARCHING WEB (Google/DuckDuckGo) for: {question}")
+                LOGGER.info("="*60)
+                search_start = time.time()
+                search_results = self.web_search_service.search(question, max_results=5)
+                search_elapsed = time.time() - search_start
+                LOGGER.info(f"⏱️  Web search completed in {search_elapsed:.2f}s")
+                
+                if search_results and search_results.results:
+                    LOGGER.info(f"✅ Found {len(search_results.results)} search results!")
+                    for i, result in enumerate(search_results.results[:3], 1):
+                        LOGGER.info(f"  [{i}] {result.title[:60]}...")
+                        LOGGER.info(f"      URL: {result.url[:60]}...")
+                    
+                    # Add search results to knowledge base
+                    chunks_added = 0
+                    LOGGER.info("📝 Adding search results to knowledge base...")
+                    for result in search_results.results[:3]:  # Top 3 results
+                        try:
+                            # Add as knowledge entry via knowledge base manager
+                            if self.knowledge_base_manager:
+                                # Use the knowledge base manager's add method
+                                knowledge_text = f"{result.title}\n\n{result.snippet}"
+                                
+                                # Try direct vector store access if available
+                                if hasattr(self.knowledge_base_manager, 'vector_store') and self.knowledge_base_manager.vector_store:
+                                    LOGGER.info(f"  ➕ Adding: {result.title[:50]}...")
+                                    doc_id = self.knowledge_base_manager.vector_store.add_knowledge(
+                                        text=knowledge_text,
+                                        metadata={
+                                            "source": "web_search",
+                                            "url": result.url,
+                                            "topic": question,
+                                            "auto_populated": True
+                                        }
+                                    )
+                                    chunks_added += 1
+                                    LOGGER.info(f"     ✓ Added (ID: {doc_id[:20]}...)")
+                                # Fallback: use knowledge base manager's add method
+                                elif hasattr(self.knowledge_base_manager, 'add_knowledge'):
+                                    self.knowledge_base_manager.add_knowledge(
+                                        text=knowledge_text,
+                                        metadata={
+                                            "source": "web_search",
+                                            "url": result.url,
+                                            "topic": question,
+                                            "auto_populated": True
+                                        }
+                                    )
+                                    chunks_added += 1
+                        except Exception as e:
+                            error_msg = f"Failed to add search result: {e}"
+                            results["errors"].append(error_msg)
+                            LOGGER.warning(f"Failed to add search result: {e}")
+                            import traceback
+                            LOGGER.debug(f"Traceback: {traceback.format_exc()}")
+                    
+                    if chunks_added > 0:
+                        results["chunks_added"] += chunks_added
+                        results["sources_tried"].append("web_search")
+                        results["success"] = True
+                        LOGGER.info(f"✓ Added {chunks_added} knowledge chunks from web search for: {question[:50]}")
+                        
+                        # Save to KB file if available
+                        if self.kb_file_manager:
+                            try:
+                                top_result = search_results.results[0]
+                                self.kb_file_manager.add_entry(
+                                    question=question,
+                                    answer=top_result.snippet,
+                                    source="web_search",
+                                    url=top_result.url,
+                                    title=top_result.title,
+                                    confidence=0.7,
+                                    topic=self._extract_topic(question),
+                                    keywords=self._extract_keywords(question),
+                                    verified=False
+                                )
+                                LOGGER.info(f"Saved to KB file: {question[:50]}...")
+                            except Exception as e:
+                                LOGGER.warning(f"Failed to save to KB file: {e}")
+                                results["errors"].append(f"KB file save error: {e}")
+                    else:
+                        LOGGER.warning(f"No chunks added from web search (search returned {len(search_results.results)} results but add_knowledge failed)")
+                        if not results["errors"]:
+                            results["errors"].append("Web search returned results but failed to add to knowledge base - check vector store")
+            except Exception as e:
+                results["errors"].append(f"Web search error: {e}")
+                LOGGER.warning(f"Web search failed: {e}")
+        
+        # Strategy 2: Search forums from website list (fallback, slower)
+        if not results["success"] and self.website_ingestion_service:
             try:
                 websites = self.website_ingestion_service.website_list_manager.get_websites(
                     enabled_only=True,
@@ -231,8 +324,9 @@ class AutoKnowledgePopulator:
                             except Exception as e:
                                 LOGGER.warning(f"Failed to save to KB file: {e}")
                     
-                    # Add top results to knowledge base (vector store)
-                    if self.knowledge_base_manager:
+                    # Add top results to knowledge base (vector store) - already done above
+                    # This section is redundant but kept for compatibility
+                    if self.knowledge_base_manager and not results["success"]:
                         for result in search_results.results[:2]:
                             try:
                                 chunks = self.knowledge_base_manager.add_website(
@@ -256,9 +350,13 @@ class AutoKnowledgePopulator:
                 LOGGER.warning(f"Web search failed: {e}")
         
         if results["success"]:
-            LOGGER.info(f"Auto-populated {results['chunks_added']} chunks for: {question[:50]}")
+            LOGGER.info(f"✓ Auto-populated {results['chunks_added']} chunks for: {question[:50]}")
         else:
-            LOGGER.warning(f"Auto-population failed for: {question[:50]}")
+            error_summary = "; ".join(results["errors"][:3]) if results["errors"] else "Unknown error"
+            LOGGER.warning(f"✗ Auto-population failed for: {question[:50]} - {error_summary}")
+            if results["errors"]:
+                for error in results["errors"]:
+                    LOGGER.debug(f"  Error detail: {error}")
         
         return results
     

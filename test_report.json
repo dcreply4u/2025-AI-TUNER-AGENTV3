@@ -1,0 +1,178 @@
+{
+  "generated": "2025-11-27T19:39:33.783896",
+  "summary": {
+    "total_modules": 12,
+    "passed_modules": 6,
+    "total_tests": 112,
+    "passed_tests": 101,
+    "failed_tests": 9,
+    "skipped_tests": 2,
+    "total_time_seconds": 25.142295360565186
+  },
+  "modules": {
+    "File Operations": {
+      "module": "tests/test_file_operations.py",
+      "success": true,
+      "elapsed": 0.7329611778259277,
+      "tests_run": 9,
+      "tests_passed": 8,
+      "tests_failed": 0,
+      "tests_skipped": 1,
+      "errors": []
+    },
+    "Graphing & Visualization": {
+      "module": "tests/test_graphing.py",
+      "success": true,
+      "elapsed": 1.6032185554504395,
+      "tests_run": 12,
+      "tests_passed": 12,
+      "tests_failed": 0,
+      "tests_skipped": 0,
+      "errors": []
+    },
+    "Data Reading": {
+      "module": "tests/test_data_reading.py",
+      "success": false,
+      "elapsed": 7.709368705749512,
+      "tests_run": 13,
+      "tests_passed": 11,
+      "tests_failed": 2,
+      "tests_skipped": 0,
+      "errors": []
+    },
+    "AI Advisor": {
+      "module": "tests/test_ai_advisor.py",
+      "success": false,
+      "elapsed": 4.076398134231567,
+      "tests_run": 7,
+      "tests_passed": 5,
+      "tests_failed": 2,
+      "tests_skipped": 0,
+      "errors": []
+    },
+    "Telemetry Processing": {
+      "module": "tests/test_telemetry_processing.py",
+      "success": false,
+      "elapsed": 0.7987816333770752,
+      "tests_run": 8,
+      "tests_passed": 6,
+      "tests_failed": 2,
+      "tests_skipped": 0,
+      "errors": []
+    },
+    "Integration": {
+      "module": "tests/test_integration.py",
+      "success": false,
+      "elapsed": 4.148384094238281,
+      "tests_run": 7,
+      "tests_passed": 6,
+      "tests_failed": 1,
+      "tests_skipped": 0,
+      "errors": []
+    },
+    "Configuration": {
+      "module": "tests/test_configuration.py",
+      "success": true,
+      "elapsed": 0.5654683113098145,
+      "tests_run": 7,
+      "tests_passed": 7,
+      "tests_failed": 0,
+      "tests_skipped": 0,
+      "errors": []
+    },
+    "UI Components": {
+      "module": "tests/test_ui_components.py",
+      "success": true,
+      "elapsed": 0.7433187961578369,
+      "tests_run": 8,
+      "tests_passed": 8,
+      "tests_failed": 0,
+      "tests_skipped": 0,
+      "errors": []
+    },
+    "Error Handling": {
+      "module": "tests/test_error_handling.py",
+      "success": true,
+      "elapsed": 0.540571928024292,
+      "tests_run": 11,
+      "tests_passed": 11,
+      "tests_failed": 0,
+      "tests_skipped": 0,
+      "errors": []
+    },
+    "Performance": {
+      "module": "tests/test_performance.py",
+      "success": true,
+      "elapsed": 0.645395040512085,
+      "tests_run": 5,
+      "tests_passed": 5,
+      "tests_failed": 0,
+      "tests_skipped": 0,
+      "errors": []
+    },
+    "CAN Bus": {
+      "module": "tests/test_can_bus.py",
+      "success": false,
+      "elapsed": 2.5112290382385254,
+      "tests_run": 11,
+      "tests_passed": 9,
+      "tests_failed": 1,
+      "tests_skipped": 1,
+      "errors": []
+    },
+    "Comprehensive QA": {
+      "module": "tests/test_comprehensive_qa.py",
+      "success": false,
+      "elapsed": 1.0645551681518555,
+      "tests_run": 14,
+      "tests_passed": 13,
+      "tests_failed": 1,
+      "tests_skipped": 0,
+      "errors": []
+    }
+  },
+  "issues": [
+    {
+      "category": "Data Reading",
+      "severity": "high",
+      "description": "2 test(s) failed in Data Reading",
+      "module": "tests/test_data_reading.py",
+      "errors": []
+    },
+    {
+      "category": "AI Advisor",
+      "severity": "high",
+      "description": "2 test(s) failed in AI Advisor",
+      "module": "tests/test_ai_advisor.py",
+      "errors": []
+    },
+    {
+      "category": "Telemetry Processing",
+      "severity": "high",
+      "description": "2 test(s) failed in Telemetry Processing",
+      "module": "tests/test_telemetry_processing.py",
+      "errors": []
+    },
+    {
+      "category": "Integration",
+      "severity": "high",
+      "description": "1 test(s) failed in Integration",
+      "module": "tests/test_integration.py",
+      "errors": []
+    },
+    {
+      "category": "CAN Bus",
+      "severity": "high",
+      "description": "1 test(s) failed in CAN Bus",
+      "module": "tests/test_can_bus.py",
+      "errors": []
+    },
+    {
+      "category": "Comprehensive QA",
+      "severity": "high",
+      "description": "1 test(s) failed in Comprehensive QA",
+      "module": "tests/test_comprehensive_qa.py",
+      "errors": []
+    }
+  ]
+}

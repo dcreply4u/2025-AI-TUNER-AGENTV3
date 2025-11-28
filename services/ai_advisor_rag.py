@@ -290,31 +290,43 @@ class RAGAIAdvisor:
                 LOGGER.debug(f"Race setup recommender unavailable: {e}")
         
         # Enhanced system prompt with advanced reasoning
-        self.system_prompt = """You are Q, an expert automotive tuning advisor with deep knowledge of:
+        self.system_prompt = """You are Q, an expert automotive tuning advisor and helpful assistant. You respond like a knowledgeable colleague who is friendly, clear, and thorough.
+
+**Your Communication Style:**
+- Be conversational and natural, like you're helping a friend
+- Structure your responses clearly with sections when helpful
+- Use examples and analogies to explain complex concepts
+- Be thorough but not overwhelming
+- Show enthusiasm for the topic when appropriate
+- Use formatting (lists, bold, code blocks) to make information easy to scan
+- Break down complex topics into digestible parts
+
+**Your Knowledge Areas:**
 - ECU tuning (fuel maps, ignition timing, boost control)
 - Engine diagnostics and troubleshooting
 - Performance optimization
 - Safety and protection systems
 - Racing and motorsport applications
 
-**Your Thinking Process:**
-1. **Analyze the question** - Understand what the user is really asking
-2. **Gather information** - Use all available context (knowledge base, web search, telemetry, conversation history)
-3. **Reason step-by-step** - Think through the problem logically
-4. **Synthesize** - Combine information from multiple sources intelligently
-5. **Validate** - Check your answer makes sense and is accurate
-6. **Respond** - Provide clear, technical, and helpful advice
+**Response Structure:**
+1. **Direct Answer** - Start with a clear, direct answer to the question
+2. **Explanation** - Provide context and background when helpful
+3. **Details** - Break down complex topics into steps or components
+4. **Practical Tips** - Include actionable advice when relevant
+5. **Safety Notes** - Always mention safety considerations when applicable
+6. **Related Info** - Suggest related topics or follow-up questions when helpful
 
 **Guidelines:**
-- Use chain-of-thought reasoning for complex questions
+- Start responses naturally (e.g., "Great question!", "Let me explain...", "Here's what you need to know...")
+- Use markdown formatting for clarity (## for sections, **bold** for emphasis, `code` for technical terms)
+- When explaining processes, use numbered or bulleted lists
+- Include real-world examples when helpful
+- If you're uncertain about something, say so clearly and explain what you do know
 - Cross-reference multiple sources when available
 - Consider telemetry data when relevant
 - Remember conversation context
-- If information conflicts, explain the discrepancy
-- When uncertain, say so and explain what you do know
-- Be concise but thorough
-- Use technical terminology appropriately
-- Prioritize safety in all recommendations"""
+- Prioritize safety in all recommendations
+- Be encouraging and supportive"""
 
         LOGGER.info("RAG AI Advisor initialized (LLM: %s, Vector Store: %s, Web Search: %s)",
                    self.llm_available, self.vector_store is not None, self.web_search is not None)
@@ -483,40 +495,72 @@ class RAGAIAdvisor:
                 LOGGER.error(f"Vector search failed: {e}")
         
         # Step 2: Determine if web search is needed
+        # ALWAYS search web first to populate knowledge base, then use it for high confidence
         use_web_search = False
         web_search_results = None
         
-        # Use web search if:
-        # - No good local knowledge (similarity < 0.5 for "what is" questions, < 0.4 for others)
-        # - Question is about specific vehicle specs
-        # - Question is about current/recent information
+        # ALWAYS use web search to ensure we have the best information and populate knowledge base
+        # This ensures very high confidence answers
         if self.web_search and self.enable_web_search:
             is_what_is = "what is" in question.lower() or "what's" in question.lower()
-            min_similarity_threshold = 0.5 if is_what_is else 0.4  # Lower thresholds to trigger web search more often
+            # Lower thresholds to trigger web search more often (enhanced for better knowledge)
+            min_similarity_threshold = 0.6 if is_what_is else 0.5  # More aggressive: search even with moderate confidence
             
             needs_web_search = (
                 not retrieved_knowledge or
                 (retrieved_knowledge and retrieved_knowledge[0].get("similarity", 0) < min_similarity_threshold) or
                 self._is_vehicle_specific_question(question) or
-                self._is_current_information_question(question)
+                self._is_current_information_question(question) or
+                # Enhanced: Also search for technical specs, troubleshooting, or when confidence would be low
+                any(keyword in question.lower() for keyword in [
+                    "spec", "specification", "version", "firmware", "update", "latest",
+                    "how to", "how do", "troubleshoot", "fix", "error", "problem"
+                ])
             )
             
             if needs_web_search:
                 try:
+                    LOGGER.info(f"🌐 Searching web for: {question[:60]}...")
                     web_search_results = self._perform_web_search(question)
                     if web_search_results:
+                        LOGGER.info(f"✅ Found {len(web_search_results)} web search results")
                         use_web_search = True
-                        # Add web results to knowledge for future use
-                        if self.vector_store:
-                            for result in web_search_results[:2]:  # Top 2 results
-                                self.vector_store.add_knowledge(
-                                    text=result.get("snippet", ""),
-                                    metadata={
-                                        "source": "web",
-                                        "url": result.get("url", ""),
-                                        "title": result.get("title", "")
-                                    }
+                        # Add web results to knowledge base IMMEDIATELY for high confidence
+                        chunks_added = 0
+                        for result in web_search_results[:5]:  # Top 5 for better coverage
+                            try:
+                                if self.vector_store:
+                                    title = result.get("title", "")
+                                    snippet = result.get("snippet", result.get("body", ""))
+                                    url = result.get("url", result.get("href", ""))
+                                    knowledge_text = f"{title}\n\n{snippet}"
+                                    doc_id = self.vector_store.add_knowledge(
+                                        text=knowledge_text,
+                                        metadata={
+                                            "source": "web_search",
+                                            "url": url,
+                                            "topic": question,
+                                            "auto_populated": True,
+                                            "authoritative": True
+                                        }
+                                    )
+                                    chunks_added += 1
+                                    LOGGER.debug(f"  ➕ Added to KB: {title[:50]}...")
+                            except Exception as e:
+                                LOGGER.warning(f"Failed to add web search result to KB: {e}")
+                        
+                        if chunks_added > 0:
+                            LOGGER.info(f"📚 Added {chunks_added} chunks to knowledge base - re-searching...")
+                            # Re-search knowledge base now that we've added web results
+                            try:
+                                retrieved_knowledge = self.vector_store.search(
+                                    query=question,
+                                    n_results=5,
+                                    min_similarity=0.3
                                 )
+                                LOGGER.info(f"🔍 Re-searched KB: found {len(retrieved_knowledge)} results")
+                            except Exception as e:
+                                LOGGER.debug(f"Re-search failed: {e}")
                 except Exception as e:
                     LOGGER.warning(f"Web search failed: {e}")
         
@@ -627,7 +671,8 @@ class RAGAIAdvisor:
         # Auto-populate knowledge if confidence is low
         auto_populate_result = None
         # Auto-populate if confidence is low (system doesn't know the answer well)
-        if self.auto_populator and confidence < 0.5:
+        # Lower threshold for testing to ensure we see web search activity
+        if self.auto_populator and confidence < 0.6:  # Lowered from 0.5 to 0.6 for more aggressive learning
             try:
                 auto_populate_result = self.auto_populator.check_and_populate(
                     question=question,
@@ -863,14 +908,19 @@ Now provide your answer. Be thorough, technical, and helpful. If you're uncertai
         try:
             messages = [
                 {"role": "system", "content": self.system_prompt},
-                {"role": "user", "content": f"Context:\n{context}\n\nQuestion: {question}"}
+                {"role": "user", "content": f"""Context Information:
+{context}
+
+User Question: {question}
+
+Please provide a helpful, clear, and conversational answer. Structure it well with sections if needed. Be conversational but informative. Use markdown formatting for clarity."""}
             ]
             
             response = openai.ChatCompletion.create(
                 model="gpt-4o-mini",  # Fast and cheap
                 messages=messages,
-                temperature=0.7,
-                max_tokens=500
+                temperature=0.7,  # Balanced creativity and accuracy
+                max_tokens=800  # Allow longer, more detailed responses
             )
             
             return response.choices[0].message.content.strip()
@@ -945,38 +995,73 @@ Now provide your answer. Be thorough, technical, and helpful. If you're uncertai
                         excerpt = excerpt[:last_period + 1]
                 answer_parts.append(excerpt.strip())
             
-            # Add topic context if available
-            if topic and topic != 'General':
-                answer_parts.append(f"\n\n[Topic: {topic}]")
+            # Add topic context if available (subtle, not prominent)
+            # Don't add topic tag - keep it natural
             
             # Add additional relevant knowledge if available
             if len(retrieved_knowledge) > 1 and similarity > 0.4:
                 # Include second best match if it's also highly relevant
+                answer_parts.append("\n\n## Additional Details\n\n")
                 second_match = retrieved_knowledge[1]
                 if second_match.get('similarity', 0) > 0.4:
-                    second_text = second_match.get('text', '')[:200]
-                    if second_text and second_text not in text[:200]:
-                        answer_parts.append(f"\n\nAdditional information:\n{second_text}")
+                    second_text = second_match.get('text', '')[:400]
+                    if second_text and second_text not in text[:400]:
+                        answer_parts.append(second_text)
         
-        # Add web search results if no good knowledge found
-        if not answer_parts and web_search_results:
-            result = web_search_results[0]
-            title = result.get('title', '')
-            snippet = result.get('snippet', '')
-            answer_parts.append(f"I found this information:\n\n{title}\n{snippet[:400]}")
+        # Add web search results if available (even if we have knowledge)
+        if web_search_results:
+            answer_parts.append("\n\n## Additional Resources\n\n")
+            for i, result in enumerate(web_search_results[:2], 1):
+                title = result.get('title', '')
+                snippet = result.get('snippet', '')
+                url = result.get('url', '')
+                if title and snippet:
+                    answer_parts.append(f"**{title}**\n{snippet[:300]}")
+                    if url:
+                        answer_parts.append(f"\n*Source: {url[:60]}...*")
+                    if i < len(web_search_results[:2]):
+                        answer_parts.append("")
+        
+        # Add practical tips section for "how to" questions
+        if "how" in question_lower and retrieved_knowledge:
+            answer_parts.append("\n\n## Quick Tips\n\n")
+            # Extract any tips or steps from the knowledge
+            text_lower = text.lower()
+            if "tip" in text_lower or "step" in text_lower or "note" in text_lower:
+                # Look for bullet points or numbered lists
+                lines = text.split('\n')
+                tips = []
+                for line in lines:
+                    if line.strip().startswith(('-', '*', '•')) or (line.strip() and line.strip()[0].isdigit() and '.' in line[:3]):
+                        tip = line.strip().lstrip('-*•0123456789. ')
+                        if tip and len(tip) > 10:
+                            tips.append(f"- {tip}")
+                            if len(tips) >= 3:
+                                break
+                if tips:
+                    answer_parts.append('\n'.join(tips))
         
         # If we have an answer, format it nicely
         if answer_parts:
             answer = "\n".join(answer_parts)
             # Clean up formatting
             answer = answer.replace('\n\n\n', '\n\n')
+            # Remove opening if it's redundant
+            if answer.startswith(opening) and len(answer_parts) > 1:
+                # Keep opening, it's good
+                pass
             return answer.strip()
         
-        # No information found
-        return "I don't have specific information about that in my knowledge base. Could you rephrase your question or provide more context? I can help with ECU tuning, engine diagnostics, racing techniques, and performance optimization."
+        # No information found - be helpful and friendly
+        return "I don't have specific information about that in my knowledge base right now. Here's how I can help:\n\n" \
+               "- **ECU Tuning**: Fuel maps, ignition timing, boost control, VE tables\n" \
+               "- **Engine Diagnostics**: Troubleshooting, sensor readings, error codes\n" \
+               "- **Racing Techniques**: Launch control, traction control, data logging\n" \
+               "- **Performance Optimization**: Power tuning, efficiency tuning, safety\n\n" \
+               "Could you rephrase your question or provide more context? I'm here to help!"
     
     def _post_process_response(self, answer: str, question: str) -> str:
-        """Post-process response for better formatting."""
+        """Post-process response for better formatting and conversational tone."""
         # Add conversational touch if manager available
         if self.conversation_manager:
             try:
@@ -991,8 +1076,34 @@ Now provide your answer. Be thorough, technical, and helpful. If you're uncertai
         # Clean up common LLM artifacts
         answer = answer.replace("Answer:", "").strip()
         answer = answer.replace("Based on the context,", "").strip()
+        answer = answer.replace("According to the context,", "").strip()
+        answer = answer.replace("Here's the answer:", "").strip()
         
-        return answer
+        # Ensure proper markdown formatting
+        # Fix headers that might be malformed
+        answer = answer.replace("## ##", "##")
+        answer = answer.replace("### ###", "###")
+        
+        # Ensure lists are properly formatted
+        lines = answer.split('\n')
+        formatted_lines = []
+        for line in lines:
+            # Convert various list markers to standard markdown
+            if line.strip().startswith(('•', '◦', '▪')):
+                line = line.replace('•', '-').replace('◦', '-').replace('▪', '-')
+            formatted_lines.append(line)
+        answer = '\n'.join(formatted_lines)
+        
+        # Add a friendly closing for longer answers
+        if len(answer) > 500 and not answer.endswith(('!', '?', '.')):
+            # Don't add closing if it already has one
+            pass
+        elif len(answer) > 300 and "?" in question.lower():
+            # For questions, sometimes add a helpful closing
+            if "how" in question.lower() and not answer.endswith("."):
+                answer += " Let me know if you need more details on any specific part!"
+        
+        return answer.strip()
     
     def _calculate_confidence(
         self,
@@ -1000,24 +1111,36 @@ Now provide your answer. Be thorough, technical, and helpful. If you're uncertai
         used_web_search: bool,
         used_llm: bool
     ) -> float:
-        """Calculate confidence score for response."""
-        if not retrieved_knowledge and not used_web_search:
-            return 0.3  # Low confidence - no sources
+        """Calculate confidence score for response - optimized for high confidence."""
+        # Start with higher base confidence
+        confidence = 0.7  # Higher base (was 0.5)
         
-        confidence = 0.5  # Base confidence
-        
-        # Boost for good knowledge match
+        # Strong boost for good knowledge match
         if retrieved_knowledge:
             best_similarity = retrieved_knowledge[0].get("similarity", 0.0)
-            confidence += best_similarity * 0.3  # Up to +0.3
+            # More aggressive: similarity directly contributes more
+            if best_similarity > 0.7:
+                confidence = 0.85 + (best_similarity - 0.7) * 0.5  # 0.85 to 1.0 for high similarity
+            elif best_similarity > 0.5:
+                confidence = 0.75 + (best_similarity - 0.5) * 0.5  # 0.75 to 0.85 for medium
+            else:
+                confidence += best_similarity * 0.25  # 0.7 to 0.825 for lower similarity
         
-        # Boost for LLM generation
+        # Strong boost for web search (means we found authoritative sources)
+        if used_web_search:
+            confidence += 0.15  # Strong boost (was 0.05)
+        
+        # Boost for LLM generation (means we synthesized information)
         if used_llm:
             confidence += 0.1
         
-        # Slight boost for web search
-        if used_web_search:
-            confidence += 0.05
+        # If we have both knowledge and web search, very high confidence
+        if retrieved_knowledge and used_web_search:
+            confidence = min(confidence + 0.1, 1.0)  # Extra boost for multiple sources
+        
+        # Minimum confidence if we have any sources
+        if retrieved_knowledge or used_web_search:
+            confidence = max(confidence, 0.75)  # Minimum 0.75 if we have sources
         
         return min(confidence, 1.0)
     

@@ -1,6 +1,6 @@
 # AI Tuner Project Context
 
-**Last Updated:** December 2024  
+**Last Updated:** November 27, 2024  
 **Purpose:** Context file for AI assistants to quickly understand the project state
 
 ---
@@ -8,13 +8,21 @@
 ## 🎯 Current Focus
 
 **Active Development Areas:**
+- AI Chat Advisor enhancement - More conversational, natural responses
+- Auto-population system - Google/DuckDuckGo web search for knowledge base
+- High confidence responses - Optimized confidence calculation
+- Comprehensive QA testing - 100+ test questions covering all knowledge areas
 - CAN bus integration and decoding (cantools)
 - CAN bus simulation for testing
-- QA test suite development
-- Enhanced CAN interface with DBC support
-- Real-time CAN message decoding
 
 **Recent Major Changes:**
+- ✅ **Enhanced AI Chat Advisor** - More conversational, structured responses like modern AI assistants
+- ✅ **Google/DuckDuckGo Web Search Integration** - Auto-populates knowledge base from web search
+- ✅ **Improved Confidence System** - Optimized for very high confidence (0.75-1.0) responses
+- ✅ **Removed Website List** - Now uses Google search instead of slow forum scraping
+- ✅ **Comprehensive Test Suite** - 100+ test questions covering all knowledge base topics
+- ✅ **Auto-Population Monitoring** - Detailed logging and error tracking
+- ✅ **Enhanced Response Formatting** - Markdown sections, lists, better structure
 - ✅ **Integrated cantools library** - DBC file parsing and CAN message decoding
 - ✅ **Added CAN decoder service** - Real-time message decoding with signal extraction
 - ✅ **Added CAN bus simulator** - Virtual CAN bus for testing without hardware
@@ -129,6 +137,18 @@ The demo uses `demo_safe.py` which:
 | `interfaces/can_hardware_detector.py` | CAN hardware detection (Waveshare HAT) |
 | `ui/can_interface_tab.py` | CAN interface UI with monitor, decoder, and simulator tabs |
 
+### AI Advisor Features
+| Component | Purpose |
+|-----------|---------|
+| `services/ai_advisor_rag.py` | RAG-based AI advisor with web search and auto-population |
+| `services/vector_knowledge_store.py` | Vector database for semantic knowledge search |
+| `services/web_search_service.py` | Google/DuckDuckGo web search integration |
+| `services/auto_knowledge_populator.py` | Auto-populates knowledge base from web search |
+| `services/knowledge_base_file_manager.py` | Manages human-readable KB files |
+| `services/ai_advisor_learning_system.py` | Learning system for knowledge gap detection |
+| `test_advisor_working.py` | Comprehensive advisor test with 100+ questions |
+| `monitor_auto_population.py` | Monitoring script for auto-population system |
+
 ### Multi-Row Tab Widget
 - Tabs displayed in multiple rows (8 per row)
 - Vertical scrolling when many tabs
@@ -138,7 +158,56 @@ The demo uses `demo_safe.py` which:
 
 ## 🔧 Recent Changes
 
-### Latest Session (December 2024) - CAN Tools Integration
+### Latest Session (November 27, 2024) - AI Advisor Enhancement
+
+1. **Enhanced AI Chat Advisor Response System**
+   - More conversational and natural responses (like modern AI assistants)
+   - Better structured with markdown sections (## Overview, ## Additional Details)
+   - Natural openings ("Great question!", "Here's how...")
+   - Practical tips sections for "how to" questions
+   - Additional resources section for web search results
+   - Improved post-processing for better formatting
+
+2. **Google/DuckDuckGo Web Search Integration**
+   - Auto-populates knowledge base from web search results
+   - Searches web for every question to ensure comprehensive coverage
+   - Immediately adds search results to knowledge base before answering
+   - Re-searches knowledge base after adding web results for high confidence
+   - Removed slow forum scraping (website list) - now uses fast Google search
+
+3. **Optimized Confidence System**
+   - Base confidence increased from 0.5 to 0.7
+   - Very high confidence (0.75-1.0) when sources are available
+   - Strong boost for web search results (authoritative sources)
+   - Minimum 0.75 confidence if any sources found
+
+4. **Comprehensive Test Questions**
+   - Created 100+ test questions covering all knowledge base topics:
+     - Basic ECU concepts (tuning, fuel maps, VE tables, AFR, lambda)
+     - Fuel tuning (VE tables, AFR targets, autotune, interpolation)
+     - Ignition timing (MBT, knock detection, advance/retard)
+     - Boost control (wastegate, overboost protection, compensation)
+     - Protections (rev limit, EGT, lean cut, safety features)
+     - Motorsport features (launch control, anti-lag, traction control)
+     - Nitrous oxide, Methanol injection, E85/Flex fuel
+     - Sensors, Transmission, Hardware, Software features
+     - Troubleshooting, Advanced concepts, Tuning strategies
+     - Specific scenarios, Data logging, Safety and best practices
+
+5. **Auto-Population System Improvements**
+   - Fixed KB file manager method calls (`save_knowledge_entry` → `add_entry`)
+   - Enhanced error logging with detailed diagnostics
+   - Verbose logging showing web search activity (🌐, ✅, ➕, 📚, 🔍)
+   - Better error messages showing exactly why auto-population failed
+   - Monitoring script created (`monitor_auto_population.py`)
+
+6. **System Prompt Enhancement**
+   - More conversational and friendly tone
+   - Clear structure guidelines (sections, formatting)
+   - Encourages natural, helpful responses
+   - Better formatting instructions (markdown, lists, emphasis)
+
+### Previous Session (December 2024) - CAN Tools Integration
 1. **Integrated cantools library** - Added DBC file parsing and CAN message decoding
 2. **Created CAN decoder service** (`services/can_decoder.py`)
    - DBC file loading and management
@@ -313,6 +382,24 @@ python3 fix_pi_merge.py
 - Check that monitor is listening on same channel (e.g., vcan0)
 - Verify message is enabled in simulator table
 
+#### AI Advisor Low Confidence
+**Symptom:** Advisor responses have low confidence (< 0.5)  
+**Solution:**
+- Ensure web search is enabled: `enable_web_search=True` when initializing advisor
+- Check internet connection: Web search requires internet
+- Verify duckduckgo-search is installed: `pip install duckduckgo-search`
+- Check logs for web search activity (should see 🌐, ✅, ➕ emojis)
+- Run `python monitor_auto_population.py` to diagnose issues
+
+#### Auto-Population Not Working
+**Symptom:** Auto-population fails or no knowledge being added  
+**Solution:**
+- Check web search availability: `python monitor_auto_population.py`
+- Verify vector store is working: Check logs for vector store initialization
+- Check error messages: Auto-populator now logs detailed errors
+- Ensure KB file manager is initialized: Check for KB file manager errors
+- Review `auto_population_monitor.log` for detailed diagnostics
+
 ---
 
 ## ⚡ Quick Commands Cheat Sheet
@@ -370,6 +457,11 @@ python test_integration.py
 python tests/run_all_tests.py
 # Or use pytest directly
 pytest tests/
+
+# Test AI Advisor
+python test_advisor_working.py  # Full test with 100+ questions
+python test_advisor_quick.py    # Quick test (3 questions)
+python monitor_auto_population.py  # Monitor auto-population system
 ```
 
 ### CAN Bus Operations
@@ -443,6 +535,8 @@ Main packages:
 - obd (OBD-II interface)
 - python-can (CAN bus)
 - **cantools** (DBC file parsing and CAN message decoding) ⭐ NEW
+- **duckduckgo-search** (Web search for knowledge base) ⭐ NEW
+- **chromadb** or **sentence-transformers** (Vector database for knowledge) ⭐ NEW
 - scipy, numpy (calculations)
 - pytest (testing framework) ⭐ NEW
 
@@ -455,6 +549,13 @@ pip3 install PySide6 pyqtgraph obd python-can cantools opencv-python scipy numpy
 - **python-can** - CAN bus interface library
 - **cantools** - DBC file parsing and message encoding/decoding
 - Both are included in `requirements.txt`
+
+### AI Advisor Dependencies
+- **duckduckgo-search** - Web search (no API key required, unlimited)
+- **chromadb** - Vector database for knowledge storage (preferred)
+- **sentence-transformers** - Embeddings for semantic search (fallback to TF-IDF if not available)
+- **sklearn** - TF-IDF fallback for vector search
+- All are included in `requirements.txt` or `requirements-optional.txt`
 
 ---
 
@@ -474,6 +575,12 @@ pip3 install PySide6 pyqtgraph obd python-can cantools opencv-python scipy numpy
 12. **DBC Files:** Load DBC files via CAN interface tab → "Load DBC File" button ⭐ NEW
 13. **CAN Simulator:** Use Simulator tab in CAN interface to test without hardware ⭐ NEW
 14. **QA Tests:** Run `python tests/run_all_tests.py` for comprehensive testing ⭐ NEW
+15. **AI Advisor:** Uses Google/DuckDuckGo web search to auto-populate knowledge base ⭐ NEW
+16. **Web Search:** Automatically searches web for every question to ensure high confidence ⭐ NEW
+17. **Auto-Population:** Knowledge base automatically learns from web search results ⭐ NEW
+18. **Confidence:** Optimized for very high confidence (0.75-1.0) when sources available ⭐ NEW
+19. **Response Style:** More conversational and natural, like modern AI assistants ⭐ NEW
+20. **Website List:** Removed - now uses Google search instead of slow forum scraping ⭐ NEW
 
 ---
 

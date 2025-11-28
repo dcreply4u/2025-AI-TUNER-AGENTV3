@@ -1,0 +1,97 @@
+AI TUNER AGENT - COMPREHENSIVE TEST REPORT
+================================================================================
+Generated: 2025-11-27 19:39:33
+Total Modules: 6/12 passed
+Total Tests: 101/112 passed (9 failed, 2 skipped)
+Total Time: 25.14s
+
+MODULE RESULTS:
+--------------------------------------------------------------------------------
+
+File Operations (tests/test_file_operations.py):
+  Status: PASS
+  Time: 0.73s
+  Tests: 8/9 passed (1 skipped)
+
+Graphing & Visualization (tests/test_graphing.py):
+  Status: PASS
+  Time: 1.60s
+  Tests: 12/12 passed
+
+Data Reading (tests/test_data_reading.py):
+  Status: FAIL
+  Time: 7.71s
+  Tests: 11/13 passed (2 failed)
+
+AI Advisor (tests/test_ai_advisor.py):
+  Status: FAIL
+  Time: 4.08s
+  Tests: 5/7 passed (2 failed)
+
+Telemetry Processing (tests/test_telemetry_processing.py):
+  Status: FAIL
+  Time: 0.80s
+  Tests: 6/8 passed (2 failed)
+
+Integration (tests/test_integration.py):
+  Status: FAIL
+  Time: 4.15s
+  Tests: 6/7 passed (1 failed)
+
+Configuration (tests/test_configuration.py):
+  Status: PASS
+  Time: 0.57s
+  Tests: 7/7 passed
+
+UI Components (tests/test_ui_components.py):
+  Status: PASS
+  Time: 0.74s
+  Tests: 8/8 passed
+
+Error Handling (tests/test_error_handling.py):
+  Status: PASS
+  Time: 0.54s
+  Tests: 11/11 passed
+
+Performance (tests/test_performance.py):
+  Status: PASS
+  Time: 0.65s
+  Tests: 5/5 passed
+
+CAN Bus (tests/test_can_bus.py):
+  Status: FAIL
+  Time: 2.51s
+  Tests: 9/11 passed (1 failed) (1 skipped)
+
+Comprehensive QA (tests/test_comprehensive_qa.py):
+  Status: FAIL
+  Time: 1.06s
+  Tests: 13/14 passed (1 failed)
+
+
+ISSUES FOUND:
+--------------------------------------------------------------------------------
+
+[HIGH] Data Reading
+  2 test(s) failed in Data Reading
+  Module: tests/test_data_reading.py
+
+[HIGH] AI Advisor
+  2 test(s) failed in AI Advisor
+  Module: tests/test_ai_advisor.py
+
+[HIGH] Telemetry Processing
+  2 test(s) failed in Telemetry Processing
+  Module: tests/test_telemetry_processing.py
+
+[HIGH] Integration
+  1 test(s) failed in Integration
+  Module: tests/test_integration.py
+
+[HIGH] CAN Bus
+  1 test(s) failed in CAN Bus
+  Module: tests/test_can_bus.py
+
+[HIGH] Comprehensive QA
+  1 test(s) failed in Comprehensive QA
+  Module: tests/test_comprehensive_qa.py

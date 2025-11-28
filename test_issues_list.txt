@@ -1,0 +1,28 @@
+AI TUNER AGENT - TEST ISSUES LIST
+================================================================================
+Generated: 2025-11-27 19:39:33
+Total Issues: 6
+
+
+================================================================================
+HIGH PRIORITY ISSUES (6)
+================================================================================
+
+1. [Data Reading] 2 test(s) failed in Data Reading
+   Module: tests/test_data_reading.py
+
+2. [AI Advisor] 2 test(s) failed in AI Advisor
+   Module: tests/test_ai_advisor.py
+
+3. [Telemetry Processing] 2 test(s) failed in Telemetry Processing
+   Module: tests/test_telemetry_processing.py
+
+4. [Integration] 1 test(s) failed in Integration
+   Module: tests/test_integration.py
+
+5. [CAN Bus] 1 test(s) failed in CAN Bus
+   Module: tests/test_can_bus.py
+
+6. [Comprehensive QA] 1 test(s) failed in Comprehensive QA
+   Module: tests/test_comprehensive_qa.py
+
