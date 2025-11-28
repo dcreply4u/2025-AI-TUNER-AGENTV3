@@ -1,0 +1,335 @@
+# Comprehensive Test Questions
+# Total: 314 questions
+
+## Dyno Calculations
+
+- What is a dynamometer?
+- How does a chassis dyno work?
+- How does an engine dyno work?
+- What is the difference between chassis dyno and engine dyno?
+- What is SAE correction factor?
+- What is STD correction factor?
+- What is uncorrected horsepower?
+- What is corrected horsepower?
+- How do I calculate horsepower from torque?
+- How do I calculate torque from horsepower?
+- What is the 5252 rule?
+- How do I calculate rear wheel horsepower?
+- How do I calculate flywheel horsepower from rear wheel horsepower?
+- What is drivetrain loss?
+- How much drivetrain loss should I expect?
+- How do I calculate power at the wheels?
+- How do I calculate engine power from wheel power?
+- How do I perform a dyno pull?
+- What is a steady state dyno test?
+- What is a sweep test on a dyno?
+- How long should a dyno pull be?
+- What RPM range should I test on a dyno?
+- How do I read a dyno graph?
+- What is a power curve?
+- What is a torque curve?
+- What is peak horsepower?
+- What is peak torque?
+- What is area under the curve?
+- How does temperature affect dyno results?
+- How does humidity affect dyno results?
+- How does barometric pressure affect dyno results?
+- What is SAE J1349 correction?
+- What is SAE J607 correction?
+- What is DIN correction?
+- How do I correct dyno results for altitude?
+- What is the correction factor formula?
+- What is virtual dyno?
+- How does virtual dyno calculate horsepower?
+- What data do I need for virtual dyno?
+- How accurate is virtual dyno?
+- How do I calculate power from acceleration?
+- What is the power calculation formula?
+- How do I calculate torque from acceleration?
+- What is horsepower per liter?
+- What is torque per liter?
+- How do I calculate power to weight ratio?
+- What is a good power to weight ratio?
+- How do I calculate 0-60 time from horsepower?
+- How do I calculate quarter mile time from horsepower?
+- What is trap speed?
+- How do I calculate trap speed from horsepower?
+
+## EFI Tuning
+
+- What is EFI tuning?
+- How does EFI work?
+- What is an EFI system?
+- What is a fuel injector?
+- How do fuel injectors work?
+- What is injector pulse width?
+- What is injector duty cycle?
+- How do I calculate injector size?
+- What size injectors do I need?
+- How do I calculate fuel flow rate?
+- What is a fuel map in EFI?
+- What is an ignition map in EFI?
+- What is VE table in EFI?
+- How do I tune the VE table?
+- What is injector dead time?
+- How do I measure injector dead time?
+- What is injector latency?
+- What is fuel pressure?
+- How does fuel pressure affect tuning?
+- What fuel pressure should I run?
+- How do I adjust fuel pressure?
+- What is a MAP sensor?
+- What is a MAF sensor?
+- What is the difference between MAP and MAF?
+- How do I calibrate a MAP sensor?
+- How do I calibrate a MAF sensor?
+- What is a TPS sensor?
+- How do I calibrate TPS?
+- What is an IAT sensor?
+- What is an ECT sensor?
+- How do temperature sensors affect tuning?
+- How do I tune EFI for idle?
+- How do I tune EFI for cruise?
+- How do I tune EFI for WOT?
+- What is closed loop tuning?
+- What is open loop tuning?
+- What is adaptive learning?
+- How do I disable adaptive learning?
+- What is fuel trim?
+- What is long term fuel trim?
+- What is short term fuel trim?
+- Why is my EFI running rich?
+- Why is my EFI running lean?
+- How do I fix rich condition in EFI?
+- How do I fix lean condition in EFI?
+- What causes injector misfire?
+- How do I test fuel injectors?
+- What is injector balance?
+- How do I clean fuel injectors?
+
+## Holley EFI Tuning
+
+- What is Holley EFI?
+- How do I connect to Holley EFI?
+- What software do I use for Holley EFI?
+- What is Holley EFI software?
+- How do I load a tune in Holley EFI?
+- How do I save a tune in Holley EFI?
+- What is a Holley EFI calibration file?
+- What is the Base Fuel Table in Holley?
+- How do I tune the Base Fuel Table?
+- What is the Target AFR Table in Holley?
+- How do I set Target AFR in Holley?
+- What is the Ignition Timing Table in Holley?
+- How do I tune ignition timing in Holley?
+- What is the VE Table in Holley?
+- How do I tune VE in Holley EFI?
+- What is the Acceleration Enrichment in Holley?
+- How do I tune Acceleration Enrichment?
+- What is Holley EFI Learn?
+- How do I enable Holley Learn?
+- How do I disable Holley Learn?
+- What is Holley EFI Closed Loop?
+- How do I enable Closed Loop in Holley?
+- What is Holley EFI Boost Control?
+- How do I set up boost control in Holley?
+- What is Holley EFI Nitrous Control?
+- How do I set up nitrous in Holley EFI?
+- How do I calibrate MAP sensor in Holley?
+- How do I calibrate TPS in Holley?
+- How do I set up wideband O2 in Holley?
+- What wideband sensors work with Holley?
+- How do I configure IAT sensor in Holley?
+- How do I configure ECT sensor in Holley?
+- What is Holley EFI 2-Step?
+- How do I set up 2-Step in Holley?
+- What is Holley EFI Traction Control?
+- How do I set up Traction Control in Holley?
+- What is Holley EFI Boost by Gear?
+- How do I set up Boost by Gear in Holley?
+- What is Holley EFI Flex Fuel?
+- How do I set up Flex Fuel in Holley?
+- Why won't my Holley EFI connect?
+- How do I update Holley EFI firmware?
+- What causes Holley EFI to run rich?
+- What causes Holley EFI to run lean?
+- How do I reset Holley EFI?
+- How do I backup Holley EFI tune?
+
+## Nitrous Tuning
+
+- What is nitrous oxide?
+- How does nitrous oxide work?
+- What does nitrous do to an engine?
+- How much power does nitrous add?
+- What is a dry nitrous system?
+- What is a wet nitrous system?
+- What is the difference between dry and wet nitrous?
+- What is direct port nitrous?
+- What is a plate nitrous system?
+- What is a nitrous solenoid?
+- What is a nitrous bottle?
+- What is nitrous bottle pressure?
+- What pressure should nitrous bottle be at?
+- How do I check nitrous bottle pressure?
+- What is a nitrous nozzle?
+- How do I size a nitrous nozzle?
+- What is a nitrous purge?
+- How do I set up nitrous purge?
+- How do I tune for nitrous?
+- How much fuel do I need with nitrous?
+- What AFR should I run with nitrous?
+- How do I add fuel for nitrous?
+- What timing should I run with nitrous?
+- How much should I retard timing with nitrous?
+- What is progressive nitrous?
+- How do I set up progressive nitrous?
+- What is a nitrous window switch?
+- How do I set up a nitrous window switch?
+- What safety features do I need for nitrous?
+- What is nitrous failsafe?
+- How do I set up nitrous failsafe?
+- What happens if nitrous bottle pressure drops?
+- How do I prevent nitrous backfire?
+- What causes nitrous backfire?
+- How do I test nitrous system safely?
+- What size nitrous shot should I start with?
+- How do I calculate nitrous shot size?
+- What is a 50hp nitrous shot?
+- What is a 100hp nitrous shot?
+- What is a 150hp nitrous shot?
+- How do I increase nitrous shot size?
+- What is the maximum safe nitrous shot?
+- Why isn't my nitrous working?
+- What causes nitrous to not activate?
+- Why is my nitrous bottle pressure low?
+- How do I refill nitrous bottle?
+- What causes nitrous solenoid failure?
+- How do I test nitrous solenoid?
+
+## Turbo Tuning
+
+- What is a turbocharger?
+- How does a turbocharger work?
+- What is turbo lag?
+- How do I reduce turbo lag?
+- What is boost threshold?
+- What is boost pressure?
+- What is PSI in boost?
+- What is bar in boost?
+- How do I convert PSI to bar?
+- What is a turbo compressor?
+- What is a turbo turbine?
+- What is a wastegate?
+- How does a wastegate work?
+- What is an internal wastegate?
+- What is an external wastegate?
+- What is a blow-off valve?
+- What is a bypass valve?
+- What is the difference between BOV and bypass valve?
+- What is an intercooler?
+- How does an intercooler work?
+- What is charge air temperature?
+- How do I size a turbo?
+- What is turbo A/R ratio?
+- What A/R should I use?
+- What is compressor map?
+- How do I read a compressor map?
+- What is turbo trim?
+- What trim should I use?
+- What is single turbo vs twin turbo?
+- What is sequential turbo?
+- What is twin scroll turbo?
+- How do I tune for turbo?
+- What boost should I run?
+- How do I increase boost?
+- How do I decrease boost?
+- What is boost creep?
+- How do I fix boost creep?
+- What is boost spike?
+- How do I prevent boost spike?
+- What is boost taper?
+- How do I tune boost taper?
+- How do I tune fuel for turbo?
+- What AFR should I run with turbo?
+- How do I tune timing for turbo?
+- How much should I retard timing with boost?
+- What is boost compensation?
+- How do I set up boost compensation?
+- What is boost enrichment?
+- How do I set up boost enrichment?
+- How do I cool intake air with turbo?
+- What is intercooler efficiency?
+- How do I improve intercooler efficiency?
+- What is water injection?
+- How do I set up water injection?
+- What is methanol injection?
+- How do I set up methanol injection?
+- Why is my turbo not making boost?
+- What causes low boost?
+- What causes high boost?
+- Why is my turbo surging?
+- How do I fix turbo surge?
+- What causes turbo failure?
+- How do I prevent turbo failure?
+- What is turbo oiling?
+- How do I set up turbo oiling?
+
+## Formula Calculations
+
+- What is the horsepower formula?
+- What is the torque formula?
+- How do I calculate HP from torque and RPM?
+- How do I calculate torque from HP and RPM?
+- What is the 5252 constant?
+- Why do HP and torque cross at 5252 RPM?
+- How do I calculate power in watts?
+- How do I convert HP to kilowatts?
+- How do I convert kilowatts to HP?
+- How do I calculate airflow?
+- What is the airflow formula?
+- How do I calculate CFM?
+- How do I calculate VE from airflow?
+- What is the volumetric efficiency formula?
+- How do I calculate air density?
+- What is the air density formula?
+- How do I calculate mass airflow?
+- How do I calculate fuel flow rate?
+- What is the fuel flow formula?
+- How do I calculate injector size needed?
+- What is the injector sizing formula?
+- What is BSFC?
+- What is a typical BSFC value?
+- How do I calculate fuel pressure effect?
+- What is the fuel pressure formula?
+- How do I calculate boost pressure?
+- What is the boost pressure formula?
+- How do I convert PSI to bar?
+- How do I convert bar to PSI?
+- How do I calculate compression ratio with boost?
+- What is effective compression ratio?
+- How do I calculate boost from turbo size?
+- How do I calculate 0-60 time?
+- What is the 0-60 formula?
+- How do I calculate quarter mile time?
+- What is the quarter mile formula?
+- How do I calculate trap speed?
+- What is the trap speed formula?
+- How do I calculate power to weight ratio?
+- How do I calculate weight to power ratio?
+- What is the SAE correction formula?
+- How do I calculate SAE correction factor?
+- What is the temperature correction formula?
+- What is the humidity correction formula?
+- What is the barometric correction formula?
+- How do I calculate corrected horsepower?
+- How do I calculate nitrous shot size?
+- What is the nitrous flow formula?
+- How do I calculate fuel needed for nitrous?
+- What is the nitrous fuel ratio?
+- How do I calculate turbo airflow?
+- What is the compressor map formula?
+- How do I calculate turbo efficiency?
+- How do I calculate intercooler efficiency?
+- What is the charge temperature formula?
+
