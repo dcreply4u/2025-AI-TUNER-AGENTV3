@@ -1,0 +1,36 @@
+# Development and Code Review Tools
+# Install with: pip install -r requirements-dev.txt
+
+# Security Scanning
+bandit>=1.7.5
+pip-audit>=2.6.0
+
+# Complexity Analysis
+radon>=6.0.1
+mccabe>=0.7.0
+
+# Code Quality
+pylint>=3.0.0
+flake8>=6.1.0
+black>=23.12.0
+isort>=5.13.0
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+hypothesis>=6.92.0  # Property-based testing for edge cases
+pytest-mock>=3.12.0
+
+# Performance Profiling
+py-spy>=0.3.14  # Sampling profiler
+memory-profiler>=0.61.0
+line-profiler>=4.1.0
+
+# Type Checking
+mypy>=1.7.0
+types-requests>=2.31.0
+
+# Documentation
+sphinx>=7.2.0
+sphinx-rtd-theme>=2.0.0
+
