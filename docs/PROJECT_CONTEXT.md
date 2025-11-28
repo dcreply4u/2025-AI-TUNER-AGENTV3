@@ -76,7 +76,10 @@ Project Path: /home/aituner/AITUNER/2025-AI-TUNER-AGENTV3/
 
 ### SSH Commands (from Windows)
 ```powershell
-# Run command on Pi
+# Run command on Pi (using plink with -batch flag to avoid interactive prompts)
+& "C:\Program Files\PuTTY\plink.exe" -batch -ssh -hostkey "ssh-ed25519 255 SHA256:kYD1kP0J+ldb0WyphVRnikIRQgZJP1nnL6MzESnu2iw" -pw aituner aituner@192.168.1.214 "cd ~/AITUNER/2025-AI-TUNER-AGENTV3 && git pull origin main"
+
+# Or use the script wrapper
 & "C:\Users\DC\OneDrive\Desktop\AITUNER\2025-AI-TUNER-AGENTV3\scripts\run_pi5_command.ps1" -Command "your command here"
 
 # Copy file to Pi
@@ -85,6 +88,8 @@ $hostKey = "ssh-ed25519 255 SHA256:kYD1kP0J+ldb0WyphVRnikIRQgZJP1nnL6MzESnu2iw"
 
 # Sync entire project to Pi (FIXED - now uses correct source path)
 & "C:\Users\DC\OneDrive\Desktop\AITUNER\2025-AI-TUNER-AGENTV3\scripts\sync_to_pi5.ps1"
+# Or use the robust sync script
+& "C:\Users\DC\OneDrive\Desktop\AITUNER\2025-AI-TUNER-AGENTV3\scripts\sync_to_pi5_robust.ps1"
 ```
 
 ### ⚠️ Pi Sync Issue (FIXED)
@@ -434,8 +439,13 @@ git log --oneline -10
 ```powershell
 # Sync to Pi
 .\scripts\sync_to_pi5.ps1
+# Or use robust sync script
+.\scripts\sync_to_pi5_robust.ps1
 
-# Run command on Pi
+# Run command on Pi (direct plink with -batch flag)
+& "C:\Program Files\PuTTY\plink.exe" -batch -ssh -hostkey "ssh-ed25519 255 SHA256:kYD1kP0J+ldb0WyphVRnikIRQgZJP1nnL6MzESnu2iw" -pw aituner aituner@192.168.1.214 "cd ~/AITUNER/2025-AI-TUNER-AGENTV3 && git pull origin main"
+
+# Or use the script wrapper
 .\scripts\run_pi5_command.ps1 -Command "python3 demo_safe.py"
 
 # Test SSH connection

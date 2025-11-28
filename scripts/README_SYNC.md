@@ -76,12 +76,12 @@ python3 scripts/fix_pi_merge.py
 
 1. **Check SSH connection:**
    ```powershell
-   plink -ssh -pw aituner aituner@192.168.1.214 "echo 'Test'"
+   & "C:\Program Files\PuTTY\plink.exe" -batch -ssh -hostkey "ssh-ed25519 255 SHA256:kYD1kP0J+ldb0WyphVRnikIRQgZJP1nnL6MzESnu2iw" -pw aituner aituner@192.168.1.214 "echo 'Test'"
    ```
 
 2. **Check Pi repository exists:**
    ```powershell
-   plink -ssh -pw aituner aituner@192.168.1.214 "cd ~/AITUNER/2025-AI-TUNER-AGENTV3 && git status"
+   & "C:\Program Files\PuTTY\plink.exe" -batch -ssh -hostkey "ssh-ed25519 255 SHA256:kYD1kP0J+ldb0WyphVRnikIRQgZJP1nnL6MzESnu2iw" -pw aituner aituner@192.168.1.214 "cd ~/AITUNER/2025-AI-TUNER-AGENTV3 && git status"
    ```
 
 3. **Manual fix on Pi:**

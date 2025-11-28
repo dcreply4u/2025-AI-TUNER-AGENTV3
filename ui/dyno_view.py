@@ -98,6 +98,29 @@ class DynoCurveWidget(QWidget):
         self.hp_plot.setXRange(0, 8000)
         self.hp_plot.setYRange(0, 1000)
 
+        # Secondary Y-axis for AFR, Boost, Ignition Timing
+        self.secondary_axis = pg.ViewBox()
+        self.hp_plot.showAxis('right')
+        self.hp_plot.scene().addItem(self.secondary_axis)
+        self.hp_plot.getAxis('right').linkToView(self.secondary_axis)
+        self.secondary_axis.setXLink(self.hp_plot.vb)
+        
+        # Update secondary axis when primary axis changes
+        def update_views():
+            self.secondary_axis.setGeometry(self.hp_plot.vb.sceneBoundingRect())
+            self.secondary_axis.linkedViewChanged(self.hp_plot.vb, self.secondary_axis.XAxis)
+        
+        self.hp_plot.vb.sigResized.connect(update_views)
+        update_views()  # Initial update
+        
+        # Secondary parameter curves
+        self.afr_curve = None
+        self.boost_curve = None
+        self.timing_curve = None
+        self.show_afr = False
+        self.show_boost = False
+        self.show_timing = False
+
         # HP curve
         self.hp_curve = self.hp_plot.plot(
             pen=pg.mkPen(color="#00e0ff", width=3),
@@ -129,12 +152,17 @@ class DynoCurveWidget(QWidget):
         # Multiple loaded files tracking
         self.loaded_file_curves: Dict[str, Dict] = {}  # key: file_path, value: {hp_curve, torque_curve, name, color}
         
+        # Current curve for secondary parameter updates
+        self.current_curve: Optional["DynoCurve"] = None
+        
         # Add legend
         self.hp_plot.addLegend(offset=(10, 10))
         self.torque_plot.addLegend(offset=(10, 10))
 
     def update_curve(self, curve: "DynoCurve", color: str = "#00e0ff") -> None:
         """Update dyno curve display."""
+        self.current_curve = curve
+        
         if not curve.readings:
             return
 
@@ -154,6 +182,29 @@ class DynoCurveWidget(QWidget):
         torque_values = [
             r.torque_ftlb for r in sorted_readings if r.torque_ftlb is not None
         ]
+        
+        # Apply smoothing to displayed curves if smoothing_level is set
+        # (This is additional smoothing for visualization, beyond calculation smoothing)
+        smoothing_level = getattr(self, 'display_smoothing_level', None)
+        if smoothing_level and smoothing_level > 1 and len(hp_values) > 3:
+            try:
+                from services.dyno_enhancements import apply_smoothing
+                import numpy as np
+                hp_values = apply_smoothing(np.array(hp_values), smoothing_level=smoothing_level).tolist()
+                if len(torque_values) == len(rpms) and len(torque_values) > 3:
+                    torque_values = apply_smoothing(np.array(torque_values), smoothing_level=smoothing_level).tolist()
+            except ImportError:
+                pass  # Use unsmoothed if enhancements not available
+        
+        # Extract secondary parameters
+        afr_values = [r.afr for r in sorted_readings if r.afr is not None]
+        boost_values = [r.boost_psi for r in sorted_readings if r.boost_psi is not None]
+        timing_values = [r.ignition_timing for r in sorted_readings if r.ignition_timing is not None]
+        
+        # Get RPMs for secondary parameters (may have different length)
+        afr_rpms = [r.rpm for r in sorted_readings if r.rpm is not None and r.afr is not None]
+        boost_rpms = [r.rpm for r in sorted_readings if r.rpm is not None and r.boost_psi is not None]
+        timing_rpms = [r.rpm for r in sorted_readings if r.rpm is not None and r.ignition_timing is not None]
 
         # Update HP curve
         if rpms and hp_values:
@@ -212,6 +263,105 @@ class DynoCurveWidget(QWidget):
                     pen=pg.mkPen(color="#ff6b6b", width=2, style=Qt.DashLine),
                 )
                 self.torque_plot.addItem(self.torque_peak_marker)
+        
+        # Update secondary parameter curves
+        self._update_secondary_curves(afr_rpms, afr_values, boost_rpms, boost_values, timing_rpms, timing_values)
+    
+    def _update_secondary_curves(
+        self,
+        afr_rpms: List[float],
+        afr_values: List[float],
+        boost_rpms: List[float],
+        boost_values: List[float],
+        timing_rpms: List[float],
+        timing_values: List[float],
+    ) -> None:
+        """Update secondary parameter curves (AFR, Boost, Ignition Timing)."""
+        # Remove old curves
+        if self.afr_curve:
+            self.secondary_axis.removeItem(self.afr_curve)
+            self.afr_curve = None
+        if self.boost_curve:
+            self.secondary_axis.removeItem(self.boost_curve)
+            self.boost_curve = None
+        if self.timing_curve:
+            self.secondary_axis.removeItem(self.timing_curve)
+            self.timing_curve = None
+        
+        # Update secondary axis label
+        labels = []
+        if self.show_afr and afr_rpms and afr_values:
+            labels.append("AFR")
+        if self.show_boost and boost_rpms and boost_values:
+            labels.append("Boost (PSI)")
+        if self.show_timing and timing_rpms and timing_values:
+            labels.append("Timing (°)")
+        
+        if labels:
+            self.hp_plot.setLabel("right", " / ".join(labels), color="#ffff00")
+        else:
+            self.hp_plot.setLabel("right", "")
+        
+        # Collect all visible values for combined Y range
+        all_secondary_values = []
+        
+        # Plot AFR
+        if self.show_afr and afr_rpms and afr_values and len(afr_rpms) == len(afr_values):
+            self.afr_curve = pg.PlotDataItem(
+                afr_rpms,
+                afr_values,
+                pen=pg.mkPen(color="#00ff00", width=2, style=Qt.DashLine),
+                name="AFR",
+            )
+            self.secondary_axis.addItem(self.afr_curve)
+            all_secondary_values.extend(afr_values)
+        
+        # Plot Boost
+        if self.show_boost and boost_rpms and boost_values and len(boost_rpms) == len(boost_values):
+            self.boost_curve = pg.PlotDataItem(
+                boost_rpms,
+                boost_values,
+                pen=pg.mkPen(color="#ff00ff", width=2, style=Qt.DashLine),
+                name="Boost",
+            )
+            self.secondary_axis.addItem(self.boost_curve)
+            all_secondary_values.extend(boost_values)
+        
+        # Plot Ignition Timing
+        if self.show_timing and timing_rpms and timing_values and len(timing_rpms) == len(timing_values):
+            self.timing_curve = pg.PlotDataItem(
+                timing_rpms,
+                timing_values,
+                pen=pg.mkPen(color="#ffaa00", width=2, style=Qt.DashLine),
+                name="Timing",
+            )
+            self.secondary_axis.addItem(self.timing_curve)
+            all_secondary_values.extend(timing_values)
+        
+        # Set combined Y range for all secondary parameters
+        if all_secondary_values:
+            min_val = min(all_secondary_values)
+            max_val = max(all_secondary_values)
+            range_val = max_val - min_val
+            if range_val > 0:
+                self.secondary_axis.setYRange(min_val - range_val * 0.1, max_val + range_val * 0.1)
+            else:
+                # Fallback if all values are the same
+                self.secondary_axis.setYRange(min_val * 0.9, max_val * 1.1)
+    
+    def set_secondary_parameters_visibility(
+        self,
+        show_afr: bool = False,
+        show_boost: bool = False,
+        show_timing: bool = False,
+    ) -> None:
+        """Set visibility of secondary parameters."""
+        self.show_afr = show_afr
+        self.show_boost = show_boost
+        self.show_timing = show_timing
+        # Trigger update to refresh curves
+        if hasattr(self, 'current_curve'):
+            self.update_curve(self.current_curve)
 
     def add_comparison_curve(
         self, curve: "DynoCurve", name: str, color: str = "#ffff00"
@@ -477,6 +627,13 @@ class VirtualDynoView(QWidget):
         self.accuracy_label.setText(
             f"Accuracy: {curve.accuracy_estimate * 100:.0f}%"
         )
+    
+    def update_all_curves(self, live_curve: "DynoCurve") -> None:
+        """Update all curves including live data and loaded files."""
+        if hasattr(self.curve_widget, 'update_all_curves'):
+            self.curve_widget.update_all_curves(live_curve)
+        else:
+            self.update_curve(live_curve)
 
     def add_comparison(self, curve: "DynoCurve", name: str) -> None:
         """Add comparison curve."""
@@ -485,6 +642,16 @@ class VirtualDynoView(QWidget):
     def clear_comparisons(self) -> None:
         """Clear comparisons."""
         self.curve_widget.clear_comparisons()
+    
+    def add_loaded_file_curve(
+        self, file_path: str, curve: "DynoCurve", name: str, color: str, visible: bool = True
+    ) -> None:
+        """Add a loaded dyno file curve."""
+        self.curve_widget.add_loaded_file_curve(file_path, curve, name, color, visible)
+    
+    def set_loaded_file_visibility(self, file_path: str, visible: bool) -> None:
+        """Set visibility of a loaded file curve."""
+        self.curve_widget.set_loaded_file_visibility(file_path, visible)
 
 
 __all__ = ["VirtualDynoView", "RealTimeHPMeter", "DynoCurveWidget"]

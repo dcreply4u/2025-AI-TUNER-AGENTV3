@@ -77,6 +77,8 @@ class VehicleSpecs:
     final_drive_ratio: float = 3.5  # Final drive ratio
     use_sae_correction: bool = True  # Apply SAE J1349 correction
     sae_correction_factor: float = 1.0  # SAE correction factor (calculated)
+    correction_standard: str = "sae_j1349"  # "sae_j1349", "din_70020", "none"
+    din_correction_factor: float = 1.0  # DIN 70020 correction factor (calculated)
 
     def total_weight_kg(self) -> float:
         """Total vehicle weight including driver and fuel."""
@@ -189,6 +191,10 @@ class DynoReading:
     method: DynoMethod = DynoMethod.ACCELERATION_BASED
     confidence: float = 0.0  # 0-1, how confident we are in this reading
     conditions: Optional[EnvironmentalConditions] = None
+    # Secondary parameters for graphing
+    afr: Optional[float] = None  # Air-Fuel Ratio
+    boost_psi: Optional[float] = None  # Boost pressure in PSI
+    ignition_timing: Optional[float] = None  # Ignition timing in degrees
 
 
 @dataclass
@@ -262,8 +268,11 @@ class VirtualDyno:
         # Environmental conditions
         self.current_conditions = EnvironmentalConditions()
         
-        # Calculate SAE correction factor
-        self._update_sae_correction()
+        # Smoothing level (1-10 scale)
+        self.smoothing_level: int = 5  # Default: balanced smoothing
+        
+        # Calculate correction factors
+        self._update_correction_factors()
 
     def update_environment(
         self,
@@ -282,9 +291,33 @@ class VirtualDyno:
         if barometric_pressure_kpa is not None:
             self.current_conditions.barometric_pressure_kpa = barometric_pressure_kpa
         
-        # Recalculate SAE correction when environment changes
-        if self.vehicle_specs.use_sae_correction:
-            self._update_sae_correction()
+        # Recalculate correction factors when environment changes
+        self._update_correction_factors()
+    
+    def _update_correction_factors(self) -> None:
+        """Update both SAE and DIN correction factors."""
+        self._update_sae_correction()
+        self._update_din_correction()
+    
+    def _update_din_correction(self) -> None:
+        """
+        Calculate DIN 70020 correction factor for standardizing dyno results.
+        
+        DIN 70020 standardizes power measurements to:
+        - 20°C temperature
+        - 1013.25 mbar (101.325 kPa) barometric pressure
+        - 0% humidity (dry air)
+        """
+        if self.vehicle_specs.correction_standard != "din_70020":
+            self.vehicle_specs.din_correction_factor = 1.0
+            return
+        
+        try:
+            from services.dyno_enhancements import calculate_din_70020_correction
+            self.vehicle_specs.din_correction_factor = calculate_din_70020_correction(self.current_conditions)
+        except ImportError:
+            LOGGER.warning("dyno_enhancements not available, DIN correction disabled")
+            self.vehicle_specs.din_correction_factor = 1.0
     
     def _update_sae_correction(self) -> None:
         """
@@ -336,6 +369,9 @@ class VirtualDyno:
         rpm: Optional[float] = None,
         torque_ftlb: Optional[float] = None,
         timestamp: Optional[float] = None,
+        afr: Optional[float] = None,
+        boost_psi: Optional[float] = None,
+        ignition_timing: Optional[float] = None,
     ) -> DynoReading:
         """
         Calculate horsepower from current telemetry.
@@ -429,9 +465,18 @@ class VirtualDyno:
         # Apply calibration factor
         hp_wheel_calibrated = hp_wheel * self.calibration_factor
 
+        # Apply correction factor based on selected standard
+        correction_factor = 1.0
+        if self.vehicle_specs.correction_standard == "sae_j1349" and self.vehicle_specs.use_sae_correction:
+            correction_factor = self.vehicle_specs.sae_correction_factor
+        elif self.vehicle_specs.correction_standard == "din_70020":
+            correction_factor = self.vehicle_specs.din_correction_factor
+        
+        hp_wheel_corrected = hp_wheel_calibrated * correction_factor
+
         # Estimate crank horsepower (account for drivetrain loss)
         drivetrain_efficiency = 1.0 - self.vehicle_specs.drivetrain_loss
-        hp_crank = hp_wheel_calibrated / drivetrain_efficiency
+        hp_crank = hp_wheel_corrected / drivetrain_efficiency
 
         # Calculate torque if not provided (always calculate when RPM available)
         calculated_torque = None
@@ -456,7 +501,7 @@ class VirtualDyno:
             speed_mph=speed_mph,
             speed_mps=speed_mps,
             acceleration_mps2=smoothed_accel,
-            horsepower_wheel=hp_wheel_calibrated,
+            horsepower_wheel=hp_wheel_corrected,
             horsepower_crank=hp_crank,
             torque_ftlb=calculated_torque or torque_ftlb,
             method=method,
@@ -467,6 +512,9 @@ class VirtualDyno:
                 humidity_percent=self.current_conditions.humidity_percent,
                 barometric_pressure_kpa=self.current_conditions.barometric_pressure_kpa,
             ),
+            afr=afr,
+            boost_psi=boost_psi,
+            ignition_timing=ignition_timing,
         )
 
         # Add to current curve
@@ -761,8 +809,12 @@ class VirtualDyno:
         time_s: Union[np.ndarray, List[float]],
         speed_mps: Union[np.ndarray, List[float]],
         rpm: Optional[Union[np.ndarray, List[float]]] = None,
-        smooth_window: int = 11,
+        smooth_window: Optional[int] = None,
         smooth_poly: int = 3,
+        smoothing_level: Optional[int] = None,
+        afr: Optional[Union[np.ndarray, List[float]]] = None,
+        boost_psi: Optional[Union[np.ndarray, List[float]]] = None,
+        ignition_timing: Optional[Union[np.ndarray, List[float]]] = None,
     ) -> List[DynoReading]:
         """
         Calculate horsepower from time series data (batch processing).
@@ -796,25 +848,44 @@ class VirtualDyno:
         dt = np.gradient(time_s)
         accel_mps2 = np.gradient(speed_mps, dt)
         
-        # Smooth acceleration using Savitzky-Golay filter (preserves signal characteristics)
-        if SCIPY_AVAILABLE and len(accel_mps2) >= smooth_window:
-            # Ensure window is odd
-            if smooth_window % 2 == 0:
-                smooth_window = smooth_window - 1
-            smooth_window = max(3, min(smooth_window, len(accel_mps2)))
-            if smooth_window >= 3:
-                accel_mps2 = savgol_filter(accel_mps2, smooth_window, smooth_poly)
-        elif len(accel_mps2) >= 3:
-            # Fallback to simple moving average if scipy not available
-            accel_smoothed = np.zeros_like(accel_mps2)
-            window = min(3, len(accel_mps2))
-            for i in range(len(accel_mps2)):
-                start = max(0, i - window // 2)
-                end = min(len(accel_mps2), i + window // 2 + 1)
-                accel_smoothed[i] = np.mean(accel_mps2[start:end])
-            accel_mps2 = accel_smoothed
+        # Apply smoothing based on smoothing_level (1-10) or use legacy smooth_window
+        if smoothing_level is not None:
+            # Use new adjustable smoothing system
+            try:
+                from services.dyno_enhancements import apply_smoothing
+                accel_mps2 = apply_smoothing(accel_mps2, smoothing_level=smoothing_level)
+            except ImportError:
+                LOGGER.warning("dyno_enhancements not available, using legacy smoothing")
+                # Fallback to legacy method
+                if smooth_window is None:
+                    smooth_window = 11
+        elif smooth_window is not None:
+            # Legacy smoothing method
+            if SCIPY_AVAILABLE and len(accel_mps2) >= smooth_window:
+                # Ensure window is odd
+                if smooth_window % 2 == 0:
+                    smooth_window = smooth_window - 1
+                smooth_window = max(3, min(smooth_window, len(accel_mps2)))
+                if smooth_window >= 3:
+                    accel_mps2 = savgol_filter(accel_mps2, smooth_window, smooth_poly)
+            elif len(accel_mps2) >= 3:
+                # Fallback to simple moving average if scipy not available
+                accel_smoothed = np.zeros_like(accel_mps2)
+                window = min(3, len(accel_mps2))
+                for i in range(len(accel_mps2)):
+                    start = max(0, i - window // 2)
+                    end = min(len(accel_mps2), i + window // 2 + 1)
+                    accel_smoothed[i] = np.mean(accel_mps2[start:end])
+                accel_mps2 = accel_smoothed
+        else:
+            # Use instance smoothing_level
+            try:
+                from services.dyno_enhancements import apply_smoothing
+                accel_mps2 = apply_smoothing(accel_mps2, smoothing_level=self.smoothing_level)
+            except ImportError:
+                pass  # No smoothing if enhancements not available
         
-        # Convert RPM if provided
+        # Convert RPM and secondary parameters if provided
         rpm_array = None
         if rpm is not None:
             rpm_array = np.asarray(rpm)
@@ -822,11 +893,35 @@ class VirtualDyno:
                 LOGGER.warning("RPM array length doesn't match time, ignoring RPM")
                 rpm_array = None
         
+        afr_array = None
+        if afr is not None:
+            afr_array = np.asarray(afr)
+            if len(afr_array) != len(time_s):
+                LOGGER.warning("AFR array length doesn't match time, ignoring AFR")
+                afr_array = None
+        
+        boost_array = None
+        if boost_psi is not None:
+            boost_array = np.asarray(boost_psi)
+            if len(boost_array) != len(time_s):
+                LOGGER.warning("Boost array length doesn't match time, ignoring Boost")
+                boost_array = None
+        
+        timing_array = None
+        if ignition_timing is not None:
+            timing_array = np.asarray(ignition_timing)
+            if len(timing_array) != len(time_s):
+                LOGGER.warning("Ignition timing array length doesn't match time, ignoring Timing")
+                timing_array = None
+        
         # Calculate HP for each point
         readings = []
         for i in range(len(time_s)):
             speed_mph = speed_mps[i] * MPS_TO_MPH
             rpm_val = float(rpm_array[i]) if rpm_array is not None else None
+            afr_val = float(afr_array[i]) if afr_array is not None else None
+            boost_val = float(boost_array[i]) if boost_array is not None else None
+            timing_val = float(timing_array[i]) if timing_array is not None else None
             
             # Use the improved single-point calculation
             reading = self.calculate_horsepower(
@@ -834,6 +929,9 @@ class VirtualDyno:
                 acceleration_mps2=float(accel_mps2[i]),
                 rpm=rpm_val,
                 timestamp=time_s[i],
+                afr=afr_val,
+                boost_psi=boost_val,
+                ignition_timing=timing_val,
             )
             readings.append(reading)
         

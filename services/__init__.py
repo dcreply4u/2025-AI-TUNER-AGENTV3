@@ -64,6 +64,28 @@ from .voice_ecu_control import ECUAdjustment, VoiceCommand, VoiceECUControl
 from .weather_adaptive_tuning import WeatherAdaptiveTuning, WeatherConditions, WeatherTuningAdjustment
 from .live_streamer import LiveStreamer, StreamConfig, StreamingPlatform
 from .logging_health_monitor import LoggingHealth, LoggingHealthMonitor, LoggingStatus
+
+# Error monitoring service
+try:
+    from .error_monitoring_service import (
+        Breadcrumb,
+        ErrorMonitoringService,
+        ErrorPriority,
+        ErrorReport,
+        ResourceSnapshot,
+        SessionInfo,
+        get_error_monitor,
+    )
+    ERROR_MONITORING_AVAILABLE = True
+except ImportError:
+    ERROR_MONITORING_AVAILABLE = False
+    ErrorMonitoringService = None  # type: ignore
+    ErrorReport = None  # type: ignore
+    ErrorPriority = None  # type: ignore
+    Breadcrumb = None  # type: ignore
+    ResourceSnapshot = None  # type: ignore
+    SessionInfo = None  # type: ignore
+    get_error_monitor = None  # type: ignore
 from .predictive_parts_ordering import FailurePrediction, Part, PartOrder, PartStatus, PredictivePartsOrdering
 from .social_racing_platform import Achievement, AchievementType, Challenge, LeaderboardEntry, SocialRacingPlatform, UserProfile
 
@@ -268,6 +290,18 @@ __all__ = [
     "WeatherStandard",
     "DynoCalibration",
 ]
+
+# Add error monitoring service if available
+if ERROR_MONITORING_AVAILABLE:
+    __all__.extend([
+        "ErrorMonitoringService",
+        "ErrorReport",
+        "ErrorPriority",
+        "Breadcrumb",
+        "ResourceSnapshot",
+        "SessionInfo",
+        "get_error_monitor",
+    ])
 
 # Add auto ingestion service if available
 if AUTO_INGESTION_AVAILABLE:

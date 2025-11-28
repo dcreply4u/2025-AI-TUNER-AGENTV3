@@ -170,6 +170,24 @@ class DynoTab(QWidget):
         self.load_file_btn.clicked.connect(self._load_dyno_file)
         layout.addWidget(self.load_file_btn)
         
+        # Delta Comparison button
+        self.delta_compare_btn = QPushButton("Compare Runs")
+        self.delta_compare_btn.setStyleSheet(f"background-color: #ff6b00; color: #ffffff; padding: {btn_padding_v}px {btn_padding_h}px; font-size: {btn_font}px;")
+        self.delta_compare_btn.clicked.connect(self._calculate_delta_comparison)
+        layout.addWidget(self.delta_compare_btn)
+        
+        # Shift Points button
+        self.shift_points_btn = QPushButton("Shift Points")
+        self.shift_points_btn.setStyleSheet(f"background-color: #00a86b; color: #ffffff; padding: {btn_padding_v}px {btn_padding_h}px; font-size: {btn_font}px;")
+        self.shift_points_btn.clicked.connect(self._calculate_shift_points)
+        layout.addWidget(self.shift_points_btn)
+        
+        # Verify 5,252 RPM button
+        self.verify_5252_btn = QPushButton("Verify 5252")
+        self.verify_5252_btn.setStyleSheet(f"background-color: #6a0dad; color: #ffffff; padding: {btn_padding_v}px {btn_padding_h}px; font-size: {btn_font}px;")
+        self.verify_5252_btn.clicked.connect(self._verify_5252_crossing)
+        layout.addWidget(self.verify_5252_btn)
+        
         return bar
         
     def _create_settings_panel(self) -> QWidget:
@@ -263,16 +281,75 @@ class DynoTab(QWidget):
         self.method_combo.setStyleSheet("color: #ffffff; background-color: #2a2a2a;")
         session_layout.addWidget(self.method_combo)
         
-        # Smoothing
-        session_layout.addWidget(QLabel("Data Smoothing:"))
-        self.smoothing = QSpinBox()
-        self.smoothing.setRange(0, 10)
-        self.smoothing.setValue(3)
-        self.smoothing.setStyleSheet("color: #ffffff; background-color: #2a2a2a;")
-        session_layout.addWidget(self.smoothing)
+        # Smoothing (1-10 scale with slider)
+        smoothing_label = QLabel("Data Smoothing (1-10):")
+        session_layout.addWidget(smoothing_label)
+        smoothing_layout = QHBoxLayout()
+        from PySide6.QtWidgets import QSlider
+        self.smoothing_slider = QSlider(Qt.Horizontal)
+        self.smoothing_slider.setRange(1, 10)
+        self.smoothing_slider.setValue(5)
+        self.smoothing_slider.setStyleSheet("""
+            QSlider::groove:horizontal {
+                background: #2a2a2a;
+                height: 8px;
+                border-radius: 4px;
+            }
+            QSlider::handle:horizontal {
+                background: #00e0ff;
+                width: 18px;
+                margin: -5px 0;
+                border-radius: 9px;
+            }
+        """)
+        self.smoothing_value_label = QLabel("5")
+        self.smoothing_value_label.setStyleSheet("color: #ffffff; min-width: 30px;")
+        self.smoothing_slider.valueChanged.connect(lambda v: self.smoothing_value_label.setText(str(v)))
+        self.smoothing_slider.valueChanged.connect(self._on_smoothing_changed)
+        smoothing_layout.addWidget(self.smoothing_slider)
+        smoothing_layout.addWidget(self.smoothing_value_label)
+        session_layout.addLayout(smoothing_layout)
+        
+        # Correction Standard
+        session_layout.addWidget(QLabel("Correction Standard:"))
+        self.correction_standard_combo = QComboBox()
+        self.correction_standard_combo.addItems(["None", "SAE J1349", "DIN 70020"])
+        self.correction_standard_combo.setCurrentText("SAE J1349")
+        self.correction_standard_combo.setStyleSheet("color: #ffffff; background-color: #2a2a2a;")
+        self.correction_standard_combo.currentTextChanged.connect(self._on_correction_standard_changed)
+        session_layout.addWidget(self.correction_standard_combo)
+        
+        # Secondary Parameters Visibility
+        secondary_group = QGroupBox("Secondary Parameters")
+        secondary_group.setStyleSheet(f"""
+            QGroupBox {{
+                font-size: {group_font}px; font-weight: bold; color: #ffffff;
+                border: {group_border}px solid #404040; border-radius: {group_radius}px;
+                margin-top: {group_margin}px; padding-top: {group_margin}px;
+            }}
+        """)
+        secondary_layout = QVBoxLayout()
+        secondary_layout.setSpacing(get_scaled_size(5))
+        
+        self.show_afr_check = QCheckBox("Show AFR")
+        self.show_afr_check.setStyleSheet("color: #ffffff;")
+        self.show_afr_check.toggled.connect(self._on_secondary_params_changed)
+        secondary_layout.addWidget(self.show_afr_check)
+        
+        self.show_boost_check = QCheckBox("Show Boost")
+        self.show_boost_check.setStyleSheet("color: #ffffff;")
+        self.show_boost_check.toggled.connect(self._on_secondary_params_changed)
+        secondary_layout.addWidget(self.show_boost_check)
+        
+        self.show_timing_check = QCheckBox("Show Ignition Timing")
+        self.show_timing_check.setStyleSheet("color: #ffffff;")
+        self.show_timing_check.toggled.connect(self._on_secondary_params_changed)
+        secondary_layout.addWidget(self.show_timing_check)
+        
+        secondary_group.setLayout(secondary_layout)
+        session_layout.addWidget(secondary_group)
         
         # Auto-start
-        from PySide6.QtWidgets import QCheckBox
         self.auto_start = QCheckBox("Auto-Start on Acceleration")
         self.auto_start.setChecked(True)
         self.auto_start.setStyleSheet("color: #ffffff;")
@@ -318,18 +395,61 @@ class DynoTab(QWidget):
         margin = get_scaled_size(10)
         layout.setContentsMargins(margin, margin, margin, margin)
         
+        # Create tab widget for main view and analysis
+        from PySide6.QtWidgets import QTabWidget
+        self.analysis_tabs = QTabWidget()
+        self.analysis_tabs.setStyleSheet("""
+            QTabWidget::pane {
+                background-color: #1a1a1a;
+                border: 1px solid #404040;
+            }
+            QTabBar::tab {
+                background-color: #2a2a2a;
+                color: #ffffff;
+                padding: 8px 16px;
+                border: 1px solid #404040;
+            }
+            QTabBar::tab:selected {
+                background-color: #00e0ff;
+                color: #000000;
+            }
+        """)
+        
+        # Main dyno view tab
         if VirtualDynoView:
             try:
                 self.dyno_view = VirtualDynoView()
-                layout.addWidget(self.dyno_view, stretch=1)
-            except Exception:
-                placeholder = QLabel("Virtual Dyno View unavailable")
+                self.analysis_tabs.addTab(self.dyno_view, "Dyno Curve")
+            except Exception as e:
+                placeholder = QLabel(f"Virtual Dyno View unavailable: {e}")
                 placeholder.setStyleSheet("color: #ffffff; padding: 20px;")
-                layout.addWidget(placeholder, stretch=1)
+                self.analysis_tabs.addTab(placeholder, "Dyno Curve")
         else:
             placeholder = QLabel("Virtual Dyno module not available")
             placeholder.setStyleSheet("color: #ffffff; padding: 20px;")
-            layout.addWidget(placeholder, stretch=1)
+            self.analysis_tabs.addTab(placeholder, "Dyno Curve")
+        
+        # Delta comparison tab
+        try:
+            from ui.dyno_delta_widget import DynoDeltaWidget
+            self.delta_widget = DynoDeltaWidget()
+            self.analysis_tabs.addTab(self.delta_widget, "Delta Comparison")
+        except ImportError:
+            placeholder = QLabel("Delta comparison widget not available")
+            placeholder.setStyleSheet("color: #ffffff; padding: 20px;")
+            self.analysis_tabs.addTab(placeholder, "Delta Comparison")
+        
+        # Shift points tab
+        try:
+            from ui.dyno_shift_points_widget import DynoShiftPointsWidget
+            self.shift_points_widget = DynoShiftPointsWidget()
+            self.analysis_tabs.addTab(self.shift_points_widget, "Shift Points")
+        except ImportError:
+            placeholder = QLabel("Shift points widget not available")
+            placeholder.setStyleSheet("color: #ffffff; padding: 20px;")
+            self.analysis_tabs.addTab(placeholder, "Shift Points")
+        
+        layout.addWidget(self.analysis_tabs, stretch=1)
         
         return panel
         
@@ -563,13 +683,15 @@ class DynoTab(QWidget):
         rpm_array = np.array([d[2] if d[2] is not None else 0.0 for d in self.logged_data])
         rpm_array = rpm_array if np.any(rpm_array > 0) else None
         
+        # Get smoothing level from UI
+        smoothing_level = self.smoothing_slider.value() if hasattr(self, 'smoothing_slider') else 5
+        
         # Use improved batch calculation method
         readings = self.virtual_dyno.calculate_horsepower_from_timeseries(
             time_s=time_s,
             speed_mps=speed_mps,
             rpm=rpm_array if rpm_array is not None else None,
-            smooth_window=11,
-            smooth_poly=3,
+            smoothing_level=smoothing_level,
         )
         
         # Update curve with processed data
@@ -803,6 +925,29 @@ class DynoTab(QWidget):
                     )
                 
                 self.virtual_dyno = VirtualDyno(vehicle_specs=specs)
+                
+                # Set smoothing level
+                if hasattr(self, 'smoothing_slider'):
+                    self.virtual_dyno.smoothing_level = self.smoothing_slider.value()
+                
+                # Set correction standard
+                if hasattr(self, 'correction_standard_combo'):
+                    standard_text = self.correction_standard_combo.currentText()
+                    standard_map = {
+                        "None": "none",
+                        "SAE J1349": "sae_j1349",
+                        "DIN 70020": "din_70020",
+                    }
+                    self.virtual_dyno.vehicle_specs.correction_standard = standard_map.get(standard_text, "sae_j1349")
+                    self.virtual_dyno._update_correction_factors()
+                
+                # Update environment if available
+                if hasattr(self, 'temperature') and hasattr(self, 'altitude') and hasattr(self, 'humidity'):
+                    self.virtual_dyno.update_environment(
+                        temperature_c=self.temperature.value(),
+                        altitude_m=self.altitude.value(),
+                        humidity_percent=self.humidity.value(),
+                    )
         except Exception as e:
             print(f"Error initializing virtual dyno: {e}")
             
@@ -871,12 +1016,20 @@ class DynoTab(QWidget):
         # Only calculate if we have meaningful data
         if speed_mph > 5.0 and rpm > 500:  # Minimum thresholds
             try:
+                # Get secondary parameters
+                afr = data.get("AFR", data.get("Air_Fuel_Ratio", None))
+                boost_psi = data.get("Boost", data.get("Boost_PSI", data.get("Manifold_Pressure", None)))
+                ignition_timing = data.get("Ignition_Timing", data.get("Spark_Advance", None))
+                
                 # Calculate horsepower using improved method
                 # The VirtualDyno now uses Savitzky-Golay smoothing automatically
                 reading = self.virtual_dyno.calculate_horsepower(
                     speed_mph=speed_mph,
                     acceleration_mps2=acceleration_mps2,
                     rpm=rpm if rpm > 0 else None,
+                    afr=afr,
+                    boost_psi=boost_psi,
+                    ignition_timing=ignition_timing,
                 )
                 
                 # Update view
@@ -1039,6 +1192,169 @@ class DynoTab(QWidget):
         count = self.file_manager.get_count()
         available = self.file_manager.get_available_slots()
         self.file_count_label.setText(f"{count} files loaded ({available} slots available)")
+    
+    def _on_smoothing_changed(self, value: int) -> None:
+        """Handle smoothing level change."""
+        if self.virtual_dyno:
+            self.virtual_dyno.smoothing_level = value
+    
+    def _on_correction_standard_changed(self, standard: str) -> None:
+        """Handle correction standard change."""
+        if not self.virtual_dyno:
+            return
+        
+        # Map UI text to internal value
+        standard_map = {
+            "None": "none",
+            "SAE J1349": "sae_j1349",
+            "DIN 70020": "din_70020",
+        }
+        
+        internal_standard = standard_map.get(standard, "sae_j1349")
+        self.virtual_dyno.vehicle_specs.correction_standard = internal_standard
+        
+        # Update correction factors
+        self.virtual_dyno._update_correction_factors()
+    
+    def _on_secondary_params_changed(self) -> None:
+        """Handle secondary parameter visibility change."""
+        if not hasattr(self, 'dyno_view') or not self.dyno_view:
+            return
+        
+        show_afr = self.show_afr_check.isChecked()
+        show_boost = self.show_boost_check.isChecked()
+        show_timing = self.show_timing_check.isChecked()
+        
+        # Access curve_widget through dyno_view
+        if hasattr(self.dyno_view, 'curve_widget'):
+            self.dyno_view.curve_widget.set_secondary_parameters_visibility(
+                show_afr=show_afr,
+                show_boost=show_boost,
+                show_timing=show_timing,
+            )
+        elif hasattr(self.dyno_view, 'update_curve'):
+            # If curve_widget not directly accessible, trigger update
+            if self.virtual_dyno and self.virtual_dyno.current_curve:
+                self.dyno_view.update_curve(self.virtual_dyno.current_curve)
+    
+    def _calculate_delta_comparison(self) -> None:
+        """Calculate and display delta comparison between two runs."""
+        if not self.virtual_dyno:
+            return
+        
+        runs = self.virtual_dyno.get_session_runs()
+        if len(runs) < 2:
+            from PySide6.QtWidgets import QMessageBox
+            QMessageBox.warning(
+                self,
+                "Insufficient Data",
+                "Need at least 2 runs to compare. Please run multiple logging sessions."
+            )
+            return
+        
+        try:
+            from services.dyno_enhancements import calculate_delta_comparison
+            
+            # Compare last two runs
+            run1 = runs[-2]
+            run2 = runs[-1]
+            
+            analysis = calculate_delta_comparison(
+                run1,
+                run2,
+                run1_name=run1.run_name or "Run 1",
+                run2_name=run2.run_name or "Run 2",
+            )
+            
+            # Update delta widget
+            if hasattr(self, 'delta_widget'):
+                self.delta_widget.update_comparison(analysis)
+                # Switch to delta comparison tab
+                self.analysis_tabs.setCurrentIndex(1)
+        except Exception as e:
+            from PySide6.QtWidgets import QMessageBox
+            QMessageBox.critical(self, "Comparison Failed", f"Failed to calculate delta comparison:\n{str(e)}")
+    
+    def _calculate_shift_points(self) -> None:
+        """Calculate and display optimal shift points."""
+        if not self.virtual_dyno:
+            return
+        
+        curve = self.virtual_dyno.current_curve
+        if not curve or not curve.readings:
+            from PySide6.QtWidgets import QMessageBox
+            QMessageBox.warning(
+                self,
+                "No Data",
+                "No dyno data available. Please run a logging session first."
+            )
+            return
+        
+        # Get gear ratios from vehicle specs
+        gear_ratios = self.virtual_dyno.vehicle_specs.gear_ratios
+        if not gear_ratios:
+            from PySide6.QtWidgets import QMessageBox
+            QMessageBox.warning(
+                self,
+                "No Gear Ratios",
+                "Gear ratios not configured. Please set gear ratios in vehicle specs."
+            )
+            return
+        
+        try:
+            from services.dyno_enhancements import calculate_optimal_shift_points
+            
+            shift_points = calculate_optimal_shift_points(
+                curve,
+                gear_ratios,
+                final_drive_ratio=self.virtual_dyno.vehicle_specs.final_drive_ratio,
+            )
+            
+            # Update shift points widget
+            if hasattr(self, 'shift_points_widget'):
+                self.shift_points_widget.update_shift_points(shift_points)
+                # Switch to shift points tab
+                self.analysis_tabs.setCurrentIndex(2)
+        except Exception as e:
+            from PySide6.QtWidgets import QMessageBox
+            QMessageBox.critical(self, "Calculation Failed", f"Failed to calculate shift points:\n{str(e)}")
+    
+    def _verify_5252_crossing(self) -> None:
+        """Verify HP and Torque curves cross at 5,252 RPM."""
+        if not self.virtual_dyno:
+            return
+        
+        curve = self.virtual_dyno.current_curve
+        if not curve or not curve.readings:
+            return
+        
+        try:
+            from services.dyno_enhancements import verify_5252_crossing
+            from PySide6.QtWidgets import QMessageBox
+            
+            crosses, hp_at_5252, torque_at_5252 = verify_5252_crossing(curve)
+            
+            if crosses:
+                QMessageBox.information(
+                    self,
+                    "Verification Passed",
+                    f"HP and Torque curves correctly cross at 5,252 RPM.\n"
+                    f"HP: {hp_at_5252:.1f}\n"
+                    f"Torque: {torque_at_5252:.1f}"
+                )
+            else:
+                QMessageBox.warning(
+                    self,
+                    "Verification Failed",
+                    f"HP and Torque curves do NOT cross at 5,252 RPM.\n"
+                    f"HP: {hp_at_5252:.1f}\n"
+                    f"Torque: {torque_at_5252:.1f}\n"
+                    f"Difference: {abs(hp_at_5252 - torque_at_5252):.1f}\n\n"
+                    f"This may indicate data quality issues."
+                )
+        except Exception as e:
+            from PySide6.QtWidgets import QMessageBox
+            QMessageBox.critical(self, "Verification Failed", f"Failed to verify 5,252 RPM crossing:\n{str(e)}")
 
 
 __all__ = ["DynoTab"]
