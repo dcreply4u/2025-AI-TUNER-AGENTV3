@@ -416,10 +416,22 @@ class USBManager:
         Returns:
             Path to log directory (always returns a valid path, never None)
         """
+        # Validate log_type to prevent path traversal
+        from core.path_sanitizer import PathSanitizer
+        if not PathSanitizer.validate_filename(log_type):
+            LOGGER.warning(f"Invalid log_type, using default: {log_type}")
+            log_type = "telemetry"
+        
         if self.active_device:
-            log_path = Path(self.active_device.mount_point) / "logs" / log_type
-            log_path.mkdir(parents=True, exist_ok=True)
-            return log_path
+            # Sanitize mount_point and log_type
+            mount_point = Path(self.active_device.mount_point)
+            if not mount_point.exists():
+                LOGGER.warning(f"Mount point does not exist: {mount_point}")
+                # Fall through to fallback
+            else:
+                log_path = mount_point / "logs" / log_type
+                log_path.mkdir(parents=True, exist_ok=True)
+                return log_path
 
         # Fallback to local disk storage
         if fallback is None:

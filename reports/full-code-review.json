@@ -1,0 +1,24 @@
+{
+  "timestamp": "2025-11-28T15:48:16.269554",
+  "project_root": "C:\\Users\\DC\\OneDrive\\Desktop\\AITUNER\\2025-AI-TUNER-AGENTV3",
+  "security": {
+    "bandit": {
+      "available": false,
+      "error": "bandit not installed. Install with: pip install bandit"
+    },
+    "pip_audit": {
+      "available": false,
+      "error": "pip-audit not installed. Install with: pip install pip-audit"
+    }
+  },
+  "complexity": {
+    "complexity": {
+      "available": false,
+      "error": "radon not installed. Install with: pip install radon"
+    },
+    "maintainability": {
+      "available": false,
+      "error": "radon not installed"
+    }
+  }
+}
