@@ -1,6 +1,6 @@
 # AI Tuner Project Context
 
-**Last Updated:** November 26, 2025  
+**Last Updated:** December 2024  
 **Purpose:** Context file for AI assistants to quickly understand the project state
 
 ---
@@ -8,17 +8,19 @@
 ## 🎯 Current Focus
 
 **Active Development Areas:**
-- UI improvements and platform-aware sizing
-- Multi-row tab widget with scrolling
-- Pi sync workflow fixes
-- Code quality improvements (input validation, requirements split)
+- CAN bus integration and decoding (cantools)
+- CAN bus simulation for testing
+- QA test suite development
+- Enhanced CAN interface with DBC support
+- Real-time CAN message decoding
 
 **Recent Major Changes:**
-- Fixed wildcard imports in module_integrator.py
-- Split requirements into core/optional
-- Added comprehensive input validation
-- Created merge conflict resolution scripts for Pi
-- Platform-aware window sizing (Windows vs Pi)
+- ✅ **Integrated cantools library** - DBC file parsing and CAN message decoding
+- ✅ **Added CAN decoder service** - Real-time message decoding with signal extraction
+- ✅ **Added CAN bus simulator** - Virtual CAN bus for testing without hardware
+- ✅ **Enhanced CAN interface tab** - DBC loading, decoded messages view, DBC browser
+- ✅ **Created QA test suite** - Comprehensive pytest-based testing framework
+- ✅ **Added comprehensive documentation** - CANTOOLS_INTEGRATION.md, CAN_SIMULATOR_GUIDE.md
 
 ---
 
@@ -116,6 +118,16 @@ The demo uses `demo_safe.py` which:
 | `ui/telemetry_panel.py` | Live telemetry graphs |
 | `ui/enhanced_widgets.py` | MetricCard, StatusIndicator, etc. |
 | `ui/theme_manager.py` | 7 themes (Dark, Light, Racing, Modern, etc.) |
+| `ui/can_interface_tab.py` | CAN bus monitor with DBC decoding and simulator |
+
+### CAN Bus Features
+| Component | Purpose |
+|-----------|---------|
+| `services/can_decoder.py` | DBC file parsing and CAN message decoding |
+| `services/can_simulator.py` | Virtual CAN bus simulator for testing |
+| `interfaces/can_interface.py` | Optimized CAN bus interface with monitoring |
+| `interfaces/can_hardware_detector.py` | CAN hardware detection (Waveshare HAT) |
+| `ui/can_interface_tab.py` | CAN interface UI with monitor, decoder, and simulator tabs |
 
 ### Multi-Row Tab Widget
 - Tabs displayed in multiple rows (8 per row)
@@ -126,7 +138,35 @@ The demo uses `demo_safe.py` which:
 
 ## 🔧 Recent Changes
 
-### Latest Session (Nov 26, 2025)
+### Latest Session (December 2024) - CAN Tools Integration
+1. **Integrated cantools library** - Added DBC file parsing and CAN message decoding
+2. **Created CAN decoder service** (`services/can_decoder.py`)
+   - DBC file loading and management
+   - Real-time message decoding with signal extraction
+   - Support for multiple DBC databases
+   - Signal value scaling and unit conversion
+3. **Created CAN bus simulator** (`services/can_simulator.py`)
+   - Virtual CAN bus using python-can's virtual interface
+   - Periodic message transmission
+   - DBC-based message generation
+   - Dynamic signal value updates
+4. **Enhanced CAN interface tab** (`ui/can_interface_tab.py`)
+   - Added DBC file loading UI
+   - Decoded Messages tab with real-time decoding
+   - DBC Browser tab for browsing message definitions
+   - Simulator tab with message configuration
+5. **Created QA test suite** - Comprehensive pytest-based testing framework
+   - File operations tests
+   - Graphing tests
+   - Data reading tests
+   - AI advisor tests
+   - Telemetry processing tests
+   - Integration tests
+6. **Added documentation**
+   - `docs/CANTOOLS_INTEGRATION.md` - Complete DBC decoding guide
+   - `docs/CAN_SIMULATOR_GUIDE.md` - Simulator usage guide
+
+### Previous Session (Nov 26, 2025)
 1. **Fixed Pi sync script** - Corrected source path to use `2025-AI-TUNER-AGENTV3`
 2. **Updated PROJECT_CONTEXT.md** - Added current focus, troubleshooting, quick commands
 3. **Documented merge conflict resolution** - Added scripts and procedures
@@ -257,6 +297,22 @@ python3 fix_pi_merge.py
 - Check USB camera: `lsusb` (Linux) or Device Manager (Windows)
 - Test with: `python -c "import cv2; print(cv2.VideoCapture(0).isOpened())"`
 
+#### CAN Decoder Not Working
+**Symptom:** DBC files won't load or messages not decoding  
+**Solution:**
+- Install cantools: `pip install cantools`
+- Verify DBC file is valid: `python -m cantools dump your_file.dbc`
+- Check CAN ID exists in DBC browser tab
+- Ensure correct DBC database is active (use dropdown)
+
+#### CAN Simulator Not Starting
+**Symptom:** Simulator fails to start or messages not appearing  
+**Solution:**
+- Verify python-can is installed: `pip install python-can`
+- On Linux, ensure vcan module loaded: `sudo modprobe vcan`
+- Check that monitor is listening on same channel (e.g., vcan0)
+- Verify message is enabled in simulator table
+
 ---
 
 ## ⚡ Quick Commands Cheat Sheet
@@ -309,6 +365,36 @@ python test_minimal_window.py
 
 # Test integration
 python test_integration.py
+
+# Run QA test suite
+python tests/run_all_tests.py
+# Or use pytest directly
+pytest tests/
+```
+
+### CAN Bus Operations
+```powershell
+# Load DBC file (via UI)
+# 1. Open CAN Bus Interface tab
+# 2. Click "Load DBC File" button
+# 3. Select your .dbc file
+
+# Start CAN simulator (via UI)
+# 1. Open CAN Bus Interface tab
+# 2. Go to "Simulator" tab
+# 3. Click "Start Simulator"
+# 4. Add messages as needed
+
+# Or use programmatically:
+from services.can_decoder import CANDecoder
+from services.can_simulator import CANSimulator
+
+decoder = CANDecoder()
+decoder.load_dbc("vehicle.dbc")
+
+simulator = CANSimulator(channel="vcan0", dbc_decoder=decoder)
+simulator.add_dbc_message("EngineData", {"RPM": 3000.0}, period=0.1)
+simulator.start()
 ```
 
 ---
@@ -356,12 +442,19 @@ Main packages:
 - opencv-python (camera)
 - obd (OBD-II interface)
 - python-can (CAN bus)
+- **cantools** (DBC file parsing and CAN message decoding) ⭐ NEW
 - scipy, numpy (calculations)
+- pytest (testing framework) ⭐ NEW
 
 Install on Pi:
 ```bash
-pip3 install PySide6 pyqtgraph obd python-can opencv-python scipy numpy --break-system-packages
+pip3 install PySide6 pyqtgraph obd python-can cantools opencv-python scipy numpy pytest --break-system-packages
 ```
+
+### CAN Bus Dependencies
+- **python-can** - CAN bus interface library
+- **cantools** - DBC file parsing and message encoding/decoding
+- Both are included in `requirements.txt`
 
 ---
 
@@ -377,6 +470,10 @@ pip3 install PySide6 pyqtgraph obd python-can opencv-python scipy numpy --break-
 8. **Git workflow:** Commit frequently, push to GitHub, then sync to Pi
 9. **Merge conflicts:** Use `fix_pi_merge.py` on Pi if conflicts occur
 10. **Testing:** Run `python demo_safe.py` before committing major changes
+11. **CAN Bus:** Use `CANDecoder` for DBC decoding, `CANSimulator` for testing ⭐ NEW
+12. **DBC Files:** Load DBC files via CAN interface tab → "Load DBC File" button ⭐ NEW
+13. **CAN Simulator:** Use Simulator tab in CAN interface to test without hardware ⭐ NEW
+14. **QA Tests:** Run `python tests/run_all_tests.py` for comprehensive testing ⭐ NEW
 
 ---
 
