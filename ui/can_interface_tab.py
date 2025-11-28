@@ -32,6 +32,12 @@ from PySide6.QtWidgets import (
     QFrame,
     QMessageBox,
     QTextEdit,
+    QFileDialog,
+    QComboBox,
+    QTabWidget,
+    QTreeWidget,
+    QTreeWidgetItem,
+    QSplitter,
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -50,6 +56,24 @@ try:
 except ImportError:
     CANTOOLS_AVAILABLE = False
     cantools = None  # type: ignore
+
+# Import CAN decoder service
+try:
+    from services.can_decoder import CANDecoder, DecodedMessage
+    DECODER_AVAILABLE = True
+except ImportError:
+    DECODER_AVAILABLE = False
+    CANDecoder = None  # type: ignore
+    DecodedMessage = None  # type: ignore
+
+# Import CAN simulator service
+try:
+    from services.can_simulator import CANSimulator, MessageType
+    SIMULATOR_AVAILABLE = True
+except ImportError:
+    SIMULATOR_AVAILABLE = False
+    CANSimulator = None  # type: ignore
+    MessageType = None  # type: ignore
 
 
 class CANChannelStatus(Enum):
@@ -176,8 +200,29 @@ class CANInterfaceTab(QWidget):
         # Message log
         self.message_log: deque = deque(maxlen=100)
         
+        # CAN decoder
+        self.decoder: Optional[CANDecoder] = None
+        if DECODER_AVAILABLE:
+            self.decoder = CANDecoder()
+        
+        # CAN simulator
+        self.simulator: Optional[CANSimulator] = None
+        if SIMULATOR_AVAILABLE:
+            self.simulator = CANSimulator(channel="vcan0", dbc_decoder=self.decoder)
+        
+        # Decoded messages log
+        self.decoded_messages: deque = deque(maxlen=500)
+        
+        # CAN bus connections for monitoring
+        self.bus_connections: Dict[str, "can.Bus"] = {}
+        
         self.setup_ui()
         self._initialize_channels()
+        if DECODER_AVAILABLE and self.decoder:
+            self._update_dbc_combo()
+            self._update_dbc_messages_tree()
+        if SIMULATOR_AVAILABLE and self.simulator:
+            self._update_simulator_messages_table()
         self._start_monitoring()
     
     def setup_ui(self) -> None:
@@ -187,7 +232,7 @@ class CANInterfaceTab(QWidget):
         main_layout.setSpacing(10)
         
         # Header
-        header = QLabel("CAN Bus Interface Monitor")
+        header = QLabel("CAN Bus Interface Monitor & Decoder")
         header.setStyleSheet("font-size: 18px; font-weight: bold; color: #2c3e50; padding: 10px;")
         main_layout.addWidget(header)
         
@@ -226,6 +271,31 @@ class CANInterfaceTab(QWidget):
         """)
         control_layout.addWidget(auto_detect_btn)
         
+        # DBC file loading button
+        if DECODER_AVAILABLE:
+            load_dbc_btn = QPushButton("📁 Load DBC File")
+            load_dbc_btn.clicked.connect(self._load_dbc_file)
+            load_dbc_btn.setStyleSheet("""
+                QPushButton {
+                    background-color: #9b59b6;
+                    color: white;
+                    padding: 8px 16px;
+                    border-radius: 4px;
+                    font-weight: bold;
+                }
+                QPushButton:hover {
+                    background-color: #8e44ad;
+                }
+            """)
+            control_layout.addWidget(load_dbc_btn)
+            
+            # DBC database selector
+            self.dbc_combo = QComboBox()
+            self.dbc_combo.currentTextChanged.connect(self._on_dbc_changed)
+            self.dbc_combo.setMinimumWidth(150)
+            control_layout.addWidget(QLabel("DBC:"))
+            control_layout.addWidget(self.dbc_combo)
+        
         status_label = QLabel("Monitoring: Active")
         status_label.setStyleSheet("color: #27ae60; font-weight: bold; padding: 8px;")
         self.status_label = status_label
@@ -233,6 +303,13 @@ class CANInterfaceTab(QWidget):
         
         control_layout.addStretch()
         main_layout.addLayout(control_layout)
+        
+        # Create tab widget for different views
+        tabs = QTabWidget()
+        
+        # Tab 1: Monitor View
+        monitor_tab = QWidget()
+        monitor_layout = QVBoxLayout(monitor_tab)
         
         # Split layout: Visual channels on left, details on right
         split_layout = QHBoxLayout()
@@ -275,7 +352,7 @@ class CANInterfaceTab(QWidget):
         right_layout.addWidget(table_group)
         
         # Message log
-        log_group = QGroupBox("Recent Messages (Last 100)")
+        log_group = QGroupBox("Recent Messages (Raw)")
         log_layout = QVBoxLayout(log_group)
         
         self.message_log_text = QTextEdit()
@@ -293,7 +370,123 @@ class CANInterfaceTab(QWidget):
         right_layout.addWidget(log_group)
         
         split_layout.addLayout(right_layout, stretch=1)
-        main_layout.addLayout(split_layout)
+        monitor_layout.addLayout(split_layout)
+        tabs.addTab(monitor_tab, "Monitor")
+        
+        # Tab 2: Decoded Messages (if decoder available)
+        if DECODER_AVAILABLE:
+            decoded_tab = QWidget()
+            decoded_layout = QVBoxLayout(decoded_tab)
+            
+            # Decoded messages table
+            decoded_group = QGroupBox("Decoded Messages")
+            decoded_table_layout = QVBoxLayout(decoded_group)
+            
+            self.decoded_table = QTreeWidget()
+            self.decoded_table.setHeaderLabels(["Time", "Channel", "Message", "CAN ID", "Signals"])
+            self.decoded_table.setAlternatingRowColors(True)
+            self.decoded_table.setColumnWidth(0, 100)
+            self.decoded_table.setColumnWidth(1, 80)
+            self.decoded_table.setColumnWidth(2, 150)
+            self.decoded_table.setColumnWidth(3, 100)
+            decoded_table_layout.addWidget(self.decoded_table)
+            decoded_layout.addWidget(decoded_group)
+            
+            tabs.addTab(decoded_tab, "Decoded Messages")
+            
+            # Tab 3: DBC Messages Browser
+            dbc_tab = QWidget()
+            dbc_layout = QVBoxLayout(dbc_tab)
+            
+            dbc_info_group = QGroupBox("DBC Database Information")
+            dbc_info_layout = QVBoxLayout(dbc_info_group)
+            
+            self.dbc_messages_tree = QTreeWidget()
+            self.dbc_messages_tree.setHeaderLabels(["Message", "CAN ID", "Length", "Signals"])
+            self.dbc_messages_tree.setAlternatingRowColors(True)
+            self.dbc_messages_tree.itemDoubleClicked.connect(self._on_dbc_message_selected)
+            dbc_info_layout.addWidget(self.dbc_messages_tree)
+            dbc_layout.addWidget(dbc_info_group)
+            
+            tabs.addTab(dbc_tab, "DBC Browser")
+        
+        # Tab 4: CAN Simulator (if simulator available)
+        if SIMULATOR_AVAILABLE:
+            simulator_tab = QWidget()
+            simulator_layout = QVBoxLayout(simulator_tab)
+            
+            # Control panel
+            control_group = QGroupBox("Simulator Control")
+            control_layout = QVBoxLayout(control_group)
+            
+            button_layout = QHBoxLayout()
+            
+            self.sim_start_btn = QPushButton("▶ Start Simulator")
+            self.sim_start_btn.clicked.connect(self._start_simulator)
+            self.sim_start_btn.setStyleSheet("""
+                QPushButton {
+                    background-color: #2ecc71;
+                    color: white;
+                    padding: 8px 16px;
+                    border-radius: 4px;
+                    font-weight: bold;
+                }
+                QPushButton:hover {
+                    background-color: #27ae60;
+                }
+            """)
+            button_layout.addWidget(self.sim_start_btn)
+            
+            self.sim_stop_btn = QPushButton("⏹ Stop Simulator")
+            self.sim_stop_btn.clicked.connect(self._stop_simulator)
+            self.sim_stop_btn.setEnabled(False)
+            self.sim_stop_btn.setStyleSheet("""
+                QPushButton {
+                    background-color: #e74c3c;
+                    color: white;
+                    padding: 8px 16px;
+                    border-radius: 4px;
+                    font-weight: bold;
+                }
+                QPushButton:hover {
+                    background-color: #c0392b;
+                }
+            """)
+            button_layout.addWidget(self.sim_stop_btn)
+            
+            self.sim_add_btn = QPushButton("➕ Add Message")
+            self.sim_add_btn.clicked.connect(self._add_simulated_message)
+            button_layout.addWidget(self.sim_add_btn)
+            
+            button_layout.addStretch()
+            control_layout.addLayout(button_layout)
+            
+            # Statistics
+            self.sim_stats_label = QLabel("Status: Stopped")
+            self.sim_stats_label.setStyleSheet("font-weight: bold; padding: 5px;")
+            control_layout.addWidget(self.sim_stats_label)
+            
+            simulator_layout.addWidget(control_group)
+            
+            # Messages table
+            messages_group = QGroupBox("Simulated Messages")
+            messages_layout = QVBoxLayout(messages_group)
+            
+            self.sim_messages_table = QTableWidget()
+            self.sim_messages_table.setColumnCount(6)
+            self.sim_messages_table.setHorizontalHeaderLabels([
+                "Name", "CAN ID", "Period (s)", "Type", "Enabled", "Sent"
+            ])
+            self.sim_messages_table.horizontalHeader().setStretchLastSection(True)
+            self.sim_messages_table.setAlternatingRowColors(True)
+            self.sim_messages_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+            messages_layout.addWidget(self.sim_messages_table)
+            
+            simulator_layout.addWidget(messages_group)
+            
+            tabs.addTab(simulator_tab, "Simulator")
+        
+        main_layout.addWidget(tabs)
     
     def _initialize_channels(self) -> None:
         """Initialize CAN channels."""
@@ -464,6 +657,23 @@ class CANInterfaceTab(QWidget):
         log_entry = f"[{timestamp}] {channel}: ID={can_id} Data={data_hex}"
         self.message_log.append(log_entry)
         
+        # Try to decode if decoder is available
+        if self.decoder and DECODER_AVAILABLE:
+            from interfaces.can_interface import CANMessage, CANMessageType
+            can_msg = CANMessage(
+                arbitration_id=message.arbitration_id,
+                data=message.data,
+                timestamp=message.timestamp or time.time(),
+                channel=channel,
+                dlc=message.dlc,
+                is_error_frame=message.is_error_frame,
+                is_remote_frame=message.is_remote_frame,
+            )
+            decoded = self.decoder.decode_message(can_msg)
+            if decoded:
+                self.decoded_messages.append(decoded)
+                self._update_decoded_table()
+        
         # Update text widget (keep last 20 visible)
         if len(self.message_log) > 20:
             visible_log = list(self.message_log)[-20:]
@@ -519,9 +729,276 @@ class CANInterfaceTab(QWidget):
         
         self.channel_table.resizeColumnsToContents()
     
+    def _load_dbc_file(self) -> None:
+        """Load a DBC file for decoding."""
+        if not DECODER_AVAILABLE or not self.decoder:
+            QMessageBox.warning(
+                self,
+                "DBC Decoder Not Available",
+                "cantools is not installed. Install with: pip install cantools"
+            )
+            return
+        
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Load DBC File",
+            "",
+            "DBC Files (*.dbc);;All Files (*)"
+        )
+        
+        if file_path:
+            if self.decoder.load_dbc(file_path):
+                # Update DBC combo box
+                self._update_dbc_combo()
+                # Update DBC messages tree
+                self._update_dbc_messages_tree()
+                QMessageBox.information(
+                    self,
+                    "DBC Loaded",
+                    f"Successfully loaded DBC file:\n{Path(file_path).name}"
+                )
+            else:
+                QMessageBox.critical(
+                    self,
+                    "Load Failed",
+                    f"Failed to load DBC file:\n{file_path}"
+                )
+    
+    def _update_dbc_combo(self) -> None:
+        """Update DBC database combo box."""
+        if not DECODER_AVAILABLE or not self.decoder:
+            return
+        
+        self.dbc_combo.clear()
+        databases = self.decoder.list_databases()
+        self.dbc_combo.addItems(databases)
+        
+        # Set active database
+        active = self.decoder.get_active_database()
+        if active:
+            index = self.dbc_combo.findText(active)
+            if index >= 0:
+                self.dbc_combo.setCurrentIndex(index)
+    
+    def _on_dbc_changed(self, db_name: str) -> None:
+        """Handle DBC database selection change."""
+        if self.decoder and db_name:
+            self.decoder.set_active_database(db_name)
+            self._update_dbc_messages_tree()
+    
+    def _update_dbc_messages_tree(self) -> None:
+        """Update DBC messages browser tree."""
+        if not DECODER_AVAILABLE or not self.decoder:
+            return
+        
+        self.dbc_messages_tree.clear()
+        
+        messages = self.decoder.list_messages()
+        for msg_info in messages:
+            msg_item = QTreeWidgetItem(self.dbc_messages_tree)
+            msg_item.setText(0, msg_info["name"])
+            msg_item.setText(1, msg_info["can_id_hex"])
+            msg_item.setText(2, str(msg_info["length"]))
+            msg_item.setText(3, str(msg_info["signal_count"]))
+            
+            # Get detailed info for signals
+            detailed_info = self.decoder.get_message_info(msg_info["can_id"])
+            if detailed_info:
+                for signal in detailed_info["signals"]:
+                    signal_item = QTreeWidgetItem(msg_item)
+                    signal_item.setText(0, signal["name"])
+                    signal_item.setText(1, f"Bits: {signal['start']}-{signal['start'] + signal['length'] - 1}")
+                    signal_item.setText(2, signal["unit"] or "-")
+                    range_str = ""
+                    if signal["min"] is not None and signal["max"] is not None:
+                        range_str = f"{signal['min']:.2f} - {signal['max']:.2f}"
+                    signal_item.setText(3, range_str)
+        
+        self.dbc_messages_tree.expandAll()
+    
+    def _on_dbc_message_selected(self, item: QTreeWidgetItem, column: int) -> None:
+        """Handle DBC message selection."""
+        if item.parent() is None:  # Top-level item (message)
+            can_id_hex = item.text(1)
+            try:
+                can_id = int(can_id_hex, 16)
+                info = self.decoder.get_message_info(can_id) if self.decoder else None
+                if info:
+                    msg_text = f"Message: {info['name']}\n"
+                    msg_text += f"CAN ID: {info['can_id_hex']}\n"
+                    msg_text += f"Length: {info['length']} bytes\n"
+                    msg_text += f"Extended: {info['is_extended']}\n"
+                    if info['comment']:
+                        msg_text += f"Comment: {info['comment']}\n"
+                    msg_text += f"\nSignals ({len(info['signals'])}):\n"
+                    for signal in info['signals']:
+                        msg_text += f"  - {signal['name']}: {signal['unit'] or 'N/A'}\n"
+                    
+                    QMessageBox.information(self, "Message Information", msg_text)
+            except ValueError:
+                pass
+    
+    def _update_decoded_table(self) -> None:
+        """Update decoded messages table."""
+        if not DECODER_AVAILABLE or not hasattr(self, 'decoded_table'):
+            return
+        
+        # Keep only recent messages visible (last 100)
+        recent_messages = list(self.decoded_messages)[-100:]
+        
+        self.decoded_table.clear()
+        
+        for decoded_msg in recent_messages:
+            # Create top-level item
+            msg_item = QTreeWidgetItem(self.decoded_table)
+            timestamp_str = time.strftime("%H:%M:%S", time.localtime(decoded_msg.timestamp))
+            msg_item.setText(0, timestamp_str)
+            msg_item.setText(1, decoded_msg.channel)
+            msg_item.setText(2, decoded_msg.message_name)
+            msg_item.setText(3, hex(decoded_msg.can_id))
+            
+            # Add signals as children
+            signals_text = []
+            for signal in decoded_msg.signals:
+                signal_item = QTreeWidgetItem(msg_item)
+                signal_item.setText(0, signal.name)
+                if signal.choice_string:
+                    signal_item.setText(1, signal.choice_string)
+                else:
+                    value_str = f"{signal.value:.3f}"
+                    if signal.unit:
+                        value_str += f" {signal.unit}"
+                    signal_item.setText(1, value_str)
+                signal_item.setText(2, f"Raw: {signal.raw_value}")
+                signals_text.append(f"{signal.name}={signal.value:.3f}{signal.unit or ''}")
+            
+            msg_item.setText(4, ", ".join(signals_text))
+        
+        # Auto-scroll to bottom
+        self.decoded_table.scrollToBottom()
+    
+    def _start_simulator(self) -> None:
+        """Start the CAN simulator."""
+        if not SIMULATOR_AVAILABLE or not self.simulator:
+            QMessageBox.warning(self, "Simulator Not Available", "CAN simulator is not available")
+            return
+        
+        if self.simulator.start():
+            self.sim_start_btn.setEnabled(False)
+            self.sim_stop_btn.setEnabled(True)
+            self._update_simulator_stats()
+            # Update stats every second
+            if not hasattr(self, 'sim_stats_timer'):
+                self.sim_stats_timer = QTimer()
+                self.sim_stats_timer.timeout.connect(self._update_simulator_stats)
+            self.sim_stats_timer.start(1000)
+        else:
+            QMessageBox.critical(self, "Start Failed", "Failed to start CAN simulator")
+    
+    def _stop_simulator(self) -> None:
+        """Stop the CAN simulator."""
+        if self.simulator:
+            self.simulator.stop()
+            self.sim_start_btn.setEnabled(True)
+            self.sim_stop_btn.setEnabled(False)
+            if hasattr(self, 'sim_stats_timer'):
+                self.sim_stats_timer.stop()
+            self._update_simulator_stats()
+    
+    def _add_simulated_message(self) -> None:
+        """Add a simulated message dialog."""
+        if not SIMULATOR_AVAILABLE or not self.simulator:
+            return
+        
+        # Simple dialog for adding messages
+        from PySide6.QtWidgets import QDialog, QDialogButtonBox, QFormLayout, QLineEdit, QDoubleSpinBox, QSpinBox
+        
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Add Simulated Message")
+        layout = QFormLayout(dialog)
+        
+        name_edit = QLineEdit()
+        name_edit.setPlaceholderText("Message name")
+        layout.addRow("Message Name:", name_edit)
+        
+        can_id_spin = QSpinBox()
+        can_id_spin.setRange(0, 0x7FF)
+        can_id_spin.setDisplayIntegerBase(16)
+        can_id_spin.setPrefix("0x")
+        layout.addRow("CAN ID:", can_id_spin)
+        
+        period_spin = QDoubleSpinBox()
+        period_spin.setRange(0.001, 10.0)
+        period_spin.setValue(0.1)
+        period_spin.setDecimals(3)
+        period_spin.setSuffix(" s")
+        layout.addRow("Period:", period_spin)
+        
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+        layout.addRow(buttons)
+        
+        if dialog.exec():
+            name = name_edit.text().strip()
+            can_id = can_id_spin.value()
+            period = period_spin.value()
+            
+            if name:
+                if self.simulator.add_message(name, can_id, period=period):
+                    self._update_simulator_messages_table()
+                else:
+                    QMessageBox.warning(self, "Add Failed", "Failed to add simulated message")
+    
+    def _update_simulator_stats(self) -> None:
+        """Update simulator statistics display."""
+        if not self.simulator:
+            return
+        
+        stats = self.simulator.get_statistics()
+        status_text = f"Status: {'Running' if stats['running'] else 'Stopped'}"
+        if stats['running']:
+            status_text += f" | Sent: {stats['total_sent']} | Rate: {stats['messages_per_second']:.1f} msg/s"
+        self.sim_stats_label.setText(status_text)
+    
+    def _update_simulator_messages_table(self) -> None:
+        """Update simulated messages table."""
+        if not self.simulator or not hasattr(self, 'sim_messages_table'):
+            return
+        
+        messages = self.simulator.list_messages()
+        self.sim_messages_table.setRowCount(len(messages))
+        
+        for row, msg in enumerate(messages):
+            self.sim_messages_table.setItem(row, 0, QTableWidgetItem(msg["name"]))
+            self.sim_messages_table.setItem(row, 1, QTableWidgetItem(msg["can_id_hex"]))
+            self.sim_messages_table.setItem(row, 2, QTableWidgetItem(f"{msg['period']:.3f}"))
+            self.sim_messages_table.setItem(row, 3, QTableWidgetItem(msg["message_type"]))
+            
+            enabled_item = QTableWidgetItem("Yes" if msg["enabled"] else "No")
+            enabled_item.setForeground(QColor(0, 200, 0) if msg["enabled"] else QColor(150, 150, 150))
+            self.sim_messages_table.setItem(row, 4, enabled_item)
+            
+            self.sim_messages_table.setItem(row, 5, QTableWidgetItem(str(msg["send_count"])))
+        
+        self.sim_messages_table.resizeColumnsToContents()
+    
     def closeEvent(self, event) -> None:
         """Clean up on close."""
         self._stop_monitoring()
+        
+        # Stop simulator
+        if self.simulator:
+            self.simulator.stop()
+        
+        # Close CAN bus connections
+        for bus in self.bus_connections.values():
+            try:
+                bus.shutdown()
+            except Exception:
+                pass
+        self.bus_connections.clear()
+        
         super().closeEvent(event)
 
 

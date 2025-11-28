@@ -1,106 +1,86 @@
 """
-Pytest configuration and fixtures.
+Pytest Configuration and Fixtures
 
-Provides common test fixtures and setup for all tests.
+Provides shared fixtures and configuration for all tests.
 """
 
 import pytest
-import tempfile
+import sys
+import logging
 from pathlib import Path
-from unittest.mock import MagicMock, Mock
+from typing import Generator, Dict, Any
+import tempfile
+import shutil
 
-from core.config_manager import ConfigManager
-from core.data_validator import DataValidator
-from core.error_handler import ErrorHandler
-from services.data_logger import DataLogger
-from services.performance_tracker import PerformanceTracker
+# Add project root to path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
 
-
-@pytest.fixture
-def temp_dir():
-    """Create a temporary directory for tests."""
-    with tempfile.TemporaryDirectory() as tmpdir:
-        yield Path(tmpdir)
-
-
-@pytest.fixture
-def config_manager(temp_dir):
-    """Create a ConfigManager with temporary config file."""
-    config_file = temp_dir / "test_config.json"
-    return ConfigManager(config_file=str(config_file))
+# Configure logging for tests
+logging.basicConfig(
+    level=logging.WARNING,  # Reduce noise during tests
+    format='%(name)s - %(levelname)s - %(message)s'
+)
 
 
-@pytest.fixture
-def data_validator():
-    """Create a DataValidator instance."""
-    return DataValidator()
+@pytest.fixture(scope="session")
+def project_root_path() -> Path:
+    """Return project root path."""
+    return Path(__file__).parent.parent
 
 
-@pytest.fixture
-def error_handler():
-    """Create an ErrorHandler instance."""
-    return ErrorHandler()
+@pytest.fixture(scope="function")
+def temp_dir() -> Generator[Path, None, None]:
+    """Create a temporary directory for test files."""
+    temp_path = Path(tempfile.mkdtemp(prefix="aituner_test_"))
+    yield temp_path
+    shutil.rmtree(temp_path, ignore_errors=True)
 
 
-@pytest.fixture
-def data_logger(temp_dir):
-    """Create a DataLogger with temporary log directory."""
-    log_dir = temp_dir / "logs"
-    return DataLogger(log_dir=str(log_dir))
-
-
-@pytest.fixture
-def performance_tracker():
-    """Create a PerformanceTracker instance."""
-    return PerformanceTracker()
-
-
-@pytest.fixture
-def mock_can_bus():
-    """Create a mock CAN bus."""
-    mock = MagicMock()
-    mock.recv.return_value = None
-    return mock
-
-
-@pytest.fixture
-def mock_gps_interface():
-    """Create a mock GPS interface."""
-    mock = MagicMock()
-    mock.read_fix.return_value = None
-    return mock
-
-
-@pytest.fixture
-def mock_obd_interface():
-    """Create a mock OBD interface."""
-    mock = MagicMock()
-    mock.read_data.return_value = {}
-    mock.is_connected.return_value = True
-    return mock
-
-
-@pytest.fixture
-def sample_telemetry_data():
-    """Sample telemetry data for testing."""
+@pytest.fixture(scope="function")
+def sample_data() -> Dict[str, Any]:
+    """Provide sample telemetry data for testing."""
     return {
-        "Engine_RPM": 3000.0,
-        "Coolant_Temp": 90.0,
-        "Oil_Pressure": 45.0,
-        "Boost_Pressure": 10.0,
-        "Vehicle_Speed": 60.0,
-        "Throttle_Position": 50.0,
-        "Lambda": 1.0,
+        "rpm": 6500.0,
+        "throttle": 85.5,
+        "boost": 12.3,
+        "coolant_temp": 185.0,
+        "oil_temp": 210.0,
+        "oil_pressure": 45.2,
+        "afr": 12.8,
+        "egt": 1450.0,
+        "speed": 120.5,
+        "lat": 40.7128,
+        "lon": -74.0060,
+        "altitude": 100.0,
+        "timestamp": 1234567890.123,
     }
 
 
-@pytest.fixture
-def sample_invalid_telemetry_data():
-    """Sample invalid telemetry data for testing."""
+@pytest.fixture(scope="function")
+def sample_can_message() -> Dict[str, Any]:
+    """Provide sample CAN message for testing."""
     return {
-        "Engine_RPM": 50000.0,  # Invalid: too high
-        "Coolant_Temp": 200.0,  # Invalid: too high
-        "Oil_Pressure": -10.0,  # Invalid: negative
-        "Vehicle_Speed": 500.0,  # Invalid: too high
+        "arbitration_id": 0x180,
+        "data": bytes([0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0]),
+        "timestamp": 1234567890.123,
+        "channel": "can0",
+        "message_type": "standard",
+        "dlc": 8,
     }
 
+
+@pytest.fixture(scope="function")
+def mock_gps_fix() -> Dict[str, Any]:
+    """Provide mock GPS fix for testing."""
+    return {
+        "latitude": 40.7128,
+        "longitude": -74.0060,
+        "altitude": 100.0,
+        "speed": 120.5,
+        "heading": 45.0,
+        "satellites": 12,
+        "hdop": 1.2,
+        "fix_quality": 2,
+        "timestamp": 1234567890.123,
+    }

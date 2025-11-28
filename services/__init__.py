@@ -10,6 +10,21 @@ from .drag_racing_analyzer import (
 )
 from .can_analyzer import CANAnalysis, CANAnalyzer
 from .can_vendor_detector import CANVendor, CANVendorDetector, VendorSignature
+
+# CAN decoder and simulator (optional)
+try:
+    from .can_decoder import CANDecoder, DecodedMessage, DecodedSignal
+except ImportError:
+    CANDecoder = None  # type: ignore
+    DecodedMessage = None  # type: ignore
+    DecodedSignal = None  # type: ignore
+
+try:
+    from .can_simulator import CANSimulator, MessageType, SimulatedMessage
+except ImportError:
+    CANSimulator = None  # type: ignore
+    MessageType = None  # type: ignore
+    SimulatedMessage = None  # type: ignore
 from .cloud_sync import CloudSync
 from .connectivity_manager import ConnectivityManager, ConnectivityStatus
 from .database_manager import DatabaseConfig, DatabaseManager, DatabaseType
@@ -157,6 +172,12 @@ __all__ = [
     "CANVendor",
     "CANVendorDetector",
     "VendorSignature",
+    "CANDecoder",
+    "DecodedMessage",
+    "DecodedSignal",
+    "CANSimulator",
+    "MessageType",
+    "SimulatedMessage",
     "CloudSync",
     "ConnectivityManager",
     "ConnectivityStatus",
@@ -263,4 +284,11 @@ if DiskCleanup is not None:
 
 if HardwareAccel is not None:
     __all__.extend(["HardwareAccel", "OptimizedStreamConfig", "OptimizedStreamer"])
+
+# Add CAN decoder and simulator if available
+if CANDecoder is not None:
+    __all__.extend(["CANDecoder", "DecodedMessage", "DecodedSignal"])
+
+if CANSimulator is not None:
+    __all__.extend(["CANSimulator", "MessageType", "SimulatedMessage"])
 
