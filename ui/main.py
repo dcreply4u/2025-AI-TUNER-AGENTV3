@@ -71,6 +71,7 @@ from ui.theme_manager import Style, ThemeManager
 from ui.wheel_slip_widget import WheelSlipPanel
 from ui.youtube_stream_widget import YouTubeStreamWidget
 from ui.race_hud import RaceHUD
+from ui.smart_telemetry_updater import SmartTelemetryUpdater
 
 # Virtual Dyno imports
 try:
@@ -453,6 +454,9 @@ class MainWindow(QWidget):
         self.cloud_sync = self.app_context.cloud_sync
         self.performance_tracker = self.app_context.performance_tracker
         self.geo_logger = self.app_context.geo_logger
+        
+        # Smart telemetry updater - only updates visible widgets
+        self.smart_updater = SmartTelemetryUpdater()
         self.conversational_agent = ConversationalAgent()
         self.voice_output = VoiceOutput() if VoiceOutput else None
 
@@ -661,6 +665,9 @@ class MainWindow(QWidget):
         self.bottom_tabs = QTabWidget()
         self.bottom_tabs.setFixedHeight(100)
         self.bottom_tabs.setTabPosition(QTabWidget.TabPosition.North)
+        
+        # Register tab widget for smart updates
+        self.smart_updater.register_tab_widget(self.bottom_tabs)
         self.bottom_tabs.setStyleSheet("""
             QTabWidget::pane {
                 border: 2px solid #2c3e50;
