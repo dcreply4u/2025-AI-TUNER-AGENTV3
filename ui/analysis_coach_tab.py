@@ -15,6 +15,8 @@ not modify tunes – it only reads logs and PerformanceTracker state.
 """
 
 from typing import Optional
+from pathlib import Path
+from datetime import datetime
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
@@ -73,6 +75,24 @@ class AnalysisCoachTab(QWidget):
         header_row.addWidget(title)
 
         header_row.addStretch()
+
+        # Export button (left of Refresh)
+        export_btn = QPushButton("Export Report")
+        export_btn.setToolTip("Export latest analysis, tuning suggestions, and performance as a markdown report.")
+        export_btn.setStyleSheet(
+            "QPushButton {"
+            "  background-color: #1f2937;"
+            "  color: #e5e7eb;"
+            "  border-radius: 4px;"
+            "  padding: 4px 8px;"
+            "  font-size: 10px;"
+            "  font-weight: 500;"
+            "}"
+            "QPushButton:hover { background-color: #111827; }"
+            "QPushButton:pressed { background-color: #020617; }"
+        )
+        export_btn.clicked.connect(self._export_report)
+        header_row.addWidget(export_btn)
 
         refresh_btn = QPushButton("Refresh")
         refresh_btn.setToolTip("Re-run session analysis and update coaching summary.")
@@ -378,5 +398,89 @@ class AnalysisCoachTab(QWidget):
         lines.append(f"• Total distance: {summary.total_distance_km:.2f} km")
 
         self.perf_label.setText("\n".join(lines))
+
+    # ------------------------------------------------------------------ #
+    # Export helpers
+    # ------------------------------------------------------------------ #
+
+    def _export_report(self) -> None:
+        """
+        Export a single markdown report summarizing the latest analysis, tuning
+        suggestions, and performance metrics.
+        """
+        reports_dir = Path("reports")
+        reports_dir.mkdir(parents=True, exist_ok=True)
+
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        out_path = reports_dir / f"analysis_report_{timestamp}.md"
+
+        lines: list[str] = []
+        lines.append("# TelemetryIQ Analysis Report")
+        lines.append("")
+        lines.append(f"- Generated: {datetime.now().isoformat(timespec='seconds')}")
+        if self._report and self._report.log_file:
+            lines.append(f"- Log file: `{self._report.log_file}`")
+        lines.append("")
+
+        # Session summary
+        lines.append("## Session Summary")
+        if not self._report or self._report.sample_count == 0:
+            lines.append("No recent session logs found.")
+        else:
+            duration = (
+                f"~{self._report.duration_s:.0f}s"
+                if self._report.duration_s is not None
+                else "unknown duration"
+            )
+            lines.append(f"- Samples: **{self._report.sample_count}**")
+            lines.append(f"- Duration: **{duration}**")
+            lines.append(f"- Channels analyzed: **{len(self._report.channel_summaries)}**")
+        lines.append("")
+
+        # Anomalies
+        lines.append("## Telemetry Anomalies")
+        if not self._report or not self._report.anomalies:
+            lines.append("- No major AFR, temperature, or boost issues detected.")
+        else:
+            for a in self._report.anomalies:
+                lines.append(f"- **[{a.severity.upper()}]** {a.message}")
+        lines.append("")
+
+        # Tuning suggestions
+        lines.append("## Tuning Suggestions")
+        if not self._tuning:
+            lines.append("- No tuning or safety suggestions at this time.")
+        else:
+            for s in self._tuning:
+                lines.append(f"- **[{s.severity.upper()} • {s.category}]** {s.message}")
+                if s.rationale:
+                    lines.append(f"  - _Why_: {s.rationale}")
+        lines.append("")
+
+        # Performance summary
+        lines.append("## Straight-line Performance")
+        if not self._performance_tracker:
+            lines.append(
+                "Performance tracker not available in this context; "
+                "run from the main app to record acceleration metrics."
+            )
+        else:
+            try:
+                snapshot = self._performance_tracker.snapshot()
+                summary = self._driver_summary.summarize(snapshot)
+                if summary.best_0_60_s:
+                    lines.append(f"- Best 0–60 mph: **{summary.best_0_60_s:.2f} s**")
+                else:
+                    lines.append("- 0–60 mph: no complete run detected yet.")
+                if summary.best_quarter_mile_s:
+                    lines.append(f"- Best 1/4 mile ET: **{summary.best_quarter_mile_s:.2f} s**")
+                if summary.best_half_mile_s:
+                    lines.append(f"- Best 1/2 mile ET: **{summary.best_half_mile_s:.2f} s**")
+                lines.append(f"- Total distance: **{summary.total_distance_km:.2f} km**")
+            except Exception as exc:  # pragma: no cover - defensive
+                lines.append(f"- Error summarizing performance: {exc}")
+
+        out_path.write_text("\n".join(lines), encoding="utf-8")
+
 
 
