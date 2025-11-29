@@ -6,6 +6,8 @@ Real-time GPS track visualization, lap detection, and lap time tracking
 from __future__ import annotations
 
 import logging
+import os
+import sys
 from typing import Dict, List, Optional, Tuple
 
 from PySide6.QtCore import Qt, QTimer, QPointF, QRectF
@@ -307,6 +309,13 @@ class LapDetectionTab(QWidget):
         
         main_layout.addWidget(splitter, stretch=1)
         
+        # Development-only: GPS Log Viewer
+        if self._is_development_mode():
+            gps_log_viewer = self._create_gps_log_viewer()
+            if gps_log_viewer:
+                main_layout.addWidget(gps_log_viewer, stretch=0)
+                gps_log_viewer.setMaximumHeight(get_scaled_size(300))
+        
     def _create_control_bar(self) -> QWidget:
         """Create control bar."""
         bar = QWidget()
@@ -589,6 +598,45 @@ class LapDetectionTab(QWidget):
         if self.lap_detector:
             self.lap_detector.update(lat, lon, speed)
             self._update_display()
+    
+    def _is_development_mode(self) -> bool:
+        """Check if running in development mode."""
+        return (
+            os.getenv("AITUNER_DEMO_MODE", "").lower() in {"1", "true", "yes"}
+            or os.getenv("AITUNER_DEV_MODE", "").lower() in {"1", "true", "yes"}
+            or (len(sys.argv) > 0 and "demo_safe" in os.path.basename(sys.argv[0]))
+        )
+    
+    def _create_gps_log_viewer(self) -> Optional[QWidget]:
+        """Create GPS log viewer widget (development only)."""
+        try:
+            from ui.gps_log_viewer_widget import GPSLogViewerWidget
+            
+            # Get GPS interface
+            gps_interface = self.gps_interface
+            if not gps_interface:
+                # Try to get from Waveshare GPS HAT
+                try:
+                    from interfaces.waveshare_gps_hat import get_gps_hat
+                    gps_interface = get_gps_hat(auto_detect=True)
+                    if gps_interface.connect():
+                        self.gps_interface = gps_interface
+                except Exception as e:
+                    LOGGER.debug(f"Could not get GPS interface for log viewer: {e}")
+                    return None
+            
+            if gps_interface:
+                viewer = GPSLogViewerWidget(gps_interface=gps_interface, parent=self)
+                return viewer
+            else:
+                return None
+                
+        except ImportError as e:
+            LOGGER.debug(f"GPS log viewer not available: {e}")
+            return None
+        except Exception as e:
+            LOGGER.warning(f"Error creating GPS log viewer: {e}")
+            return None
 
 
 __all__ = ["LapDetectionTab", "TrackMapWidget"]
