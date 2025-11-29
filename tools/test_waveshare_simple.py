@@ -153,3 +153,4 @@ print("  2. Enable I2C: sudo raspi-config → Interface Options → I2C")
 print("  3. Install library: pip install adafruit-circuitpython-bme280")
 print("  4. Test hardware: Run this script without simulator mode")
 
+
