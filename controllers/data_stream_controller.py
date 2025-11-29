@@ -985,6 +985,26 @@ class DataStreamController(QObject):
                 normalized_data[canonical] = float(value)
                 seen_canonicals.add(canonical)
         
+        # Read environmental data from Waveshare HAT if available
+        if hasattr(self, 'environmental_hat') and self.environmental_hat:
+            try:
+                env_reading = self.environmental_hat.read()
+                if env_reading:
+                    # Add to normalized_data for telemetry
+                    normalized_data["ambient_temp_c"] = env_reading.temperature_c
+                    normalized_data["ambient_temp_f"] = env_reading.temperature_c * 9/5 + 32
+                    normalized_data["humidity_percent"] = env_reading.humidity_percent
+                    normalized_data["barometric_pressure_kpa"] = env_reading.pressure_kpa
+                    normalized_data["barometric_pressure_hpa"] = env_reading.pressure_hpa
+                    normalized_data["barometric_pressure_psi"] = env_reading.pressure_kpa * 0.145038
+                    # Add optional sensors if available
+                    if env_reading.light_lux is not None:
+                        normalized_data["light_lux"] = env_reading.light_lux
+                    if env_reading.noise_db is not None:
+                        normalized_data["noise_db"] = env_reading.noise_db
+            except Exception as e:
+                LOGGER.debug(f"Error reading environmental HAT: {e}")
+        
         # Read GPS data EARLY and add to normalized_data BEFORE updating telemetry panel
         gps_fix = None
         if self.gps_interface:
