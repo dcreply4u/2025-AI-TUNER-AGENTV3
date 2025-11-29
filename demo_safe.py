@@ -41,17 +41,19 @@ try:
     print("[OK] QApplication created")
     
     # Process events to ensure QApplication is fully initialized
-    for _ in range(3):
-        app.processEvents()
+    app.processEvents()
 
-    # Show startup splash (non-blocking, fades in/out)
-    # Use a small delay to ensure display is ready
+    # Show startup splash IMMEDIATELY (non-blocking, fades in/out)
+    splash_widget = None
     try:
-        show_startup_splash_if_available()
-        print("[OK] Startup splash (if image available)")
-        # Process events to ensure splash appears
-        for _ in range(3):
-            app.processEvents()
+        splash_widget = show_startup_splash_if_available()
+        if splash_widget:
+            print("[OK] Startup splash created and shown")
+            # Process events multiple times to ensure splash appears on screen
+            for _ in range(5):
+                app.processEvents()
+        else:
+            print("[INFO] No splash image available or failed to create")
     except Exception as e:
         print(f"[WARN] Startup splash failed: {e}")
         import traceback
@@ -74,37 +76,38 @@ try:
         app.processEvents()
     print("[OK] Basic window shown")
     
-    # Store main_window reference at module level to prevent garbage collection
+    # Store references at module level to prevent garbage collection
     main_window_ref = None
+    splash_ref = splash_widget  # Keep splash alive during loading
     
     # Now try to load MainWindow
     def load_main_window():
         global main_window_ref
         try:
             status_label.setText("Loading MainWindow...")
-            for _ in range(3):
-                app.processEvents()
+            app.processEvents()
             
             print("[STEP 2] Importing MainWindow...")
             from ui.main import MainWindow
             app.processEvents()  # Process events after import
             
             status_label.setText("Creating MainWindow instance...")
-            for _ in range(3):
-                app.processEvents()
+            app.processEvents()
             
             print("[STEP 3] Creating MainWindow...")
             main_window = MainWindow()
             main_window_ref = main_window  # Keep reference to prevent GC
             
             status_label.setText("MainWindow created successfully!")
-            for _ in range(3):
-                app.processEvents()
+            app.processEvents()
             
-            # Hide simple window, show main window (simple approach)
+            # Hide simple window and splash, show main window
             window.hide()
+            if splash_ref:
+                splash_ref.hide()  # Hide splash when main window is ready
             main_window.setWindowFlags(main_window.windowFlags() | Qt.WindowType.Window)
             main_window.show()
+            app.processEvents()
             
             print("[SUCCESS] MainWindow loaded and shown")
             
@@ -165,9 +168,9 @@ try:
             status_label.setStyleSheet("font-size: 14px; padding: 20px; color: #e74c3c;")
             window.show()  # Show error window
     
-    # Load main window after a short delay to let splash appear
-    # Give splash time to fade in before starting heavy imports
-    QTimer.singleShot(100, load_main_window)
+    # Load main window after a very short delay to let splash appear
+    # The splash will continue to show while main window loads
+    QTimer.singleShot(200, load_main_window)  # 200ms to let splash start fading in
     
     print("[INFO] Application running...")
     print("[INFO] Window should be visible and movable normally")

@@ -32,12 +32,16 @@ def _find_default_splash_image() -> Optional[Path]:
     if env_path:
         path = Path(env_path)
         if path.exists():
+            print(f"[SPLASH] Found image from env: {path}")
             return path
+        else:
+            print(f"[SPLASH] Env path does not exist: {env_path}")
     
     # Platform-specific defaults
     if os.name == "nt":
         # Windows: use user's Pictures folder
         if DEFAULT_WINDOWS_SPLASH.exists():
+            print(f"[SPLASH] Found Windows default: {DEFAULT_WINDOWS_SPLASH}")
             return DEFAULT_WINDOWS_SPLASH
     else:
         # Linux/Unix: check project root for common image names
@@ -45,8 +49,10 @@ def _find_default_splash_image() -> Optional[Path]:
         for name in ["TelemetryIQgood9.jpg", "TelemetryIQgood9.png", "splash.jpg", "splash.png"]:
             candidate = project_root / name
             if candidate.exists():
+                print(f"[SPLASH] Found image in project root: {candidate}")
                 return candidate
     
+    print("[SPLASH] No splash image found")
     return None
 
 
@@ -111,8 +117,11 @@ class StartupSplash(QWidget):
         """Show the splash and start the fade sequence."""
         if self._pixmap is None or self._pixmap.isNull():
             # Nothing to show, emit finished immediately
+            print("[SPLASH] No valid pixmap, skipping splash")
             QTimer.singleShot(10, self._emit_finished)
             return
+        
+        print(f"[SPLASH] Showing splash screen (size: {self._pixmap.width()}x{self._pixmap.height()})")
         
         # Center on screen now that QApplication is ready
         try:
@@ -122,12 +131,16 @@ class StartupSplash(QWidget):
                 x = geo.x() + (geo.width() - self.width()) // 2
                 y = geo.y() + (geo.height() - self.height()) // 2
                 self.move(QPoint(x, y))
-        except Exception:
+                print(f"[SPLASH] Positioned at ({x}, {y})")
+        except Exception as e:
             # If screen access fails, just show at default position
-            pass
+            print(f"[SPLASH] Screen positioning failed: {e}")
         
         self.show()
+        self.raise_()  # Bring to front
+        self.activateWindow()  # Activate window
         self._fade_in.start()
+        print("[SPLASH] Fade-in animation started")
 
     def _on_fade_in_finished(self) -> None:
         # Hold the image for a brief moment before fading out
@@ -145,17 +158,27 @@ class StartupSplash(QWidget):
         self.deleteLater()
 
 
-def show_startup_splash_if_available() -> None:
+def show_startup_splash_if_available() -> Optional[StartupSplash]:
     """
     Convenience helper to be called after QApplication is created.
     Safe to call on all platforms; it will no‑op if the image is missing.
+    Returns the splash widget so it can be kept alive.
     """
     app = QApplication.instance()
     if app is None:
-        return
+        return None
 
-    splash = StartupSplash()
-    # If there is no valid pixmap, it will emit finished immediately
-    splash.show_slow()
+    try:
+        splash = StartupSplash()
+        # If there is no valid pixmap, it will emit finished immediately
+        splash.show_slow()
+        # Process events immediately to show the splash
+        app.processEvents()
+        return splash
+    except Exception as e:
+        print(f"[WARN] Failed to create splash screen: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
 
 
