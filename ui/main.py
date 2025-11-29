@@ -1766,38 +1766,55 @@ class MainWindow(QWidget):
 
     def _open_ai_racing_coach(self) -> None:
         """Open AI Racing Coach in a dialog window."""
-        from PySide6.QtWidgets import QDialog, QVBoxLayout, QLabel, QTextEdit, QPushButton, QHBoxLayout, QGroupBox
-        
+        from PySide6.QtWidgets import (
+            QDialog,
+            QVBoxLayout,
+            QLabel,
+            QTextEdit,
+            QPushButton,
+            QHBoxLayout,
+            QGroupBox,
+        )
+
         try:
             from services.ai_racing_coach import AIRacingCoach, CoachingAdvice
-            
+
             dialog = QDialog(self)
             dialog.setWindowTitle("🎓 AI Racing Coach - Real-Time Coaching")
             dialog.setMinimumSize(800, 600)
             dialog.resize(1000, 700)
-            
+
             layout = QVBoxLayout(dialog)
             layout.setContentsMargins(10, 10, 10, 10)
-            
+
             # Title
             title = QLabel("🎓 AI Racing Coach")
-            title.setStyleSheet("font-size: 20px; font-weight: bold; color: white; padding: 10px; background-color: #16a085; border-radius: 5px;")
+            title.setStyleSheet(
+                "font-size: 20px; font-weight: bold; color: white; "
+                "padding: 10px; background-color: #16a085; border-radius: 5px;"
+            )
             layout.addWidget(title)
-            
+
             # Status
             status_label = QLabel("Status: Ready for coaching")
-            status_label.setStyleSheet("font-size: 12px; color: #2ecc71; padding: 5px;")
+            status_label.setStyleSheet(
+                "font-size: 12px; color: #2ecc71; padding: 5px;"
+            )
             layout.addWidget(status_label)
-            
+
             # Coaching advice display
             advice_group = QGroupBox("Real-Time Coaching Advice")
             advice_group.setStyleSheet("color: white; font-size: 14px;")
             advice_layout = QVBoxLayout(advice_group)
-            
+
             advice_text = QTextEdit()
             advice_text.setReadOnly(True)
-            advice_text.setStyleSheet("background-color: #1a1a1a; color: #00ff00; font-family: monospace; font-size: 12px;")
-            advice_text.setPlainText("""
+            advice_text.setStyleSheet(
+                "background-color: #1a1a1a; color: #00ff00; "
+                "font-family: monospace; font-size: 12px;"
+            )
+            advice_text.setPlainText(
+                """
 🎓 AI Racing Coach Ready!
 
 Features:
@@ -1814,30 +1831,44 @@ The coach will provide advice on:
 • Line optimization
 
 Start a session to begin receiving coaching!
-            """)
+            """
+            )
             advice_layout.addWidget(advice_text)
             layout.addWidget(advice_group)
-            
+
             # Controls
             controls_layout = QHBoxLayout()
-            
+
             start_btn = QPushButton("▶️ Start Coaching")
-            start_btn.setStyleSheet("background-color: #27ae60; color: white; padding: 10px; font-weight: bold;")
-            start_btn.clicked.connect(lambda: status_label.setText("Status: 🎤 Coaching Active!"))
+            start_btn.setStyleSheet(
+                "background-color: #27ae60; color: white; padding: 10px; "
+                "font-weight: bold;"
+            )
+            start_btn.clicked.connect(
+                lambda: status_label.setText("Status: 🎤 Coaching Active!")
+            )
             controls_layout.addWidget(start_btn)
-            
+
             stop_btn = QPushButton("⏹️ Stop")
-            stop_btn.setStyleSheet("background-color: #e74c3c; color: white; padding: 10px;")
+            stop_btn.setStyleSheet(
+                "background-color: #e74c3c; color: white; padding: 10px;"
+            )
             controls_layout.addWidget(stop_btn)
-            
+
             controls_layout.addStretch()
             layout.addLayout(controls_layout)
-            
+
             self.ai_panel.update_insight(
                 "🎓 AI Racing Coach opened! Get real-time coaching advice.",
                 level="info",
             )
             dialog.exec()
+        except Exception as exc:  # pragma: no cover - defensive UI error handling
+            # Keep failures here non-fatal to avoid breaking the main UI.
+            self.ai_panel.update_insight(
+                f"❌ Failed to open AI Racing Coach: {exc}",
+                level="error",
+            )
 
     def _open_race_hud(self) -> None:
         """Open minimal Race HUD overlay window."""
@@ -1857,8 +1888,6 @@ Start a session to begin receiving coaching!
                 f"❌ Failed to open Race HUD: {exc}",
                 level="error",
             )
-        except Exception as e:
-            self.ai_panel.update_insight(f"❌ Failed to open AI Racing Coach: {e}", level="error")
 
     def _open_pit_strategist(self) -> None:
         """Open AI Pit Strategist in a dialog window."""
