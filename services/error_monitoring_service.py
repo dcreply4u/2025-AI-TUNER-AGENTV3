@@ -100,7 +100,7 @@ class ErrorReport:
     function_name: Optional[str] = None
     
     # Diagnostics
-    stack_trace: str
+    stack_trace: str = ""
     traceback_lines: List[str] = field(default_factory=list)
     environment: Dict[str, Any] = field(default_factory=dict)
     
