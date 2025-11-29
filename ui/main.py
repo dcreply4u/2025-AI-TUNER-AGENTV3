@@ -50,6 +50,7 @@ from services import (
     PerformanceTracker,
     USBManager,
 )
+from core.app_context import AppContext
 from ui.ai_advisor_widget import AIAdvisorWidget
 from ui.analysis_coach_tab import AnalysisCoachTab
 from ui.ai_insight_panel import AIInsightPanel
@@ -420,11 +421,11 @@ class MainWindow(QWidget):
             LOGGER.debug("HDD Manager not available: %s", e)
 
         # ------------------------------------------------------------------
-        # Shared service instances
+        # Shared service instances / app context
         # ------------------------------------------------------------------
         self.fault_predictor = PredictiveFaultDetector()
         self.tuning_advisor = TuningAdvisor()
-
+        
         # Determine log path (priority: HDD > USB > Local)
         log_path = Path("logs/telemetry")  # Default fallback
         if self.hdd_manager and self.hdd_manager.is_mounted():
@@ -438,11 +439,12 @@ class MainWindow(QWidget):
                 log_path = usb_logs
                 LOGGER.info("Using USB for logs: %s", log_path)
         
-        self.data_logger = DataLogger(log_dir=log_path)
-
-        self.cloud_sync = CloudSync()
-        self.performance_tracker = PerformanceTracker()
-        self.geo_logger = GeoLogger()
+        # Centralized AppContext for core services
+        self.app_context = AppContext.create(log_dir=log_path)
+        self.data_logger = self.app_context.data_logger
+        self.cloud_sync = self.app_context.cloud_sync
+        self.performance_tracker = self.app_context.performance_tracker
+        self.geo_logger = self.app_context.geo_logger
         self.conversational_agent = ConversationalAgent()
         self.voice_output = VoiceOutput() if VoiceOutput else None
 
@@ -1022,6 +1024,7 @@ class MainWindow(QWidget):
         try:
             analysis_tab = AnalysisCoachTab(
                 performance_tracker=self.performance_tracker,
+                app_context=self.app_context,
                 parent=self,
             )
             self.bottom_tabs.addTab(analysis_tab, "🧠 Analysis")

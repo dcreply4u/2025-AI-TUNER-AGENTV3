@@ -34,6 +34,7 @@ from services.driver_performance_summary import DriverPerformanceSummaryService
 from services.performance_tracker import PerformanceTracker
 from services.session_analysis_service import SessionAnalysisService, SessionAnalysisReport
 from services.tuning_suggestion_service import TuningSuggestionService, TuningSuggestion
+from core.app_context import AppContext
 
 
 class AnalysisCoachTab(QWidget):
@@ -42,15 +43,22 @@ class AnalysisCoachTab(QWidget):
     def __init__(
         self,
         performance_tracker: Optional[PerformanceTracker] = None,
+        app_context: Optional[AppContext] = None,
         parent: Optional[QWidget] = None,
     ) -> None:
         super().__init__(parent)
 
-        # Lightweight services – no side effects, only read data
-        self._session_analyzer = SessionAnalysisService()
-        self._tuning_service = TuningSuggestionService()
-        self._driver_summary = DriverPerformanceSummaryService()
-        self._performance_tracker = performance_tracker
+        # Lightweight services – prefer AppContext if provided
+        if app_context:
+            self._session_analyzer = app_context.session_analyzer
+            self._tuning_service = app_context.tuning_suggestion_service
+            self._driver_summary = app_context.driver_performance_summary
+            self._performance_tracker = app_context.performance_tracker
+        else:
+            self._session_analyzer = SessionAnalysisService()
+            self._tuning_service = TuningSuggestionService()
+            self._driver_summary = DriverPerformanceSummaryService()
+            self._performance_tracker = performance_tracker
 
         self._report: Optional[SessionAnalysisReport] = None
         self._tuning: list[TuningSuggestion] = []

@@ -17,6 +17,7 @@ from .ui_optimizer import EfficientDataModel, LazyWidget, UIOptimizer, debounce,
 from .logging_config import LoggingConfig, LoggingManager, LogLevel, configure_logging, get_logger, log_performance, set_log_level
 from .logging_utils import log_execution_time, log_function_call, log_performance_metric, log_resource_usage, log_error_with_context
 from .troubleshooter import CheckStatus, DiagnosticLevel, DiagnosticResult, SystemDiagnostics, Troubleshooter
+from .app_context import AppContext
 
 try:
     from .error_recovery import (
@@ -97,6 +98,7 @@ __all__ = [
     "CheckStatus",
     "DiagnosticResult",
     "SystemDiagnostics",
+    "AppContext",
 ]
 
 # Add error recovery exports if available
