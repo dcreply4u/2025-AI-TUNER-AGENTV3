@@ -1,0 +1,58 @@
+{
+  "C:\\Users\\DC\\OneDrive\\Desktop\\AITUNER\\2025-AI-TUNER-AGENTV3\\controllers\\data_stream_controller.py": {
+    "mi": 0.0,
+    "rank": "C"
+  },
+  "C:\\Users\\DC\\OneDrive\\Desktop\\AITUNER\\2025-AI-TUNER-AGENTV3\\interfaces\\camera_interface.py": {
+    "mi": 9.354897664451176,
+    "rank": "B"
+  },
+  "C:\\Users\\DC\\OneDrive\\Desktop\\AITUNER\\2025-AI-TUNER-AGENTV3\\services\\ai_advisor_q_enhanced.py": {
+    "mi": 0.0,
+    "rank": "C"
+  },
+  "C:\\Users\\DC\\OneDrive\\Desktop\\AITUNER\\2025-AI-TUNER-AGENTV3\\services\\ai_advisor_rag.py": {
+    "mi": 0.0,
+    "rank": "C"
+  },
+  "C:\\Users\\DC\\OneDrive\\Desktop\\AITUNER\\2025-AI-TUNER-AGENTV3\\ui\\ai_advisor_widget.py": {
+    "mi": 6.469443656742241,
+    "rank": "C"
+  },
+  "C:\\Users\\DC\\OneDrive\\Desktop\\AITUNER\\2025-AI-TUNER-AGENTV3\\ui\\can_interface_tab.py": {
+    "mi": 14.04712375200054,
+    "rank": "B"
+  },
+  "C:\\Users\\DC\\OneDrive\\Desktop\\AITUNER\\2025-AI-TUNER-AGENTV3\\ui\\dyno_tab.py": {
+    "mi": 5.305229504217431,
+    "rank": "C"
+  },
+  "C:\\Users\\DC\\OneDrive\\Desktop\\AITUNER\\2025-AI-TUNER-AGENTV3\\ui\\ecu_sub_tabs.py": {
+    "mi": 15.109263348796514,
+    "rank": "B"
+  },
+  "C:\\Users\\DC\\OneDrive\\Desktop\\AITUNER\\2025-AI-TUNER-AGENTV3\\ui\\ecu_tuning_main.py": {
+    "mi": 0.0,
+    "rank": "C"
+  },
+  "C:\\Users\\DC\\OneDrive\\Desktop\\AITUNER\\2025-AI-TUNER-AGENTV3\\ui\\enhanced_telemetry_panel.py": {
+    "mi": 11.251534782098828,
+    "rank": "B"
+  },
+  "C:\\Users\\DC\\OneDrive\\Desktop\\AITUNER\\2025-AI-TUNER-AGENTV3\\ui\\import_ecu_tab.py": {
+    "mi": 17.93151141553449,
+    "rank": "B"
+  },
+  "C:\\Users\\DC\\OneDrive\\Desktop\\AITUNER\\2025-AI-TUNER-AGENTV3\\ui\\main.py": {
+    "mi": 0.0,
+    "rank": "C"
+  },
+  "C:\\Users\\DC\\OneDrive\\Desktop\\AITUNER\\2025-AI-TUNER-AGENTV3\\ui\\main_container.py": {
+    "mi": 0.0,
+    "rank": "C"
+  },
+  "C:\\Users\\DC\\OneDrive\\Desktop\\AITUNER\\2025-AI-TUNER-AGENTV3\\ui\\telemetryiq_tabs.py": {
+    "mi": 15.033838140975988,
+    "rank": "B"
+  }
+}

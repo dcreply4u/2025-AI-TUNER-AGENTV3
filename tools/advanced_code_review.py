@@ -13,6 +13,8 @@ Performs comprehensive code analysis including:
 import argparse
 import json
 import logging
+import os
+import shutil
 import subprocess
 import sys
 from datetime import datetime
@@ -20,6 +22,11 @@ from pathlib import Path
 from typing import Dict, List, Optional, Any
 
 LOGGER = logging.getLogger(__name__)
+
+# Update PATH to include user local bin
+USER_LOCAL_BIN = Path.home() / ".local" / "bin"
+if USER_LOCAL_BIN.exists():
+    os.environ["PATH"] = str(USER_LOCAL_BIN) + os.pathsep + os.environ.get("PATH", "")
 
 # Configure logging
 logging.basicConfig(
@@ -38,16 +45,32 @@ class SecurityScanner:
         
     def check_bandit_available(self) -> bool:
         """Check if bandit is installed."""
+        # Check in PATH and common locations
+        bandit_path = shutil.which('bandit')
+        if not bandit_path:
+            # Check in user local bin
+            user_bin = Path.home() / ".local" / "bin" / "bandit"
+            if user_bin.exists():
+                return True
+            return False
         try:
-            subprocess.run(['bandit', '--version'], capture_output=True, check=True)
+            subprocess.run([bandit_path or 'bandit', '--version'], capture_output=True, check=True, env=os.environ)
             return True
         except (subprocess.CalledProcessError, FileNotFoundError):
             return False
     
     def check_pip_audit_available(self) -> bool:
         """Check if pip-audit is installed."""
+        # Check in PATH and common locations
+        pip_audit_path = shutil.which('pip-audit')
+        if not pip_audit_path:
+            # Check in user local bin
+            user_bin = Path.home() / ".local" / "bin" / "pip-audit"
+            if user_bin.exists():
+                return True
+            return False
         try:
-            subprocess.run(['pip-audit', '--version'], capture_output=True, check=True)
+            subprocess.run([pip_audit_path or 'pip-audit', '--version'], capture_output=True, check=True, env=os.environ)
             return True
         except (subprocess.CalledProcessError, FileNotFoundError):
             return False
@@ -64,8 +87,13 @@ class SecurityScanner:
             output_file = self.project_root / "reports" / "bandit-report.json"
             output_file.parent.mkdir(parents=True, exist_ok=True)
             
+            # Find bandit executable
+            bandit_cmd = shutil.which('bandit') or str(Path.home() / ".local" / "bin" / "bandit")
+            if not Path(bandit_cmd).exists():
+                bandit_cmd = 'bandit'
+            
             cmd = [
-                'bandit',
+                bandit_cmd,
                 '-r', str(self.project_root),
                 '-f', 'json',
                 '-o', str(output_file),
@@ -77,7 +105,8 @@ class SecurityScanner:
                 cmd,
                 capture_output=True,
                 text=True,
-                cwd=str(self.project_root)
+                cwd=str(self.project_root),
+                env=os.environ
             )
             
             # Read results
@@ -123,8 +152,13 @@ class SecurityScanner:
                     "error": "No requirements*.txt files found"
                 }
             
+            # Find pip-audit executable
+            pip_audit_cmd = shutil.which('pip-audit') or str(Path.home() / ".local" / "bin" / "pip-audit")
+            if not Path(pip_audit_cmd).exists():
+                pip_audit_cmd = 'pip-audit'
+            
             cmd = [
-                'pip-audit',
+                pip_audit_cmd,
                 '--format', 'json',
                 '--output', str(output_file),
             ]
@@ -137,7 +171,8 @@ class SecurityScanner:
                 cmd,
                 capture_output=True,
                 text=True,
-                cwd=str(self.project_root)
+                cwd=str(self.project_root),
+                env=os.environ
             )
             
             # Read results
@@ -185,8 +220,16 @@ class ComplexityAnalyzer:
     
     def check_radon_available(self) -> bool:
         """Check if radon is installed."""
+        # Check in PATH and common locations
+        radon_path = shutil.which('radon')
+        if not radon_path:
+            # Check in user local bin
+            user_bin = Path.home() / ".local" / "bin" / "radon"
+            if user_bin.exists():
+                return True
+            return False
         try:
-            subprocess.run(['radon', '--version'], capture_output=True, check=True)
+            subprocess.run([radon_path or 'radon', '--version'], capture_output=True, check=True, env=os.environ)
             return True
         except (subprocess.CalledProcessError, FileNotFoundError):
             return False
@@ -203,8 +246,13 @@ class ComplexityAnalyzer:
             output_file = self.project_root / "reports" / "radon-complexity.json"
             output_file.parent.mkdir(parents=True, exist_ok=True)
             
+            # Find radon executable
+            radon_cmd = shutil.which('radon') or str(Path.home() / ".local" / "bin" / "radon")
+            if not Path(radon_cmd).exists():
+                radon_cmd = 'radon'
+            
             cmd = [
-                'radon', 'cc',
+                radon_cmd, 'cc',
                 str(self.project_root),
                 '-j',  # JSON output
                 '--min', 'A',  # Minimum complexity to report
@@ -215,7 +263,8 @@ class ComplexityAnalyzer:
                 cmd,
                 capture_output=True,
                 text=True,
-                cwd=str(self.project_root)
+                cwd=str(self.project_root),
+                env=os.environ
             )
             
             # Parse JSON output
@@ -269,8 +318,13 @@ class ComplexityAnalyzer:
             output_file = self.project_root / "reports" / "radon-maintainability.json"
             output_file.parent.mkdir(parents=True, exist_ok=True)
             
+            # Find radon executable
+            radon_cmd = shutil.which('radon') or str(Path.home() / ".local" / "bin" / "radon")
+            if not Path(radon_cmd).exists():
+                radon_cmd = 'radon'
+
             cmd = [
-                'radon', 'mi',
+                radon_cmd, 'mi',
                 str(self.project_root),
                 '-j',  # JSON output
                 '--min', 'B',  # Minimum maintainability
@@ -281,7 +335,8 @@ class ComplexityAnalyzer:
                 cmd,
                 capture_output=True,
                 text=True,
-                cwd=str(self.project_root)
+                cwd=str(self.project_root),
+                env=os.environ,
             )
             
             try:

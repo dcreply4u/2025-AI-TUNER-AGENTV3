@@ -34,9 +34,18 @@ print("=" * 80)
 try:
     from PySide6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushButton
     from PySide6.QtCore import QTimer, Qt
+
+    from ui.startup_splash import show_startup_splash_if_available
     
     app = QApplication(sys.argv)
     print("[OK] QApplication created")
+
+    # Show startup splash (non-blocking, fades in/out)
+    try:
+        show_startup_splash_if_available()
+        print("[OK] Startup splash (if image available)")
+    except Exception as e:
+        print(f"[WARN] Startup splash failed: {e}")
     
     # Create minimal window first
     print("[STEP 1] Creating minimal window...")

@@ -24,6 +24,7 @@ from PySide6.QtWidgets import (
     QFileDialog,
     QMessageBox,
     QMenu,
+    QGroupBox,
 )
 from pathlib import Path
 import logging
@@ -93,6 +94,8 @@ class AIAdvisorWidget(QWidget):
         self.last_answer: Optional[str] = None
         self.last_confidence: float = 0.0
         self.last_sources: List[str] = []
+        # Cache for latest structured tuning suggestions (for side panel)
+        self._latest_tuning_suggestions: List[Dict[str, Any]] = []
         
         try:
             # Try to initialize config monitor (optional)
@@ -288,6 +291,12 @@ class AIAdvisorWidget(QWidget):
         header_layout.addWidget(clear_btn)
         
         main_layout.addLayout(header_layout)
+
+        # Main content layout: chat + tuning suggestions side panel
+        content_layout = QHBoxLayout()
+        content_layout.setContentsMargins(0, 0, 0, 0)
+        content_layout.setSpacing(6)
+        main_layout.addLayout(content_layout)
         
         # Chat display - Cursor style: fixed size, clean background with better styling
         self.chat_display = QTextEdit()
@@ -330,7 +339,89 @@ class AIAdvisorWidget(QWidget):
                 height: 0px;
             }
         """)
-        main_layout.addWidget(self.chat_display)
+        content_layout.addWidget(self.chat_display, stretch=3)
+
+        # ------------------------------------------------------------------
+        # Tuning Suggestions side panel (powered by session analysis)
+        # ------------------------------------------------------------------
+        self.tuning_group = QGroupBox("Tuning Suggestions")
+        self.tuning_group.setToolTip(
+            "High-level tuning and safety suggestions from the latest logged session.\n"
+            "This is read-only guidance – you still control all tune changes."
+        )
+        self.tuning_group.setStyleSheet("""
+            QGroupBox {
+                color: #00e5ff;
+                border: 1px solid #00e5ff;
+                border-radius: 6px;
+                margin-top: 6px;
+                font-weight: 600;
+                font-size: 11px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                subcontrol-position: top left;
+                padding: 0 4px;
+            }
+        """)
+
+        tuning_layout = QVBoxLayout(self.tuning_group)
+        tuning_layout.setContentsMargins(4, 6, 4, 4)
+        tuning_layout.setSpacing(4)
+
+        self.tuning_status_label = QLabel("No data yet.")
+        self.tuning_status_label.setStyleSheet(
+            "color: #888; font-size: 10px; padding: 0 2px;"
+        )
+        tuning_layout.addWidget(self.tuning_status_label)
+
+        self.tuning_list = QListWidget()
+        self.tuning_list.setObjectName("tuningSuggestionsList")
+        self.tuning_list.setStyleSheet("""
+            QListWidget {
+                background-color: #050b12;
+                color: #e0f7ff;
+                border: 1px solid #0a2233;
+                border-radius: 4px;
+                font-size: 11px;
+            }
+            QListWidget::item {
+                padding: 4px 6px;
+            }
+            QListWidget::item:selected {
+                background-color: #004e5a;
+                color: #ffffff;
+            }
+        """)
+        tuning_layout.addWidget(self.tuning_list, stretch=1)
+
+        refresh_btn = QPushButton("Refresh")
+        refresh_btn.setToolTip(
+            "Re-analyze the latest session log and refresh tuning suggestions."
+        )
+        refresh_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #00e5ff;
+                color: #001018;
+                border-radius: 4px;
+                padding: 2px 6px;
+                font-size: 10px;
+                font-weight: 600;
+            }
+            QPushButton:hover {
+                background-color: #00bcd4;
+            }
+            QPushButton:pressed {
+                background-color: #0097a7;
+            }
+        """)
+        refresh_btn.setFixedHeight(20)
+        refresh_btn.clicked.connect(self._refresh_tuning_suggestions_panel)
+        tuning_layout.addWidget(refresh_btn, alignment=Qt.AlignmentFlag.AlignRight)
+
+        self.tuning_group.setMinimumWidth(220)
+        self.tuning_group.setMaximumWidth(260)
+        content_layout.addWidget(self.tuning_group, stretch=2)
         
         # Suggestions - compact, appears above input when available
         self.suggestions_list = QListWidget()
@@ -597,7 +688,7 @@ class AIAdvisorWidget(QWidget):
         # Allow horizontal expansion to match other panels
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         self.setMinimumHeight(350)
-        self.setMaximumHeight(400)
+        self.setMaximumHeight(420)
     
     def _show_welcome_message(self) -> None:
         """Show welcome message from Q - Cursor style."""
@@ -656,6 +747,95 @@ class AIAdvisorWidget(QWidget):
         self.input_field.setText(item.text())
         self.suggestions_list.hide()
         self.input_field.setFocus()
+
+    # ------------------------------------------------------------------
+    # Tuning suggestions side panel helpers
+    # ------------------------------------------------------------------
+
+    def _refresh_tuning_suggestions_panel(self, background_only: bool = False) -> None:
+        """
+        Refresh the tuning suggestions panel using the advisor's latest data.
+
+        If background_only is True, failures will be silent and the status text
+        will not be treated as an error (used after chat responses).
+        """
+        if not self.advisor or not hasattr(self.advisor, "get_latest_tuning_suggestions"):
+            # RAG or legacy advisor without tuning API – keep UI but show hint
+            if not background_only:
+                self.tuning_status_label.setText(
+                    "Tuning suggestions are available when the onboard Q advisor\n"
+                    "and session analysis services are enabled."
+                )
+            return
+
+        try:
+            suggestions = self.advisor.get_latest_tuning_suggestions()
+        except Exception as exc:  # pragma: no cover - defensive
+            logging.getLogger(__name__).debug(
+                f"Failed to refresh tuning suggestions: {exc}", exc_info=True
+            )
+            if not background_only:
+                self.tuning_status_label.setText(
+                    "Unable to read latest tuning suggestions (see logs)."
+                )
+            return
+
+        if suggestions is None:
+            # Analysis failed
+            if not background_only:
+                self.tuning_status_label.setText(
+                    "Session analysis is currently unavailable. Check logs for details."
+                )
+            return
+
+        # Empty list means: analysis ok, but no samples or no anomalies
+        if not suggestions:
+            self.tuning_list.clear()
+            self.tuning_status_label.setText(
+                "No major tuning or safety issues detected in the latest session.\n"
+                "Record more data and push the car harder to see recommendations."
+            )
+            self._latest_tuning_suggestions = []
+            return
+
+        # Populate UI list with severity-aware styling
+        self.tuning_list.clear()
+        self._latest_tuning_suggestions = []
+
+        for s in suggestions:
+            # Accept both dataclass instances and plain dicts
+            category = getattr(s, "category", None) or getattr(s, "type", None)
+            severity = getattr(s, "severity", "info")
+            message = getattr(s, "message", str(s))
+            rationale = getattr(s, "rationale", "")
+
+            prefix = "•"
+            color = "#e0f7ff"
+            if severity == "warning":
+                prefix = "⚠️"
+                color = "#ffeb3b"
+            elif severity == "critical":
+                prefix = "🚨"
+                color = "#ff5252"
+
+            text = f"{prefix} [{category}] {message}" if category else f"{prefix} {message}"
+            item = QListWidgetItem(text)
+            item.setToolTip(rationale or message)
+            item.setForeground(QColor(color))
+            self.tuning_list.addItem(item)
+
+            self._latest_tuning_suggestions.append(
+                {
+                    "category": category,
+                    "severity": severity,
+                    "message": message,
+                    "rationale": rationale,
+                }
+            )
+
+        self.tuning_status_label.setText(
+            f"{len(self._latest_tuning_suggestions)} tuning suggestion(s) from latest session."
+        )
     
     def _send_message(self) -> None:
         """Send message to Q."""

@@ -51,6 +51,7 @@ from services import (
     USBManager,
 )
 from ui.ai_advisor_widget import AIAdvisorWidget
+from ui.analysis_coach_tab import AnalysisCoachTab
 from ui.ai_insight_panel import AIInsightPanel
 from ui.dragy_view import DragyPerformanceView, DragTimesPanel, GPSTrackPanel
 from ui.drag_mode_panel import DragModePanel, DragModeCompactPanel, DragState
@@ -227,12 +228,12 @@ class MainWindow(QWidget):
         left_scroll.setStyleSheet("""
             QScrollArea { background-color: transparent; border: none; }
             QScrollBar:vertical {
-                background-color: #e0e0e0;
+                background-color: #111827;
                 width: 10px;
                 border-radius: 5px;
             }
             QScrollBar::handle:vertical {
-                background-color: #3498db;
+                background-color: #00e5ff;
                 border-radius: 5px;
                 min-height: 30px;
             }
@@ -253,12 +254,12 @@ class MainWindow(QWidget):
         right_scroll.setStyleSheet("""
             QScrollArea { background-color: transparent; border: none; }
             QScrollBar:vertical {
-                background-color: #e0e0e0;
+                background-color: #111827;
                 width: 10px;
                 border-radius: 5px;
             }
             QScrollBar::handle:vertical {
-                background-color: #3498db;
+                background-color: #00e5ff;
                 border-radius: 5px;
                 min-height: 30px;
             }
@@ -1016,6 +1017,16 @@ class MainWindow(QWidget):
         
         safety_layout.addStretch()
         self.bottom_tabs.addTab(safety_tab, "🛡️ Safety")
+
+        # Tab 11: Analysis & Coach (data-driven overview)
+        try:
+            analysis_tab = AnalysisCoachTab(
+                performance_tracker=self.performance_tracker,
+                parent=self,
+            )
+            self.bottom_tabs.addTab(analysis_tab, "🧠 Analysis")
+        except Exception as exc:
+            LOGGER.warning("AnalysisCoachTab not available: %s", exc)
 
         # Development-only tab: Log Viewer
         try:

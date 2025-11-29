@@ -9,7 +9,11 @@ import logging
 import re
 import time
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
+
+from .session_analysis_service import SessionAnalysisReport, SessionAnalysisService
+from .driver_performance_summary import DriverPerformanceSummaryService
+from .tuning_suggestion_service import TuningSuggestionService, TuningSuggestion
 
 LOGGER = logging.getLogger(__name__)
 
@@ -58,7 +62,15 @@ class AIAdvisorQ:
     - Optional LLM enhancement
     """
     
-    def __init__(self, use_llm: bool = False, llm_api_key: Optional[str] = None, config_monitor=None):
+    def __init__(
+        self,
+        use_llm: bool = False,
+        llm_api_key: Optional[str] = None,
+        config_monitor=None,
+        session_analyzer: Optional[SessionAnalysisService] = None,
+        driver_performance_service: Optional[DriverPerformanceSummaryService] = None,
+        tuning_suggestion_service: Optional[TuningSuggestionService] = None,
+    ):
         """
         Initialize AI Advisor Q.
         
@@ -70,6 +82,14 @@ class AIAdvisorQ:
         self.use_llm = use_llm and OPENAI_AVAILABLE
         self.llm_api_key = llm_api_key
         self.config_monitor = config_monitor
+        # Optional helpers for data‑driven answers
+        self.session_analyzer = session_analyzer or SessionAnalysisService()
+        self.driver_performance_service = (
+            driver_performance_service or DriverPerformanceSummaryService()
+        )
+        self.tuning_suggestion_service = (
+            tuning_suggestion_service or TuningSuggestionService()
+        )
         self.conversation_history: List[ChatMessage] = []
         self.knowledge_base: List[KnowledgeEntry] = []
         
@@ -334,7 +354,7 @@ Tips:
             ),
         ])
     
-    def ask(self, question: str, context: Optional[Dict[str, any]] = None) -> str:
+    def ask(self, question: str, context: Optional[Dict[str, Any]] = None) -> str:
         """
         Ask Q a question.
         
@@ -348,20 +368,43 @@ Tips:
         # Add user message to history
         self.conversation_history.append(ChatMessage(role="user", content=question))
         
-        # Check if this is about a configuration change
+        # 1) Configuration change analysis
         if context and "change" in context:
             change = context["change"]
             # Provide proactive advice about the change
             response = self._analyze_config_change(change, context)
         else:
-            # Find relevant knowledge
-            relevant_knowledge = self._find_relevant_knowledge(question)
-            
-            # Generate response
-            if self.use_llm:
-                response = self._generate_llm_response(question, relevant_knowledge, context)
+            # 2) Driver performance questions (0‑60, 1/4 mile, distance, etc.)
+            driver_answer = self._maybe_answer_with_driver_performance(
+                question, context or {}
+            )
+            if driver_answer:
+                response = driver_answer
             else:
-                response = self._generate_rule_based_response(question, relevant_knowledge, context)
+                # 3) Tuning‑oriented questions (what should I change in the tune?)
+                tuning_answer = self._maybe_answer_with_tuning_suggestions(
+                    question, context or {}
+                )
+                if tuning_answer:
+                    response = tuning_answer
+                else:
+                    # 4) Session‑specific telemetry analysis (AFR, temps, boost, etc.)
+                    telemetry_answer = self._maybe_answer_with_session_analysis(
+                        question, context or {}
+                    )
+                    if telemetry_answer:
+                        response = telemetry_answer
+                    else:
+                        # 5) Fallback to knowledge base / LLM
+                        relevant_knowledge = self._find_relevant_knowledge(question)
+                        if self.use_llm:
+                            response = self._generate_llm_response(
+                                question, relevant_knowledge, context
+                            )
+                        else:
+                            response = self._generate_rule_based_response(
+                                question, relevant_knowledge, context
+                            )
         
         # Add response to history
         self.conversation_history.append(ChatMessage(role="assistant", content=response))
@@ -372,7 +415,7 @@ Tips:
         
         return response
     
-    def _analyze_config_change(self, change, context: Optional[Dict[str, any]] = None) -> str:
+    def _analyze_config_change(self, change, context: Optional[Dict[str, Any]] = None) -> str:
         """Analyze a configuration change and provide advice."""
         if not self.config_monitor:
             return "I can't analyze configuration changes right now. Please check the configuration monitor."
@@ -420,6 +463,245 @@ Tips:
                 response += f"• {warning.message}\n"
         
         return response
+
+    # ------------------------------------------------------------------ #
+    # Session / Telemetry‑aware answers
+    # ------------------------------------------------------------------ #
+
+    def _maybe_answer_with_tuning_suggestions(
+        self,
+        question: str,
+        context: Dict[str, Any],
+    ) -> Optional[str]:
+        """
+        Answer questions like:
+        - "What tune changes do you recommend from the last session?"
+        - "How can I make the car safer / richer / less knock‑prone?"
+        """
+        q = question.lower()
+        tuning_keywords = [
+            "tune",
+            "tuning",
+            "map",
+            "fuel",
+            "ignition",
+            "spark",
+            "boost",
+            "safe",
+            "safety",
+            "recommend",
+            "suggestion",
+            "what should i change",
+            "what should i adjust",
+        ]
+        if not any(k in q for k in tuning_keywords):
+            return None
+
+        # Re‑use the latest session analysis and tuning suggestions
+        suggestions = self.get_latest_tuning_suggestions()
+        if suggestions is None:
+            # Analysis failed; fall back to normal knowledge path
+            return None
+
+        if not suggestions:
+            # No samples or no actionable findings
+            return (
+                "I analyzed the latest session and didn't see any major issues that "
+                "would force tune changes. You can keep your current calibration and "
+                "continue gathering more data."
+            )
+
+        lines: List[str] = []
+        lines.append(
+            "Based on the latest session data, here are some high‑level tuning and "
+            "setup suggestions. Treat these as guidance – always validate changes "
+            "carefully on your specific engine and fuel:"
+        )
+        lines.append("")
+
+        for s in suggestions:
+            prefix = "•"
+            if s.severity == "warning":
+                prefix = "⚠️"
+            elif s.severity == "critical":
+                prefix = "🚨"
+            lines.append(f"{prefix} [{s.category}] {s.message}")
+            lines.append(f"    – {s.rationale}")
+
+        lines.append(
+            "\nIf you tell me more about your goals (e.g. 'maximum power on E85' vs "
+            "'safe track day on pump fuel'), I can help you prioritize these changes."
+        )
+
+        return "\n".join(lines)
+
+    # ------------------------------------------------------------------ #
+    # Public helper APIs for UI / tooling
+    # ------------------------------------------------------------------ #
+
+    def get_latest_tuning_suggestions(self) -> Optional[List[TuningSuggestion]]:
+        """
+        Return structured tuning suggestions from the most recent session log.
+
+        This is used by the UI to render a live "Tuning Suggestions" panel next
+        to the chat, and by _maybe_answer_with_tuning_suggestions() to avoid
+        duplicating logic.
+
+        Returns:
+            - list[TuningSuggestion]: if analysis ran successfully (may be empty
+              when there is no data or no anomalies)
+            - None: if analysis failed (I/O error, parse error, etc.)
+        """
+        # Re‑use the latest session analysis
+        try:
+            report: SessionAnalysisReport = self.session_analyzer.analyze_latest_session()
+        except Exception as e:
+            LOGGER.debug("Tuning suggestions: session analysis failed: %s", e)
+            return None
+
+        if report.sample_count == 0:
+            # Valid but no data yet
+            return []
+
+        try:
+            suggestions: List[TuningSuggestion] = (
+                self.tuning_suggestion_service.suggest_from_session(report)
+            )
+        except Exception as e:
+            LOGGER.debug("Tuning suggestions generation failed: %s", e)
+            return None
+
+        return suggestions
+
+    def _maybe_answer_with_driver_performance(
+        self,
+        question: str,
+        context: Dict[str, Any],
+    ) -> Optional[str]:
+        """
+        Answer questions about straight‑line performance using a PerformanceSnapshot
+        provided in the context (key: 'performance_snapshot').
+        """
+        q = question.lower()
+        if not any(k in q for k in ["0-60", "0 to 60", "60ft", "quarter", "1/4", "half mile", "1/2 mile", "distance", "drag", "acceleration"]):
+            return None
+
+        snapshot = context.get("performance_snapshot")
+        if snapshot is None:
+            return None
+
+        try:
+            # Accept either a PerformanceSnapshot or a dict with the same fields
+            if not isinstance(snapshot, dict):
+                # dataclass instance – use its __dict__ for safety
+                snap_dict = {
+                    "metrics": getattr(snapshot, "metrics", {}),
+                    "best_metrics": getattr(snapshot, "best_metrics", {}),
+                    "total_distance_m": getattr(snapshot, "total_distance_m", 0.0),
+                }
+            else:
+                snap_dict = snapshot
+
+            fake_snapshot = PerformanceSnapshot(
+                metrics=snap_dict.get("metrics", {}),
+                best_metrics=snap_dict.get("best_metrics", {}),
+                total_distance_m=snap_dict.get("total_distance_m", 0.0),
+                track_points=snap_dict.get("track_points", []),
+                last_update=snap_dict.get("last_update", 0.0),
+            )
+
+            summary = self.driver_performance_service.summarize(fake_snapshot)
+        except Exception as e:
+            LOGGER.debug("Driver performance summary failed: %s", e)
+            return None
+
+        lines: List[str] = []
+        lines.append("Here's a quick summary of your straight‑line performance this session:")
+        if summary.best_0_60_s:
+            lines.append(f"- Best 0–60 mph: {summary.best_0_60_s:.2f} s")
+        else:
+            lines.append("- 0–60 mph: no complete run detected yet.")
+
+        if summary.best_quarter_mile_s:
+            lines.append(f"- Best 1/4 mile ET: {summary.best_quarter_mile_s:.2f} s")
+        if summary.best_half_mile_s:
+            lines.append(f"- Best 1/2 mile ET: {summary.best_half_mile_s:.2f} s")
+
+        lines.append(f"- Total distance covered: {summary.total_distance_km:.2f} km")
+        lines.append(
+            "\nYou can ask follow‑ups like:\n"
+            "- \"How can I improve my 60‑foot time?\"\n"
+            "- \"Is my 0–60 consistent between runs?\""
+        )
+
+        return "\n".join(lines)
+
+    def _maybe_answer_with_session_analysis(
+        self,
+        question: str,
+        context: Dict[str, Any],
+    ) -> Optional[str]:
+        """
+        If the question is clearly about AFR, temps, boost, or session behaviour,
+        try to answer using the latest session analysis report.
+        """
+        if not self.session_analyzer:
+            return None
+
+        q = question.lower()
+        keywords = ["afr", "lambda", "lean", "rich", "knock", "egt", "coolant", "temp", "overheat", "boost", "lap"]
+        if not any(k in q for k in keywords):
+            # Not obviously telemetry‑related – let the normal knowledge path handle it
+            return None
+
+        try:
+            report: SessionAnalysisReport = self.session_analyzer.analyze_latest_session()
+        except Exception as e:
+            LOGGER.warning("Session analysis failed: %s", e)
+            return None
+
+        if report.sample_count == 0:
+            return (
+                "I looked for recent session data but couldn't find any completed logs. "
+                "Run a session with logging enabled, then ask me again about AFR, temps, or boost."
+            )
+
+        # Build a concise, human‑readable summary from anomalies
+        lines: List[str] = []
+        lines.append("Here's what I see from your most recent logged session:")
+        if report.duration_s:
+            lines.append(f"- Duration: ~{report.duration_s:.0f} seconds with {report.sample_count} samples.")
+        else:
+            lines.append(f"- Samples: {report.sample_count} (no explicit timestamp column found).")
+
+        if not report.anomalies:
+            lines.append("- I did not detect any obvious AFR, temperature, or boost issues in the summary.")
+        else:
+            critical = [a for a in report.anomalies if a.severity == "critical"]
+            warnings = [a for a in report.anomalies if a.severity == "warning"]
+            info = [a for a in report.anomalies if a.severity not in {"critical", "warning"}]
+
+            if critical:
+                lines.append("\n🚨 **Critical findings:**")
+                for a in critical:
+                    lines.append(f"- {a.message}")
+            if warnings:
+                lines.append("\n⚠️ **Warnings:**")
+                for a in warnings:
+                    lines.append(f"- {a.message}")
+            if info:
+                lines.append("\nℹ️ **Additional notes:**")
+                for a in info:
+                    lines.append(f"- {a.message}")
+
+        lines.append(
+            "\nYou can ask follow‑up questions like:\n"
+            "- \"Where did AFR go lean in that session?\"\n"
+            "- \"Did coolant get too hot?\"\n"
+            "- \"Was boost higher than usual?\""
+        )
+
+        return "\n".join(lines)
     
     def _find_relevant_knowledge(self, question: str) -> List[KnowledgeEntry]:
         """Find relevant knowledge base entries."""

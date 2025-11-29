@@ -103,6 +103,16 @@ except ImportError:
     OptimizedStreamer = None  # type: ignore
 from .offline_manager import OfflineManager, SyncItem, SyncStatus
 from .performance_tracker import PerformanceSnapshot, PerformanceTracker
+from .driver_performance_summary import (
+    DriverPerformanceSummary,
+    DriverPerformanceSummaryService,
+)
+from .session_analysis_service import (
+    ChannelSummary,
+    SessionAnalysisReport,
+    SessionAnalysisService,
+    SessionAnomaly,
+)
 from .system_diagnostics import ComponentDiagnostic, DiagnosticStatus, SystemDiagnostics
 from .startup_diagnostics import DiagnosticResult, StartupDiagnostics
 from .usb_manager import USBDevice, USBManager
@@ -270,6 +280,12 @@ __all__ = [
     "SyncStatus",
     "PerformanceTracker",
     "PerformanceSnapshot",
+    "DriverPerformanceSummaryService",
+    "DriverPerformanceSummary",
+    "SessionAnalysisService",
+    "SessionAnalysisReport",
+    "SessionAnomaly",
+    "ChannelSummary",
     "DragRacingAnalyzer",
     "DragRun",
     "DragCoachingAdvice",

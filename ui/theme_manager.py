@@ -40,19 +40,19 @@ class ThemeColors:
     primary_dark: str = "#00a8c5"
     primary_light: str = "#33e8ff"
 
-    # Background colors
-    background: str = "#0a0e27"
-    background_secondary: str = "#141b2d"
-    background_tertiary: str = "#1e2839"
+    # Background colors (modern dark, motorsport-oriented)
+    background: str = "#050711"
+    background_secondary: str = "#0b1020"
+    background_tertiary: str = "#141a2a"
 
     # Text colors
     text_primary: str = "#ffffff"
     text_secondary: str = "#b0b8c4"
     text_disabled: str = "#6b7280"
 
-    # Accent colors
-    accent: str = "#00ff88"
-    accent_dark: str = "#00cc6a"
+    # Accent colors (single, cohesive accent family)
+    accent: str = "#00e5ff"  # Electric teal for primary accents
+    accent_dark: str = "#00b0cc"
     warning: str = "#ffaa00"
     error: str = "#ff4444"
     success: str = "#00ff88"
@@ -63,9 +63,9 @@ class ThemeColors:
     border_light: str = "#4a5568"
 
     # Widget colors
-    widget_background: str = "#1a1f35"
-    widget_border: str = "#2d3748"
-    widget_hover: str = "#252b42"
+    widget_background: str = "#101624"
+    widget_border: str = "#202636"
+    widget_hover: str = "#1a2132"
 
     # Chart/Graph colors
     chart_line: str = "#00e0ff"
@@ -77,23 +77,23 @@ class ThemeColors:
     # ============================================================
     
     # Title colors (for panel titles, section headers)
-    title: str = "#ff2a2a"  # Red - main panel titles like "LIVE GAUGES"
-    title_secondary: str = "#ff6b00"  # Orange - gauge titles, metric labels
-    title_tertiary: str = "#3498db"  # Blue - secondary headers
+    title: str = "#00e5ff"  # Primary electric accent for main titles
+    title_secondary: str = "#fbbf24"  # Warm amber for secondary labels
+    title_tertiary: str = "#64748b"  # Muted blue-grey for subtle headers
     
-    # Scrollbar colors
-    scrollbar: str = "#3498db"  # Blue - scrollbar handle color
-    scrollbar_background: str = "#e0e0e0"  # Light gray - scrollbar track
+    # Scrollbar colors (dark track with accent handle)
+    scrollbar: str = "#00e5ff"  # Accent handle
+    scrollbar_background: str = "#111827"  # Dark track
     
     # Gauge-specific colors
-    gauge_title: str = "#ff6b00"  # Orange - individual gauge titles (e.g., "BOOST PSI")
+    gauge_title: str = "#f97316"  # Orange - individual gauge titles (e.g., "BOOST PSI")
     gauge_value: str = "#ffffff"  # White - digital gauge values
     gauge_border: str = "#ff2a2a"  # Red - gauge value box border
     gauge_needle: str = "#ff4444"  # Red - gauge needle color
     
     # Drag Mode colors (for consistency)
-    drag_mode_title: str = "#ff2a2a"  # Red - Drag Mode panel title
-    drag_mode_metric: str = "#ff6b00"  # Orange - Drag Mode metric titles
+    drag_mode_title: str = "#e11d48"  # Deep red for Drag Mode panel title
+    drag_mode_metric: str = "#f97316"  # Orange for metrics
     drag_mode_value: str = "#ffffff"  # White - Drag Mode values
     
     # Button/Interactive colors
