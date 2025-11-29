@@ -47,18 +47,12 @@ from .track_learning_ai import TrackLearningAI, TrackPoint, TrackProfile
 
 # Auto knowledge ingestion service (runs automatically in background)
 try:
-from .auto_knowledge_ingestion_service import (
-    AutoKnowledgeIngestionService,
-    get_auto_ingestion_service,
-    start_auto_ingestion,
-    stop_auto_ingestion,
-)
-from .knowledge_update_service import (
-    KnowledgeUpdateService,
-    get_knowledge_update_service,
-    start_knowledge_update_service,
-    stop_knowledge_update_service,
-)
+    from .auto_knowledge_ingestion_service import (
+        AutoKnowledgeIngestionService,
+        get_auto_ingestion_service,
+        start_auto_ingestion,
+        stop_auto_ingestion,
+    )
     AUTO_INGESTION_AVAILABLE = True
 except ImportError:
     AUTO_INGESTION_AVAILABLE = False
