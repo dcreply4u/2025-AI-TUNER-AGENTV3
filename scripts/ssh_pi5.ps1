@@ -1,4 +1,4 @@
-# SSH connection script for Pi 5 with password
+# SSH connection script for Pi 5 with password (non-interactive when using plink)
 param(
     [string]$PiIP = "192.168.1.214",
     [string]$PiUser = "aituner",
@@ -6,37 +6,33 @@ param(
     [string]$Command = ""
 )
 
-# Check if plink is available (PuTTY)
-$plinkPath = Get-Command plink -ErrorAction SilentlyContinue
+# Prefer plink with known host key (non-interactive), fall back to OpenSSH
+$plinkPath = "C:\Program Files\PuTTY\plink.exe"
+$hostKey = "ssh-ed25519 255 SHA256:kYD1kP0J+ldb0WyphVRnikIRQgZJP1nnL6MzESnu2iw"
 
-if ($plinkPath) {
-    Write-Host "Using plink for SSH connection..." -ForegroundColor Cyan
+if (Test-Path $plinkPath) {
+    Write-Host "Using plink for SSH connection (non-interactive)..." -ForegroundColor Cyan
+    $baseArgs = @(
+        "-batch",
+        "-ssh",
+        "-hostkey", $hostKey,
+        "-pw", $PiPassword,
+        "$PiUser@$PiIP"
+    )
+
     if ($Command) {
-        echo y | plink -ssh -pw $PiPassword "$PiUser@$PiIP" $Command
+        & $plinkPath @baseArgs $Command
     } else {
-        plink -ssh -pw $PiPassword "$PiUser@$PiIP"
+        & $plinkPath @baseArgs
     }
 } else {
-    Write-Host "plink not found. Attempting with OpenSSH..." -ForegroundColor Yellow
-    Write-Host "Note: OpenSSH requires interactive password entry" -ForegroundColor Yellow
+    Write-Host "plink not found. Attempting with OpenSSH (may be interactive)..." -ForegroundColor Yellow
+    Write-Host "To install plink (PuTTY): winget install PuTTY.PuTTY" -ForegroundColor Gray
     Write-Host ""
-    Write-Host "To install plink (PuTTY):" -ForegroundColor Cyan
-    Write-Host "  winget install PuTTY.PuTTY" -ForegroundColor Gray
-    Write-Host ""
-    Write-Host "Or connect manually:" -ForegroundColor Cyan
-    Write-Host "  ssh $PiUser@$PiIP" -ForegroundColor Gray
-    Write-Host ""
-    
+
     if ($Command) {
         ssh -o StrictHostKeyChecking=no "$PiUser@$PiIP" $Command
     } else {
         ssh -o StrictHostKeyChecking=no "$PiUser@$PiIP"
     }
 }
-
-
-
-
-
-
-
