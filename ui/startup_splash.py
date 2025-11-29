@@ -172,9 +172,17 @@ class StartupSplash(QWidget):
             # Fallback: just resize to pixmap size
             self.resize(self._pixmap.width(), self._pixmap.height())
         
+        # Ensure window flags are set (in case they were reset)
+        self.setWindowFlags(
+            Qt.WindowType.FramelessWindowHint |
+            Qt.WindowType.WindowStaysOnTopHint |
+            Qt.WindowType.SplashScreen
+        )
         self.show()
         self.raise_()  # Bring to front
         self.activateWindow()  # Activate window
+        # Force to front by lowering other windows
+        self.setWindowState(self.windowState() | Qt.WindowState.WindowActive)
         self._fade_in.start()
         print("[SPLASH] Fade-in animation started")
 
