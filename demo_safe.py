@@ -40,10 +40,12 @@ try:
     app = QApplication(sys.argv)
     print("[OK] QApplication created")
 
-    # Show startup splash (non-blocking, fades in/out)
+    # Show startup splash immediately (non-blocking, fades in/out)
     try:
         show_startup_splash_if_available()
         print("[OK] Startup splash (if image available)")
+        # Process events to ensure splash appears immediately
+        app.processEvents()
     except Exception as e:
         print(f"[WARN] Startup splash failed: {e}")
     
@@ -59,7 +61,9 @@ try:
     layout.addWidget(status_label)
     
     window.show()
-    app.processEvents()
+    # Process events multiple times to ensure UI updates
+    for _ in range(3):
+        app.processEvents()
     print("[OK] Basic window shown")
     
     # Store main_window reference at module level to prevent garbage collection
@@ -70,20 +74,24 @@ try:
         global main_window_ref
         try:
             status_label.setText("Loading MainWindow...")
-            app.processEvents()
+            for _ in range(3):
+                app.processEvents()
             
             print("[STEP 2] Importing MainWindow...")
             from ui.main import MainWindow
+            app.processEvents()  # Process events after import
             
             status_label.setText("Creating MainWindow instance...")
-            app.processEvents()
+            for _ in range(3):
+                app.processEvents()
             
             print("[STEP 3] Creating MainWindow...")
             main_window = MainWindow()
             main_window_ref = main_window  # Keep reference to prevent GC
             
             status_label.setText("MainWindow created successfully!")
-            app.processEvents()
+            for _ in range(3):
+                app.processEvents()
             
             # Hide simple window, show main window (simple approach)
             window.hide()
@@ -149,8 +157,9 @@ try:
             status_label.setStyleSheet("font-size: 14px; padding: 20px; color: #e74c3c;")
             window.show()  # Show error window
     
-    # Load main window after a short delay
-    QTimer.singleShot(500, load_main_window)
+    # Load main window after a short delay to let splash appear
+    # Give splash time to fade in before starting heavy imports
+    QTimer.singleShot(100, load_main_window)
     
     print("[INFO] Application running...")
     print("[INFO] Window should be visible and movable normally")

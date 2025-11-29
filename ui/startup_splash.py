@@ -25,6 +25,31 @@ from PySide6.QtWidgets import QApplication, QLabel, QWidget, QVBoxLayout, QGraph
 DEFAULT_WINDOWS_SPLASH = Path(r"C:\Users\DC\Pictures\TelemetryIQgood9.jpg")
 
 
+def _find_default_splash_image() -> Optional[Path]:
+    """Find the default splash image on the current platform."""
+    # Check environment variable first
+    env_path = os.environ.get("AITUNER_SPLASH_IMAGE")
+    if env_path:
+        path = Path(env_path)
+        if path.exists():
+            return path
+    
+    # Platform-specific defaults
+    if os.name == "nt":
+        # Windows: use user's Pictures folder
+        if DEFAULT_WINDOWS_SPLASH.exists():
+            return DEFAULT_WINDOWS_SPLASH
+    else:
+        # Linux/Unix: check project root for common image names
+        project_root = Path(__file__).parent.parent
+        for name in ["TelemetryIQgood9.jpg", "TelemetryIQgood9.png", "splash.jpg", "splash.png"]:
+            candidate = project_root / name
+            if candidate.exists():
+                return candidate
+    
+    return None
+
+
 class StartupSplash(QWidget):
     """A frameless, centered splash screen with slow fade‑in / fade‑out."""
 
@@ -36,12 +61,8 @@ class StartupSplash(QWidget):
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
 
         # Resolve image path
-        env_path = os.environ.get("AITUNER_SPLASH_IMAGE")
-        if image_path is None and env_path:
-            image_path = Path(env_path)
-        if image_path is None and os.name == "nt":
-        # prefer the user-provided default on Windows
-            image_path = DEFAULT_WINDOWS_SPLASH
+        if image_path is None:
+            image_path = _find_default_splash_image()
 
         self._pixmap = None
         if image_path is not None and image_path.exists():
