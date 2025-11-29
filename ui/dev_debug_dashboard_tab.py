@@ -266,8 +266,13 @@ class DevDebugDashboardTab(QWidget):
             )
             return
 
-        analyzer = self._app_context.session_analyzer
-        tuning_svc = self._app_context.tuning_suggestion_service
+        analyzer = self._app_context.session_analyzer if self._app_context else None
+        tuning_svc = self._app_context.tuning_suggestion_service if self._app_context else None
+        
+        # Handle deferred initialization - services may be None
+        if analyzer is None or tuning_svc is None:
+            self.status_text.setPlainText("Services are still initializing in background...\nPlease wait a moment and refresh.")
+            return
 
         try:
             report = analyzer.analyze_latest_session()

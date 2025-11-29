@@ -49,17 +49,32 @@ class AnalysisCoachTab(QWidget):
     ) -> None:
         super().__init__(parent)
 
+        # Store app_context for lazy initialization
+        self._app_context = app_context
+        
         # Lightweight services – prefer AppContext if provided
         if app_context:
+            # Services may be None if deferred initialization is used
             self._session_analyzer = app_context.session_analyzer
             self._tuning_service = app_context.tuning_suggestion_service
             self._driver_summary = app_context.driver_performance_summary
             self._performance_tracker = app_context.performance_tracker
         else:
+            # Create services directly if no app_context
             self._session_analyzer = SessionAnalysisService()
             self._tuning_service = TuningSuggestionService()
             self._driver_summary = DriverPerformanceSummaryService()
             self._performance_tracker = performance_tracker
+        
+        # Ensure services are available (create if None due to deferred init)
+        if self._session_analyzer is None:
+            self._session_analyzer = SessionAnalysisService()
+        if self._tuning_service is None:
+            self._tuning_service = TuningSuggestionService()
+        if self._driver_summary is None:
+            self._driver_summary = DriverPerformanceSummaryService()
+        if self._performance_tracker is None:
+            self._performance_tracker = PerformanceTracker()
 
         self._report: Optional[SessionAnalysisReport] = None
         self._tuning: list[TuningSuggestion] = []
