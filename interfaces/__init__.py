@@ -144,6 +144,17 @@ except ImportError:  # pragma: no cover
     detect_can_hardware = None  # type: ignore
     is_waveshare_can = None  # type: ignore
 
+try:
+    from .waveshare_environmental_hat import (
+        WaveshareEnvironmentalHAT,
+        EnvironmentalReading,
+        get_environmental_hat,
+    )
+except ImportError:  # pragma: no cover
+    WaveshareEnvironmentalHAT = None  # type: ignore
+    EnvironmentalReading = None  # type: ignore
+    get_environmental_hat = None  # type: ignore
+
 __all__ = [
     "EMSDataInterface",
     "CameraConfig",
@@ -222,3 +233,7 @@ if RTKInterface is not None:
 # Add IMU interface if available
 if IMUInterface is not None:
     __all__.extend(["IMUInterface", "IMUReading", "IMUType", "IMUStatus"])
+
+# Add Waveshare Environmental HAT if available
+if WaveshareEnvironmentalHAT is not None:
+    __all__.extend(["WaveshareEnvironmentalHAT", "EnvironmentalReading", "get_environmental_hat"])

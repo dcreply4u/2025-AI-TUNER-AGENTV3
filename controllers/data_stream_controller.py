@@ -8,6 +8,7 @@ Data Stream Controller – conductor for sensor symphonies
 
 import csv
 import logging
+import os
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -180,9 +181,29 @@ class DataStreamController(QObject):
                         return {"altitude_ft": fix.altitude_ft, "altitude_m": fix.altitude_m}
                 return None
             
-            # Temperature provider (from weather API or sensors)
+            # Initialize Waveshare Environmental HAT (if available)
+            self.environmental_hat = None
+            try:
+                from interfaces.waveshare_environmental_hat import get_environmental_hat
+                # Check if simulator mode is enabled
+                use_simulator = os.getenv("AITUNER_USE_ENV_SIMULATOR", "false").lower() in {"1", "true", "yes"}
+                self.environmental_hat = get_environmental_hat(use_simulator=use_simulator)
+                if self.environmental_hat.connect():
+                    LOGGER.info("Waveshare Environmental HAT connected")
+                else:
+                    LOGGER.warning("Waveshare Environmental HAT connection failed")
+            except Exception as e:
+                LOGGER.debug(f"Waveshare Environmental HAT not available: {e}")
+            
+            # Temperature provider (priority: HAT > weather API)
             def temperature_provider() -> Optional[float]:
-                # Try to get from weather API
+                # Try Waveshare HAT first
+                if self.environmental_hat:
+                    reading = self.environmental_hat.read()
+                    if reading:
+                        return reading.temperature_c
+                
+                # Fallback to weather API
                 if self.gps_interface:
                     fix = self.gps_interface.read_fix()
                     if fix:
@@ -196,9 +217,16 @@ class DataStreamController(QObject):
                             return (weather.temperature_f - 32.0) * 5.0 / 9.0
                 return None
             
-            # Pressure provider (from weather API or sensors)
+            # Pressure provider (priority: HAT > weather API)
             def pressure_provider() -> Optional[float]:
-                # Try to get from weather API
+                # Try Waveshare HAT first
+                if self.environmental_hat:
+                    reading = self.environmental_hat.read()
+                    if reading:
+                        # Return in millibars (hPa)
+                        return reading.pressure_hpa
+                
+                # Fallback to weather API
                 if self.gps_interface:
                     fix = self.gps_interface.read_fix()
                     if fix:
@@ -212,9 +240,15 @@ class DataStreamController(QObject):
                             return weather.pressure_inhg * 33.8639
                 return None
             
-            # Humidity provider (from weather API or sensors)
+            # Humidity provider (priority: HAT > weather API)
             def humidity_provider() -> Optional[float]:
-                # Try to get from weather API
+                # Try Waveshare HAT first
+                if self.environmental_hat:
+                    reading = self.environmental_hat.read()
+                    if reading:
+                        return reading.humidity_percent
+                
+                # Fallback to weather API
                 if self.gps_interface:
                     fix = self.gps_interface.read_fix()
                     if fix:

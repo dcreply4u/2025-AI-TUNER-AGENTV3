@@ -48,6 +48,11 @@ ollama>=0.1.0  # Local LLM client (optional, install Ollama separately from http
 
 # Knowledge Base Manager dependencies (for document ingestion and web scraping)
 PyPDF2>=3.0.0  # PDF document parsing
+
+# Waveshare Environmental Sensor HAT dependencies (optional)
+# Install with: pip install adafruit-circuitpython-bme280 smbus2
+# adafruit-circuitpython-bme280>=2.6.0  # BME280 sensor library (I2C)
+# smbus2>=0.4.0  # I2C bus access (alternative to Adafruit)
 python-docx>=1.0.0  # DOCX document parsing
 beautifulsoup4>=4.12.0  # HTML parsing for web scraping
 lxml>=4.9.0  # XML/HTML parser (faster than default)

@@ -956,6 +956,20 @@ class DynoTab(QWidget):
         # Initialize if needed
         if not self.virtual_dyno:
             self._initialize_virtual_dyno()
+        
+        # Update environmental conditions from Waveshare HAT if available
+        # Check if we have environmental data in telemetry
+        if self.virtual_dyno:
+            env_updated = False
+            if "ambient_temp_c" in data:
+                self.virtual_dyno.update_environment(temperature_c=data["ambient_temp_c"])
+                env_updated = True
+            if "humidity_percent" in data:
+                self.virtual_dyno.update_environment(humidity_percent=data["humidity_percent"])
+                env_updated = True
+            if "barometric_pressure_kpa" in data:
+                self.virtual_dyno.update_environment(barometric_pressure_kpa=data["barometric_pressure_kpa"])
+                env_updated = True
             
         if not self.virtual_dyno or not hasattr(self, 'dyno_view') or not self.dyno_view:
             return
