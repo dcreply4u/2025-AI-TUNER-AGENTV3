@@ -128,13 +128,49 @@ class StartupSplash(QWidget):
             screen = QGuiApplication.primaryScreen()
             if screen:
                 geo = screen.availableGeometry()
-                x = geo.x() + (geo.width() - self.width()) // 2
-                y = geo.y() + (geo.height() - self.height()) // 2
+                screen_w = geo.width()
+                screen_h = geo.height()
+                pixmap_w = self._pixmap.width()
+                pixmap_h = self._pixmap.height()
+                
+                # Scale down if image is larger than screen (maintain aspect ratio)
+                if pixmap_w > screen_w or pixmap_h > screen_h:
+                    scale = min(screen_w / pixmap_w, screen_h / pixmap_h, 1.0)
+                    scaled_w = int(pixmap_w * scale)
+                    scaled_h = int(pixmap_h * scale)
+                    scaled_pixmap = self._pixmap.scaled(
+                        scaled_w, scaled_h,
+                        Qt.AspectRatioMode.KeepAspectRatio,
+                        Qt.TransformationMode.SmoothTransformation
+                    )
+                    self._label.setPixmap(scaled_pixmap)
+                    widget_w = scaled_w
+                    widget_h = scaled_h
+                    print(f"[SPLASH] Scaled image to fit screen: {scaled_w}x{scaled_h} (scale: {scale:.2f})")
+                else:
+                    widget_w = pixmap_w
+                    widget_h = pixmap_h
+                
+                # Ensure widget has correct size
+                self.resize(widget_w, widget_h)
+                
+                # Calculate center position
+                x = geo.x() + (screen_w - widget_w) // 2
+                y = geo.y() + (screen_h - widget_h) // 2
+                
+                # Clamp to ensure it stays on screen (shouldn't be needed after scaling, but safety check)
+                x = max(geo.x(), min(x, geo.x() + screen_w - widget_w))
+                y = max(geo.y(), min(y, geo.y() + screen_h - widget_h))
+                
                 self.move(QPoint(x, y))
-                print(f"[SPLASH] Positioned at ({x}, {y})")
+                print(f"[SPLASH] Screen: {screen_w}x{screen_h}, Widget: {widget_w}x{widget_h}, Positioned at ({x}, {y})")
         except Exception as e:
             # If screen access fails, just show at default position
             print(f"[SPLASH] Screen positioning failed: {e}")
+            import traceback
+            traceback.print_exc()
+            # Fallback: just resize to pixmap size
+            self.resize(self._pixmap.width(), self._pixmap.height())
         
         self.show()
         self.raise_()  # Bring to front
