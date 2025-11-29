@@ -181,8 +181,9 @@ class StartupSplash(QWidget):
         self.show()
         self.raise_()  # Bring to front
         self.activateWindow()  # Activate window
-        # Force to front by lowering other windows
-        self.setWindowState(self.windowState() | Qt.WindowState.WindowActive)
+        # Force to front - process events and raise again
+        QApplication.processEvents()  # Process events to ensure window is shown
+        self.raise_()  # Raise again after processing events
         self._fade_in.start()
         print("[SPLASH] Fade-in animation started")
 
