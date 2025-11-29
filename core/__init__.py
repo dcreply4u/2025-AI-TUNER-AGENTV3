@@ -18,6 +18,18 @@ from .logging_config import LoggingConfig, LoggingManager, LogLevel, configure_l
 from .logging_utils import log_execution_time, log_function_call, log_performance_metric, log_resource_usage, log_error_with_context
 from .troubleshooter import CheckStatus, DiagnosticLevel, DiagnosticResult, SystemDiagnostics, Troubleshooter
 from .app_context import AppContext
+from .performance_optimizer import (
+    CircularBuffer,
+    LazyLoader,
+    PerformanceMonitor,
+    Throttle,
+    UpdateBatcher,
+    defer_to_background,
+    enable_performance_monitoring,
+    get_performance_monitor,
+    measure_time,
+    throttle,
+)
 
 try:
     from .error_recovery import (
@@ -99,6 +111,16 @@ __all__ = [
     "DiagnosticResult",
     "SystemDiagnostics",
     "AppContext",
+    "LazyLoader",
+    "UpdateBatcher",
+    "CircularBuffer",
+    "Throttle",
+    "PerformanceMonitor",
+    "throttle",
+    "measure_time",
+    "defer_to_background",
+    "get_performance_monitor",
+    "enable_performance_monitoring",
 ]
 
 # Add error recovery exports if available

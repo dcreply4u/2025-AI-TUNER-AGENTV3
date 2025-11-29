@@ -95,7 +95,8 @@ try:
             app.processEvents()
             
             print("[STEP 3] Creating MainWindow...")
-            main_window = MainWindow()
+            # Use deferred initialization for faster startup
+            main_window = MainWindow(defer_heavy_init=True)
             main_window_ref = main_window  # Keep reference to prevent GC
             
             status_label.setText("MainWindow created successfully!")

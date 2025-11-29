@@ -155,9 +155,16 @@ class MainWindow(QWidget):
     overlapping / "bleeding" UI elements.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, defer_heavy_init: bool = False) -> None:
+        """
+        Initialize main window.
+        
+        Args:
+            defer_heavy_init: If True, defer initialization of heavy services to background thread for faster startup.
+        """
         super().__init__()
         self.setWindowTitle("AI Tuner Edge Agent V2")
+        self._defer_heavy_init = defer_heavy_init
 
         screen = QApplication.primaryScreen()
         if screen is not None:
@@ -441,7 +448,7 @@ class MainWindow(QWidget):
                 LOGGER.info("Using USB for logs: %s", log_path)
         
         # Centralized AppContext for core services
-        self.app_context = AppContext.create(log_dir=log_path)
+        self.app_context = AppContext.create(log_dir=log_path, defer_heavy_init=self._defer_heavy_init)
         self.data_logger = self.app_context.data_logger
         self.cloud_sync = self.app_context.cloud_sync
         self.performance_tracker = self.app_context.performance_tracker
