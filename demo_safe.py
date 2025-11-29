@@ -39,15 +39,23 @@ try:
     
     app = QApplication(sys.argv)
     print("[OK] QApplication created")
+    
+    # Process events to ensure QApplication is fully initialized
+    app.processEvents()
 
-    # Show startup splash immediately (non-blocking, fades in/out)
+    # Show startup splash (non-blocking, fades in/out)
+    # Use a small delay to ensure display is ready
     try:
-        show_startup_splash_if_available()
-        print("[OK] Startup splash (if image available)")
-        # Process events to ensure splash appears immediately
+        def show_splash():
+            try:
+                show_startup_splash_if_available()
+                print("[OK] Startup splash (if image available)")
+            except Exception as e:
+                print(f"[WARN] Startup splash failed: {e}")
+        QTimer.singleShot(50, show_splash)  # 50ms delay to ensure QApplication is ready
         app.processEvents()
     except Exception as e:
-        print(f"[WARN] Startup splash failed: {e}")
+        print(f"[WARN] Startup splash setup failed: {e}")
     
     # Create minimal window first
     print("[STEP 1] Creating minimal window...")

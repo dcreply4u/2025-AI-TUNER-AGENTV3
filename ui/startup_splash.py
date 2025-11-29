@@ -78,23 +78,14 @@ class StartupSplash(QWidget):
             self._label.setPixmap(self._pixmap)
         layout.addWidget(self._label)
 
-        # Center the splash on the primary screen
-        screen = QGuiApplication.primaryScreen()
-        if screen and self._pixmap is not None and not self._pixmap.isNull():
+        # Center the splash on the primary screen (defer until show)
+        # Don't access screen here as QApplication might not be fully ready
+        if self._pixmap is not None and not self._pixmap.isNull():
             size = self._pixmap.size()
             self.resize(size)
-            geo = screen.availableGeometry()
-            x = geo.x() + (geo.width() - size.width()) // 2
-            y = geo.y() + (geo.height() - size.height()) // 2
-            self.move(QPoint(x, y))
         else:
-            # Fallback size/position
+            # Fallback size
             self.resize(600, 300)
-            if screen:
-                geo = screen.availableGeometry()
-                x = geo.x() + (geo.width() - self.width()) // 2
-                y = geo.y() + (geo.height() - self.height()) // 2
-                self.move(QPoint(x, y))
 
         # Opacity effect for fade in/out
         self._effect = QGraphicsOpacityEffect(self)
@@ -122,6 +113,19 @@ class StartupSplash(QWidget):
             # Nothing to show, emit finished immediately
             QTimer.singleShot(10, self._emit_finished)
             return
+        
+        # Center on screen now that QApplication is ready
+        try:
+            screen = QGuiApplication.primaryScreen()
+            if screen:
+                geo = screen.availableGeometry()
+                x = geo.x() + (geo.width() - self.width()) // 2
+                y = geo.y() + (geo.height() - self.height()) // 2
+                self.move(QPoint(x, y))
+        except Exception:
+            # If screen access fails, just show at default position
+            pass
+        
         self.show()
         self._fade_in.start()
 
