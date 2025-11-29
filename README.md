@@ -36,9 +36,11 @@ A comprehensive edge computing platform for real-time vehicle telemetry, AI-driv
 
 ### Hardware Support
 - **reTerminal DM** (Primary platform)
-- **Raspberry Pi 5**
+- **Raspberry Pi 5** (with Waveshare HATs support)
 - **Jetson Nano** (with modifications)
 - Onboard CAN bus support
+- **Waveshare GPS HAT** - Auto-detecting GPS module with NMEA parsing
+- **Waveshare Environmental Sensor HAT** - Temperature, humidity, barometric pressure
 - GPS, Bluetooth, Wi-Fi, 4G LTE
 - Multiple USB/Wi-Fi cameras
 
@@ -86,6 +88,9 @@ python demo.py --no-voice
 - [CAN Bus Guide](docs/CAN_BUS_GUIDE.md)
 - [Architecture Overview](docs/ARCHITECTURE.md)
 - [Unique Features](docs/UNIQUE_FEATURES.md)
+- [Waveshare GPS HAT Setup](docs/WAVESHARE_GPS_HAT_SETUP.md)
+- [Waveshare Environmental HAT Setup](docs/WAVESHARE_ENVIRONMENTAL_HAT_SETUP.md)
+- [Advanced Code Review Guide](docs/ADVANCED_CODE_REVIEW_GUIDE.md)
 
 ## 🎯 Use Cases
 

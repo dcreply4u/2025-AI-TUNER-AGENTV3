@@ -205,6 +205,40 @@ def replay(self, start_time: float, end_time: float) -> Iterator[dict]:
 - **📚 Documentation:** See [Professional DAQ Integration](docs/PROFESSIONAL_DAQ_INTEGRATION.md) for complete details
 - **Status:** ✅ Implemented
 
+### 13. **Waveshare HAT Integration (Raspberry Pi 5)** ✅
+- **Hardware Required:** Waveshare GPS HAT, Waveshare Environmental Sensor HAT
+- **Location**: 
+  - `interfaces/waveshare_gps_hat.py` - GPS HAT interface
+  - `interfaces/waveshare_environmental_hat.py` - Environmental sensor HAT interface
+- **GPS HAT Features**:
+  - Auto-detection of GPS port on Raspberry Pi
+  - NMEA sentence parsing (GPGGA, GPRMC, etc.)
+  - Hardware and simulator modes
+  - Real-time GPS fix data (lat, lon, speed, heading, altitude, satellites)
+  - Automatic fallback to simulator if hardware unavailable
+- **Environmental HAT Features**:
+  - BME280 sensor: Temperature, humidity, barometric pressure
+  - Light sensor and noise sensor support
+  - Accelerometer/gyroscope (LSM6DS3) support
+  - I2C communication with auto-detection
+  - Integrated with virtual dyno for SAE/DIN corrections
+  - Density altitude calculations
+- **Development Tools**:
+  - GPS log viewer widget (development-only) - Real-time GPS data logging for troubleshooting
+  - Detection scripts for hardware validation
+  - Test scripts for integration verification
+- **Connection Methods**:
+  - UART (GPS HAT) - `/dev/ttyAMA0`, `/dev/serial0`, etc.
+  - I2C (Environmental HAT) - Bus 1, address 0x76 (BME280)
+- **Integration Points**:
+  - Data stream controller automatically uses GPS HAT when available
+  - Environmental data integrated into virtual dyno corrections
+  - GPS data used for lap timing and track mapping
+- **📚 Documentation:** 
+  - [Waveshare GPS HAT Setup](docs/WAVESHARE_GPS_HAT_SETUP.md)
+  - [Waveshare Environmental HAT Setup](docs/WAVESHARE_ENVIRONMENTAL_HAT_SETUP.md)
+- **Status:** ✅ Fully Implemented and Tested
+
 ## 🔄 Integration Points
 
 ### With Existing Codebase
