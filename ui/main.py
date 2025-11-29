@@ -70,6 +70,7 @@ from ui.theme_dialog import ThemeDialog
 from ui.theme_manager import Style, ThemeManager
 from ui.wheel_slip_widget import WheelSlipPanel
 from ui.youtube_stream_widget import YouTubeStreamWidget
+from ui.race_hud import RaceHUD
 
 # Virtual Dyno imports
 try:
@@ -964,6 +965,11 @@ class MainWindow(QWidget):
         pit_strategy_btn.clicked.connect(self._open_pit_strategist)
         racing_layout.addWidget(pit_strategy_btn)
         
+        hud_btn = QPushButton("📺 Race HUD")
+        hud_btn.setStyleSheet("background-color: #2c3e50;")
+        hud_btn.clicked.connect(self._open_race_hud)
+        racing_layout.addWidget(hud_btn)
+        
         racing_layout.addStretch()
         self.bottom_tabs.addTab(racing_tab, "🏎️ Racing")
 
@@ -1031,16 +1037,29 @@ class MainWindow(QWidget):
         except Exception as exc:
             LOGGER.warning("AnalysisCoachTab not available: %s", exc)
 
-        # Development-only tab: Log Viewer
+        # Development-only tabs: Debug dashboard + Log Viewer
         try:
+            from ui.dev_debug_dashboard_tab import DevDebugDashboardTab
             from ui.dev_log_viewer_tab import DevLogViewerTab
-            dev_log_tab = DevLogViewerTab()
-            # Only add if in dev mode (tab checks internally)
-            if dev_log_tab.is_dev_mode:
-                self.bottom_tabs.addTab(dev_log_tab, "🔧 Dev Logs")
-                LOGGER.info("Development log viewer tab added")
+
+            try:
+                debug_tab = DevDebugDashboardTab(app_context=self.app_context)
+                if getattr(debug_tab, "is_dev_mode", False):
+                    self.bottom_tabs.addTab(debug_tab, "🧪 Debug")
+                    LOGGER.info("Developer debug dashboard tab added")
+            except Exception as exc:  # pragma: no cover - dev-only
+                LOGGER.debug("Dev debug dashboard not available: %s", exc)
+
+            try:
+                dev_log_tab = DevLogViewerTab()
+                if getattr(dev_log_tab, "is_dev_mode", False):
+                    self.bottom_tabs.addTab(dev_log_tab, "🔧 Dev Logs")
+                    LOGGER.info("Development log viewer tab added")
+            except Exception as exc:  # pragma: no cover - dev-only
+                LOGGER.debug("Dev log viewer tab not available: %s", exc)
+
         except ImportError as e:
-            LOGGER.debug(f"Dev log viewer tab not available: {e}")
+            LOGGER.debug(f"Developer tabs not available: {e}")
 
         root_layout.addWidget(self.bottom_tabs)
         root_layout.addWidget(make_hgrow(self.status_bar))
@@ -1819,6 +1838,25 @@ Start a session to begin receiving coaching!
                 level="info",
             )
             dialog.exec()
+
+    def _open_race_hud(self) -> None:
+        """Open minimal Race HUD overlay window."""
+        try:
+            hud = RaceHUD(parent=self)
+            hud.show()
+            # Keep a reference to avoid garbage collection
+            if not hasattr(self, "_race_huds"):
+                self._race_huds = []
+            self._race_huds.append(hud)
+            self.ai_panel.update_insight(
+                "📺 Race HUD opened – minimal speed/safety overlay.",
+                level="info",
+            )
+        except Exception as exc:
+            self.ai_panel.update_insight(
+                f"❌ Failed to open Race HUD: {exc}",
+                level="error",
+            )
         except Exception as e:
             self.ai_panel.update_insight(f"❌ Failed to open AI Racing Coach: {e}", level="error")
 

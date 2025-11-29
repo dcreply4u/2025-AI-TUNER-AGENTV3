@@ -28,6 +28,7 @@ from PySide6.QtWidgets import (
     QListWidget,
     QListWidgetItem,
     QGroupBox,
+    QComboBox,
 )
 
 from services.driver_performance_summary import DriverPerformanceSummaryService
@@ -62,6 +63,7 @@ class AnalysisCoachTab(QWidget):
 
         self._report: Optional[SessionAnalysisReport] = None
         self._tuning: list[TuningSuggestion] = []
+        self._driver_goal: str = self._load_driver_goal()
 
         self._build_ui()
         self.refresh()
@@ -83,6 +85,40 @@ class AnalysisCoachTab(QWidget):
         header_row.addWidget(title)
 
         header_row.addStretch()
+
+        # Driver goal/profile selector
+        goal_label = QLabel("Goal:")
+        goal_label.setStyleSheet("color: #9ca3af; font-size: 11px;")
+        header_row.addWidget(goal_label)
+
+        self.goal_combo = QComboBox()
+        self.goal_combo.addItems(
+            ["Balanced", "Safe track day", "Drag PB", "Endurance"]
+        )
+        # Map stored goal to combo index
+        goal_map = {
+            "safe track day": "Safe track day",
+            "safe": "Safe track day",
+            "pb": "Drag PB",
+            "drag pb": "Drag PB",
+            "endurance": "Endurance",
+        }
+        display_goal = goal_map.get(self._driver_goal.lower(), "Balanced")
+        index = self.goal_combo.findText(display_goal)
+        if index >= 0:
+            self.goal_combo.setCurrentIndex(index)
+        self.goal_combo.setStyleSheet(
+            "QComboBox {"
+            "  background-color: #020617;"
+            "  color: #e5e7eb;"
+            "  border-radius: 4px;"
+            "  border: 1px solid #1f2937;"
+            "  padding: 2px 6px;"
+            "  font-size: 11px;"
+            "}"
+        )
+        self.goal_combo.currentTextChanged.connect(self._on_goal_changed)
+        header_row.addWidget(self.goal_combo)
 
         # Export button (left of Refresh)
         export_btn = QPushButton("Export Report")
@@ -276,6 +312,13 @@ class AnalysisCoachTab(QWidget):
         self._refresh_tuning_suggestions()
         self._refresh_performance()
 
+    def _on_goal_changed(self, text: str) -> None:
+        """Handle driver goal/profile change and persist to config."""
+        self._driver_goal = text
+        self._save_driver_goal(text)
+        # Recompute tuning suggestions with new goal weighting
+        self._refresh_tuning_suggestions()
+
     def _refresh_session_analysis(self) -> None:
         try:
             report = self._session_analyzer.analyze_latest_session()
@@ -343,7 +386,18 @@ class AnalysisCoachTab(QWidget):
             return
 
         try:
-            suggestions = self._tuning_service.suggest_from_session(self._report)
+            # Map UI goal to internal short code
+            goal_map = {
+                "balanced": "",
+                "safe track day": "safe",
+                "drag pb": "pb",
+                "endurance": "endurance",
+            }
+            goal_key = goal_map.get(self._driver_goal.lower(), "")
+            suggestions = self._tuning_service.suggest_from_session(
+                self._report,
+                goal=goal_key or None,
+            )
         except Exception as exc:  # pragma: no cover - defensive
             self.tuning_list.addItem(
                 f"Unable to compute tuning suggestions: {exc}"
@@ -489,6 +543,33 @@ class AnalysisCoachTab(QWidget):
                 lines.append(f"- Error summarizing performance: {exc}")
 
         out_path.write_text("\n".join(lines), encoding="utf-8")
+
+    # ------------------------------------------------------------------ #
+    # Driver goal persistence
+    # ------------------------------------------------------------------ #
+
+    def _load_driver_goal(self) -> str:
+        cfg_path = Path("config/driver_goal.json")
+        if not cfg_path.exists():
+            return "Balanced"
+        try:
+            import json
+
+            data = json.load(cfg_path.open("r", encoding="utf-8"))
+            return str(data.get("goal", "Balanced"))
+        except Exception:
+            return "Balanced"
+
+    def _save_driver_goal(self, goal: str) -> None:
+        cfg_path = Path("config/driver_goal.json")
+        cfg_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            import json
+
+            json.dump({"goal": goal}, cfg_path.open("w", encoding="utf-8"), indent=2)
+        except Exception:
+            # Best-effort only
+            pass
 
 
 

@@ -38,13 +38,21 @@ class TuningSuggestion:
 class TuningSuggestionService:
     """
     Convert session anomalies into structured tuning/setup suggestions.
+
+    Optionally accepts a driver goal/profile string to slightly tailor wording:
+    e.g. "safe", "pb", "endurance". This never makes aggressive changes on its
+    own – it only adjusts the tone of the guidance.
     """
 
-    def suggest_from_session(self, report: SessionAnalysisReport) -> List[TuningSuggestion]:
+    def suggest_from_session(
+        self,
+        report: SessionAnalysisReport,
+        goal: Optional[str] = None,
+    ) -> List[TuningSuggestion]:
         suggestions: List[TuningSuggestion] = []
 
         for anomaly in report.anomalies:
-            s = self._suggest_for_anomaly(anomaly)
+            s = self._suggest_for_anomaly(anomaly, goal=goal)
             if s:
                 suggestions.extend(s)
 
@@ -54,9 +62,16 @@ class TuningSuggestionService:
     # Internal helpers
     # ------------------------------------------------------------------ #
 
-    def _suggest_for_anomaly(self, anomaly: SessionAnomaly) -> List[TuningSuggestion]:
+    def _suggest_for_anomaly(
+        self,
+        anomaly: SessionAnomaly,
+        goal: Optional[str] = None,
+    ) -> List[TuningSuggestion]:
         t = anomaly.type
         out: List[TuningSuggestion] = []
+
+        # Normalise goal string
+        goal_norm = (goal or "").strip().lower()
 
         if t == "afr_lean":
             afr_max = anomaly.details.get("afr_max")
@@ -76,7 +91,11 @@ class TuningSuggestionService:
                 TuningSuggestion(
                     category="safety",
                     severity="info",
-                    message="Consider enriching the fuel map slightly in the high‑load RPM range.",
+                    message=(
+                        "For a safety‑biased tune, enrich the fuel map slightly in the high‑load RPM range."
+                        if goal_norm in {"safe", "safety", "track", "safe track day"}
+                        else "Consider enriching the fuel map slightly in the high‑load RPM range."
+                    ),
                     rationale=(
                         "A small enrichment (e.g. 2‑5% more fuel) in the affected RPM/load cells can "
                         "add safety margin while you validate the behaviour across multiple runs."
@@ -162,7 +181,9 @@ class TuningSuggestionService:
                 TuningSuggestion(
                     category="boost",
                     severity="info",
-                    message="Boost pressure peaked higher than a typical conservative street/track target.",
+                    message=(
+                        "Boost pressure peaked higher than a typical conservative street/track target."
+                    ),
                     rationale=(
                         "Higher boost increases cylinder pressure and temperature, which can demand "
                         "better fuel, more conservative ignition timing, and strong mechanical margins."
@@ -174,7 +195,11 @@ class TuningSuggestionService:
                 TuningSuggestion(
                     category="boost",
                     severity="info",
-                    message="If reliability is a priority, consider lowering boost slightly or adding safeguards.",
+                    message=(
+                        "If reliability/endurance is a priority, consider lowering boost slightly or adding safeguards."
+                        if goal_norm in {"endurance", "reliability"}
+                        else "If reliability is a priority, consider lowering boost slightly or adding safeguards."
+                    ),
                     rationale=(
                         "You can use boost control targets, gear/temperature compensations, and failsafes "
                         "to keep boost in a range the engine and fuel system can comfortably support."
