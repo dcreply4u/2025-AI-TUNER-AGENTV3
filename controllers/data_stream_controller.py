@@ -511,6 +511,23 @@ class DataStreamController(QObject):
                 LOGGER.info("Retrieved SimulatedGPSInterface from parent window")
             return
         
+        # Try Waveshare GPS HAT first (if available)
+        try:
+            from interfaces.waveshare_gps_hat import get_gps_hat
+            use_simulator = os.getenv("AITUNER_USE_GPS_SIMULATOR", "false").lower() in {"1", "true", "yes"}
+            gps_hat = get_gps_hat(use_simulator=use_simulator, auto_detect=True)
+            if gps_hat.connect():
+                # Wrap the GPS HAT to work with existing GPSInterface API
+                # The WaveshareGPSHAT.read_fix() returns GPSFix objects compatible with GPSInterface
+                self.gps_interface = gps_hat
+                LOGGER.info("Waveshare GPS HAT connected and initialized")
+                return
+            else:
+                LOGGER.debug("Waveshare GPS HAT not available, trying standard GPS interface")
+        except Exception as e:
+            LOGGER.debug(f"Waveshare GPS HAT not available: {e}, trying standard GPS interface")
+        
+        # Fallback to standard GPSInterface
         try:
             self.gps_interface = GPSInterface()
             LOGGER.info("GPS interface initialized.")

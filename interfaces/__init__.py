@@ -155,6 +155,15 @@ except ImportError:  # pragma: no cover
     EnvironmentalReading = None  # type: ignore
     get_environmental_hat = None  # type: ignore
 
+try:
+    from .waveshare_gps_hat import (
+        WaveshareGPSHAT,
+        get_gps_hat,
+    )
+except ImportError:  # pragma: no cover
+    WaveshareGPSHAT = None  # type: ignore
+    get_gps_hat = None  # type: ignore
+
 __all__ = [
     "EMSDataInterface",
     "CameraConfig",
@@ -237,3 +246,7 @@ if IMUInterface is not None:
 # Add Waveshare Environmental HAT if available
 if WaveshareEnvironmentalHAT is not None:
     __all__.extend(["WaveshareEnvironmentalHAT", "EnvironmentalReading", "get_environmental_hat"])
+
+# Add Waveshare GPS HAT if available
+if WaveshareGPSHAT is not None:
+    __all__.extend(["WaveshareGPSHAT", "get_gps_hat"])
